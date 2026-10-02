@@ -3,10 +3,12 @@
 ```bash
 git clone -c core.longpaths=true -c core.autocrlf=false https://github.com/Nole326/LeRobot.git
 cd LeRobot
-python scripts/audit_repository.py
+python scripts/check_project.py
 ```
 
 No submodule initialization or LFS download is needed. Manifests preserve baseline commits/trees, original blob hashes and materialized fixture SHA256 values. Auditing checks files without executing upstream code.
+
+Use Git and Python 3.11+ for these CPU-only checks. The unified entry point also parses project Python files, checks local Markdown file links and poster dimensions, and runs checker unit tests. It does not test GPU deployment. See [BASELINE.md](BASELINE.md) to check out the fixed initial version.
 
 The clone-local settings support IsaacLab's deep paths on Windows and preserve baseline line endings. They do not change global Git or OS settings. A long Windows destination path may fail to check out without core.longpaths even though the remote objects are complete.
 

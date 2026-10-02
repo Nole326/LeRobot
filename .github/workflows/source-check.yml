@@ -1,0 +1,27 @@
+name: Source integrity
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*-baseline']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source-check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout source (v4.2.2)
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          lfs: false
+          submodules: false
+      - name: Verify source and project files without GPU dependencies
+        run: python3 scripts/check_project.py
+      - name: Check whitespace
+        run: git diff --check

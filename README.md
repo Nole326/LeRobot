@@ -12,6 +12,10 @@ A robot-learning workspace for a reinforcement learning course project: from app
 
 ## 项目目标 / Objectives
 
+**项目基准：`v0.1.0-baseline`。** 当前版本固定源码、公开工具与文档，作为后续开发起点；不是训练完成的模型基准。版本范围、复现命令与限制见[初始基准说明](docs/BASELINE.md)。
+
+**Project baseline: `v0.1.0-baseline`.** This version fixes the source, public utilities and documentation as the starting point for future development; it is not a trained-model baseline. See the [baseline guide](docs/BASELINE.md) for scope, reproduction commands and limitations.
+
 **任务与控制。** 以 SO-101 桌面单臂为参考平台，研究从随机起点将物块推入指定区域的闭环控制。海报中的策略动作是二维末端位移；重点关注接触位置变化后如何调整动作，而不只是移动到一个固定坐标。
 
 **Task and control.** Using the SO-101 desktop arm as a reference platform, the project studies closed-loop pushing from randomized starting positions into a target region. The poster specifies two-dimensional end-effector displacements as policy actions, with an emphasis on adapting to changing contact points rather than simply reaching a fixed coordinate.
@@ -88,12 +92,16 @@ Start by cloning the repository and running the source audit, which requires nei
 ```bash
 git clone -c core.longpaths=true -c core.autocrlf=false https://github.com/Nole326/LeRobot.git
 cd LeRobot
-python scripts/audit_repository.py
+python scripts/check_project.py
 ```
 
 克隆参数仅作用于新仓库：兼容 Windows 的深层路径并保留原始换行，不修改全局 Git 配置。实际运行前，请按[依赖说明](docs/DEPENDENCIES.md)和[部署边界](docs/REPRODUCIBILITY.md)配置隔离环境，核实模拟器、Python、PyTorch、CUDA 与驱动兼容性。
 
 The clone options apply only to the new repository: they accommodate deep Windows paths and preserve original line endings without changing global Git settings. Before execution, follow the [dependency inventory](docs/DEPENDENCIES.md) and [deployment boundaries](docs/REPRODUCIBILITY.md), use an isolated environment, and verify simulator, Python, PyTorch, CUDA and driver compatibility.
+
+仓库检查只需 Git 和 Python 3.11+，覆盖上游内容哈希、公开工具语法、本地文档链接和海报尺寸；GitHub Actions 执行同一入口，不安装模拟器或训练依赖。完整固定版本的获取方式见[基准说明](docs/BASELINE.md)。
+
+Repository checks require only Git and Python 3.11+, covering upstream content hashes, public utility syntax, local documentation links and poster dimensions. GitHub Actions uses the same entry point without installing simulator or training dependencies. See the [baseline guide](docs/BASELINE.md) to retrieve the fixed version.
 
 Isaac Sim 运行时、独立场景资产、完整数据集与预训练权重需要通过官方渠道另行获取。所有 GPU 与硬件操作均应遵守所在机构的授权和安全要求；不要修改宿主驱动或干扰其他任务。
 
@@ -111,6 +119,9 @@ Prefer separate adapters for project-specific changes. When upstream changes are
 
 ## 文档 / Documentation
 
+- [初始基准与版本范围 / Initial baseline and scope](docs/BASELINE.md)
+- [修改与验证规范 / Contribution and validation guidelines](CONTRIBUTING.md)
+- [版本记录 / Changelog](CHANGELOG.md)
 - [依赖与外部资产 / Dependencies and external assets](docs/DEPENDENCIES.md)
 - [部署布局与复现边界 / Deployment and reproducibility boundaries](docs/REPRODUCIBILITY.md)
 - [源码导入清单 / Source import inventory](docs/IMPORT_MANIFEST.md)

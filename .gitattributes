@@ -7,3 +7,8 @@
 /README.md text eol=lf
 /AGENTS.md text eol=lf
 /THIRD_PARTY_NOTICES.md text eol=lf
+/*.md text eol=lf
+/assets/*.md text eol=lf
+/assets/*.png -text
+/.github/**/*.yml text eol=lf
+/tests/*.py text eol=lf

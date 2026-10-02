@@ -20,6 +20,8 @@ Simulator binaries, CUDA, package distributions and separately licensed scene as
 
 Course PDFs, requirement summaries, reports, validation records, screenshots, server inventories/addresses/IDs/reservations and credentials are excluded under the owner's publication scope. Future formal task/evaluation packages must follow their own access rules.
 
+The owner-approved exception is the redacted bilingual project poster and its generic project introduction. This does not authorize publishing the original poster with contact details or other private course materials.
+
 manifests/projects.json records commits/trees; source_files.json validates upstream content; lfs_objects.json records fixtures; course_files.json covers only public utility code and constraints. These files support automated auditing, not private deployment inventory.
 
 Import validation covers source integrity and Python syntax, not fresh GPU deployment, formal evaluation or end-to-end training success.
