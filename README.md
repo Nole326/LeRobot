@@ -23,12 +23,14 @@
 ## 获取与检查
 
 ```bash
-git clone https://github.com/Nole326/LeRobot.git
+git clone -c core.longpaths=true -c core.autocrlf=false https://github.com/Nole326/LeRobot.git
 cd LeRobot
 python scripts/audit_repository.py
 ```
 
 审计不导入仿真库、不访问GPU。进一步阅读：
+
+克隆参数仅作用于新仓库：兼容Windows下IsaacLab较深的路径，并保留源码原始换行；不修改系统或全局Git设置。
 
 - [完整依赖范围](docs/DEPENDENCIES.md)
 - [部署布局与边界](docs/REPRODUCIBILITY.md)

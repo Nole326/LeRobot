@@ -1,12 +1,14 @@
 # Getting and using the source
 
 ```bash
-git clone https://github.com/Nole326/LeRobot.git
+git clone -c core.longpaths=true -c core.autocrlf=false https://github.com/Nole326/LeRobot.git
 cd LeRobot
 python scripts/audit_repository.py
 ```
 
 No submodule initialization or LFS download is needed. Manifests preserve baseline commits/trees, original blob hashes and materialized fixture SHA256 values. Auditing checks files without executing upstream code.
+
+The clone-local settings support IsaacLab's deep paths on Windows and preserve baseline line endings. They do not change global Git or OS settings. A long Windows destination path may fail to check out without core.longpaths even though the remote objects are complete.
 
 ## Generic deployment layout
 
