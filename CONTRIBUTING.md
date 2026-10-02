@@ -1,8 +1,22 @@
 # 修改与验证 / Contributing and validation
 
-请从基准标签创建功能分支，保持改动范围清楚。优先新增独立适配器，避免直接修改已冻结的上游源码；算法、奖励、观测、控制器和评估口径的变化需要分别记录和验证。
+首次开发可从当前基准标签 `v0.1.1-baseline` 创建功能分支；后续协作通常从最新 `main` 分支开始，避免遗漏已合入的改动。优先新增独立适配器，避免直接修改已冻结的上游源码；算法、奖励、观测、控制器和评估口径的变化需要分别记录和验证。
 
-Start a feature branch from the baseline tag and keep changes scoped. Prefer standalone adapters over modifying frozen upstream source. Changes to algorithms, rewards, observations, controllers and evaluation protocols need explicit records and validation.
+Start initial development from `v0.1.1-baseline`; subsequent collaborative work should normally branch from the latest `main` to include merged changes. Prefer standalone adapters over modifying frozen upstream source. Changes to algorithms, rewards, observations, controllers and evaluation protocols need explicit records and validation.
+
+## 版本记录 / Version history
+
+每次 commit 用简短标题说明改动，必要时在正文补充原因和验证结果。错字、格式等小修正通常只需提交说明；新增功能、重要修复、依赖升级和兼容性变化同时记入 [CHANGELOG.md](CHANGELOG.md) 的 `Unreleased`，替换其中的占位文字，按中文一段、英文一段记录。
+
+Give each commit a concise description, adding rationale and validation results in the body when needed. Typos and formatting fixes usually need only a commit message. Add features, significant fixes, dependency upgrades and compatibility changes to `Unreleased` in [CHANGELOG.md](CHANGELOG.md), replacing its placeholder with Chinese-then-English entries.
+
+阶段性发布时，将 `Unreleased` 的内容整理到带版本号和日期的新条目下，再保留一个新的 `Unreleased`。同步 README 和相关版本文档，运行检查、提交后，在该提交上创建带说明的 Git tag，并推送提交和标签。已发布标签不覆盖；GitHub Release 可复用同一份版本摘要，无需每版另建 Markdown 文件。
+
+For a milestone release, move the accumulated entries into a versioned, dated section and retain a fresh `Unreleased` section. Update the README and relevant version docs, run checks, commit, then create an annotated Git tag on that commit and push both. Never overwrite published tags. A GitHub Release can reuse the same summary; a separate Markdown file per version is unnecessary.
+
+README 面向项目读者，介绍目标、用法和当前进度。图片来源放在致谢或素材说明中；沟通过程、编辑指令及内部操作记录不写入 README。
+
+Write the README for project readers: describe goals, usage and current progress. Keep image attribution in acknowledgements or asset notes, and leave conversations, editing instructions and internal operations out of the README.
 
 提交前执行统一检查：
 

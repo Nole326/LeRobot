@@ -14,17 +14,17 @@ A robot-learning workspace for a reinforcement learning course project: from app
 
 ## 项目目标 / Objectives
 
-**项目基准：`v0.1.0-baseline`。** 当前版本固定源码、公开工具与文档，作为后续开发起点；不是训练完成的模型基准。版本范围、复现命令与限制见[初始基准说明](docs/BASELINE.md)。
+**开发基准：`v0.1.1-baseline`。** 源码版本与使用方法见[基准说明](docs/BASELINE.md)，版本变化见[更新记录](CHANGELOG.md)。
 
-**Project baseline: `v0.1.0-baseline`.** This version fixes the source, public utilities and documentation as the starting point for future development; it is not a trained-model baseline. See the [baseline guide](docs/BASELINE.md) for scope, reproduction commands and limitations.
+**Development baseline: `v0.1.1-baseline`.** See the [baseline guide](docs/BASELINE.md) for pinned sources and setup instructions, and the [changelog](CHANGELOG.md) for version history.
 
 **任务与控制。** 以 SO-101 桌面单臂为参考平台，研究从随机起点将物块推入指定区域的闭环控制。海报中的策略动作是二维末端位移；重点关注接触位置变化后如何调整动作，而不只是移动到一个固定坐标。
 
 **Task and control.** Using the SO-101 desktop arm as a reference platform, the project studies closed-loop pushing from randomized starting positions into a target region. The poster specifies two-dimensional end-effector displacements as policy actions, with an emphasis on adapting to changing contact points rather than simply reaching a fixed coordinate.
 
-**算法与对照。** 计划探索 PPO / SAC 接触控制，与几何方法比较，并分析物块定位误差对策略表现的影响。具体环境、控制频率、奖励和成功判定需在接口确定后逐项验证；这里不将计划中的实验描述为已经实现的结果。
+**算法与对照。** 计划探索 PPO / SAC 接触控制，与几何方法比较，并分析物块定位误差对策略表现的影响。环境、控制频率、奖励和成功判定将在任务接口确定后完善。
 
-**Algorithms and baselines.** The planned study explores PPO / SAC for contact control, compares learned policies with geometric methods, and examines sensitivity to block-localization errors. The environment, control frequency, reward and success criteria must be verified once the interfaces are defined; planned experiments are not presented as completed results.
+**Algorithms and baselines.** We plan to explore PPO / SAC for contact control, compare learned policies with geometric methods, and study sensitivity to block-localization errors. The environment, control frequency, reward and success criteria will be refined once the task interfaces are defined.
 
 **仿真到真机。** 目标是结合关节反馈与相机物块定位，持续读取状态并修正动作，同时对齐仿真与真实机器人的观测和动作含义。SO-101 的硬件背景见 [LeRobot 官方文档](https://huggingface.co/docs/lerobot/so101)。
 
@@ -32,9 +32,9 @@ A robot-learning workspace for a reinforcement learning course project: from app
 
 ## 当前范围 / Current scope
 
-本仓库当前提供固定版本的完整源码快照、依赖清单和独立验证工具，为后续环境适配、策略训练与评估做准备。它不是 Hugging Face 官方 LeRobot 仓库，也不是课程正式环境或评分器；不宣称桌面推物的端到端训练、真机部署或正式评测已经完成。
+本项目基于 LeRobot、LeIsaac 和 IsaacLab 开发，目前已完成源码整合，提供固定版本的源码、依赖清单和独立验证工具。桌面推物环境适配、策略训练、评估和真机部署是下一阶段的工作。
 
-The repository currently provides complete, pinned source snapshots, dependency inventories and standalone diagnostic tools to support subsequent environment adaptation, policy training and evaluation. It is neither the official Hugging Face LeRobot repository nor the course's official environment or grader. It does not claim completed end-to-end pushing training, real-robot deployment or formal evaluation.
+This project builds on LeRobot, LeIsaac and IsaacLab. Source integration is complete, with pinned sources, dependency inventories and standalone diagnostic tools. Tabletop-pushing environment adaptation, policy training, evaluation and hardware deployment are the next development stages.
 
 已有 PickOrange 等上游示例用于接口与运行链路验证，不等同于海报中的桌面推物任务。保留这些源码是为了便于复用和对照，不表示沿用其任务定义、动作空间或评分规则。
 
@@ -115,9 +115,9 @@ The Isaac Sim runtime, external scene assets, full datasets and pretrained weigh
 
 First align observations, action units and timing, and verify termination, truncation and `final_observation` handling. Then integrate the formal task environment and establish reproducible baselines and evaluation protocols. Training and hardware experiments follow only after their respective checks pass.
 
-项目代码修改应优先采用独立适配层；确需修改上游时，记录版本、改动及验证依据，保留许可和来源。当前 README 不列未经验证的成功率或性能承诺。
+项目代码优先采用独立适配层；上游源码的修改记录在补丁和版本清单中，便于对照与复现。参与开发请参阅[贡献说明](CONTRIBUTING.md)。
 
-Prefer separate adapters for project-specific changes. When upstream changes are necessary, record the version, patch and validation evidence while preserving licenses and attribution. This README does not report unverified success rates or performance claims.
+Project-specific code uses separate adapters where possible. Changes to upstream sources are tracked through patches and version manifests for comparison and reproducibility. See the [contribution guide](CONTRIBUTING.md) to get involved.
 
 ## 文档 / Documentation
 
@@ -136,10 +136,6 @@ Prefer separate adapters for project-specific changes. When upstream changes are
 
 We thank [Hugging Face LeRobot](https://github.com/huggingface/lerobot), [Lightwheel LeIsaac](https://github.com/LightwheelAI/leisaac) and [IsaacLab](https://github.com/isaac-sim/IsaacLab) for their open-source foundations. Follow each project's license when citing, distributing or modifying its code; integration here does not change upstream ownership.
 
-当前海报课程项目海报制作双语版。机器人图像参考来源为 [LeRobot SO-101 官方文档](https://huggingface.co/docs/lerobot/so101)。
+海报为课程项目海报的双语版。机器人图像来源为 [LeRobot SO-101 官方文档](https://huggingface.co/docs/lerobot/so101)。
 
 The current poster is a bilingual version of the course project poster. The robot image is sourced from the [official LeRobot SO-101 documentation](https://huggingface.co/docs/lerobot/so101).
-
-公开内容限于源码、通用说明和获准发布的修复海报。原始课程材料、报告、服务器记录、实验输出、凭据及私有配置不随仓库发布。
-
-Public content is limited to source code, generic documentation and the approved restored poster. Original course materials, reports, server records, experiment outputs, credentials and private configuration are not published with this repository.

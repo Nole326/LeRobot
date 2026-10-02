@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+暂无待发布的重要变化。
+
+No notable changes pending release.
+
+## v0.1.1-baseline — 2026-10-02
+
+更新开发基准说明与 README，明确版本记录流程。上游源码和依赖版本保持不变，保留 `v0.1.0-baseline` 供历史对照。
+
+Update the baseline guide and README, and document the version-history workflow. Upstream sources and dependency versions are unchanged; `v0.1.0-baseline` remains available for historical comparison.
+
 统一全海报文字层级，修复01/02/03对应字号、字重、行距及字形宽窄不一致；长句换行而不压缩。加入字体层级与等比缩放回归检查，背景及官方照片不变。
 
 Unify typography across the poster, correcting inconsistent sizes, weights, line heights and glyph proportions in sections 01/02/03; wrap long sentences instead of compressing them. Add regression checks for type roles and isotropic scaling, leaving the background and official photograph unchanged.

@@ -1,13 +1,13 @@
 # 初始基准 / Initial baseline
 
-基准版本：`v0.1.0-baseline`。这是项目的源码整合起点，不是训练完成的策略、正式课程环境或性能基准。后续开发从此版本建立对照；不要移动或覆盖这个标签。
+当前开发基准：`v0.1.1-baseline`。它固定项目源码、工具与文档，供后续开发和复现使用，不包含训练完成的策略。最初的 `v0.1.0-baseline` 保留用于历史对照，两个标签均不移动或覆盖。
 
-Baseline version: `v0.1.0-baseline`. This is the source-integration starting point, not a trained policy, formal course environment or performance benchmark. Use it as the reference for subsequent development; do not move or overwrite this tag.
+Current development baseline: `v0.1.1-baseline`. It pins the project sources, tools and documentation for development and reproduction; it does not include a trained policy. The original `v0.1.0-baseline` remains available for historical comparison. Neither tag should be moved or overwritten.
 
 ## 获取固定版本 / Retrieve the pinned baseline
 
 ```bash
-git clone -c core.longpaths=true -c core.autocrlf=false --branch v0.1.0-baseline https://github.com/Nole326/LeRobot.git
+git clone -c core.longpaths=true -c core.autocrlf=false --branch v0.1.1-baseline https://github.com/Nole326/LeRobot.git
 cd LeRobot
 python scripts/check_project.py
 git rev-parse HEAD
@@ -27,9 +27,13 @@ A tag checkout has a detached HEAD, suitable for inspection or reproduction. Cre
 
   4,361 upstream files, 45 materialized LFS test fixtures and 18 public utility/constraint files. Exact versions and hashes are recorded in [manifests](../manifests/).
 
-- 双语项目说明、获准发布的海报，以及无 GPU 的仓库自动检查。完整性检查不等于模拟器或训练验收。
+- 双语项目说明、包含官方 SO-101 照片的矢量文字海报与 4K PNG，以及无 GPU 的仓库自动检查和字体排版回归测试。
 
-  Bilingual project documentation, the approved poster and GPU-free repository checks. Content integrity is not simulator or training acceptance.
+  Bilingual documentation, a vector-text poster and 4K PNG featuring the official SO-101 photograph, plus GPU-free repository checks and typography regression tests.
+
+本版沿用 `v0.1.0-baseline` 的上游源码及版本，仅完善文档、海报和检查项。版本摘要见 [CHANGELOG](../CHANGELOG.md)。仓库检查不替代模拟器或训练验证。
+
+This version retains the upstream sources and versions from `v0.1.0-baseline`, with improvements to documentation, artwork and checks. See the [changelog](../CHANGELOG.md) for a summary. Repository checks do not replace simulation or training validation.
 
 ## 尚未完成 / Not yet established
 
