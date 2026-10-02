@@ -1,0 +1,92 @@
+[
+  {
+    "path": "course/constraints-bc.txt",
+    "bytes": 125,
+    "sha256": "2348c9e1abba43ddb71d078b28682c5d6d18ec705ac7df2a8fc9d7b10cd5f747"
+  },
+  {
+    "path": "course/constraints-isaac51.txt",
+    "bytes": 393,
+    "sha256": "c04f9dff92200262a99331b2460c2bf839a512eaa15e29782141abdae675e1ff"
+  },
+  {
+    "path": "course/scripts/analyze_ee_motion.py",
+    "bytes": 1193,
+    "sha256": "08b832cc899bc2a5d558825c5f5f4c5b963567945db0541124977952546d73af"
+  },
+  {
+    "path": "course/scripts/audit_install_plan.py",
+    "bytes": 655,
+    "sha256": "8081d3468b459b1e26cb994047ee7bac9f9e5baf869102430bb5b80d4ff65117"
+  },
+  {
+    "path": "course/scripts/course_bc_python.sh",
+    "bytes": 503,
+    "sha256": "e0914b81b0ecb9ef9172b6b31ec4823c7aea70286a20325d38ee3048d0434a9b"
+  },
+  {
+    "path": "course/scripts/course_python.sh",
+    "bytes": 674,
+    "sha256": "d2676cb15786194d46c6bbc94319a749d56124a17470fbe012f49743c584bc8c"
+  },
+  {
+    "path": "course/scripts/environment_inventory.py",
+    "bytes": 619,
+    "sha256": "ffd9619c0ce07801d9ee9875605eec8052e148a7a384c27f9051efba90c318f1"
+  },
+  {
+    "path": "course/scripts/inspect_dataset.py",
+    "bytes": 2365,
+    "sha256": "9bc0a2aa4093cc28b0068b178185d9ddad965a7e870c47fba6fb33ac3c4f27cb"
+  },
+  {
+    "path": "course/scripts/joint_contract.py",
+    "bytes": 1270,
+    "sha256": "bbacff0d1fab508b8ea940540ef448b280d7f82ffbfd2e0c61223e607c2f49e6"
+  },
+  {
+    "path": "course/scripts/prepare_assets.py",
+    "bytes": 3027,
+    "sha256": "f7ec96d742a4a9689d3e5e20a0d0eed92174d81a4a07a933fa8716f4ab01ae63"
+  },
+  {
+    "path": "course/scripts/validate_act.py",
+    "bytes": 3198,
+    "sha256": "61fde8b8261cbc4dada2cde075281d5c92501f8d812811098f063dad74729f54"
+  },
+  {
+    "path": "course/scripts/validate_bridge.py",
+    "bytes": 6239,
+    "sha256": "e209cde4a447d20d64d5c8d69d38b5c6f79a29ad2e024c0775adb48878857fae"
+  },
+  {
+    "path": "course/scripts/validate_cuda.py",
+    "bytes": 507,
+    "sha256": "11aa1e185a0465bff4fdc777557278108f0332541748abc7159e68514c46e493"
+  },
+  {
+    "path": "course/scripts/validate_dataset.py",
+    "bytes": 2455,
+    "sha256": "7b1360e3d6312192a371f6d4eb31cc67179eab5da9d00c11fcdaf0c28d9df167"
+  },
+  {
+    "path": "course/scripts/validate_ee_control.py",
+    "bytes": 8929,
+    "sha256": "d0c4f83ca802732eb42c16f7f42fee2bf690e641b30d63b71cc725b7bcc40d21"
+  },
+  {
+    "path": "course/scripts/validate_joint_contract.py",
+    "bytes": 1171,
+    "sha256": "ecdba704b74964dddd1deb7c2eaa913c46dc77f2723b45a1556585f71dffc21e"
+  },
+  {
+    "path": "course/scripts/validate_rollout.py",
+    "bytes": 11745,
+    "sha256": "17ccfac4863608503ffa6a3e493f8ae2b0efc9ef0d1ff27f1d8cddeda0c93f27"
+  },
+  {
+    "path": "course/scripts/validate_sim.py",
+    "bytes": 3891,
+    "sha256": "e7d92287adf0d18b66c4f852e1115fbe1bfadb3dd089adc7dcb4817589602dc0"
+  }
+]

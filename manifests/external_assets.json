@@ -1,0 +1,23 @@
+{
+  "purpose": "Machine-readable external runtime and asset verification; not a claim that binaries are in Git",
+  "runtime": {
+    "image": "nvcr.io/nvidia/isaac-lab:2.3.0",
+    "status": "Official runtime reference; verify actual versions after pull. No private deployment inventory published."
+  },
+  "assets": [
+    {
+      "name": "kitchen_with_orange.zip",
+      "url": "https://github.com/LightwheelAI/leisaac/releases/download/v0.1.0/kitchen_with_orange.zip",
+      "bytes": 72918086,
+      "sha256": "d314c54b63a17e91402bfaddf26e21ff614adf2430fa092b78897f15b8adea34"
+    },
+    {
+      "name": "so101_follower.usd",
+      "url": "https://github.com/LightwheelAI/leisaac/releases/download/v0.1.0/so101_follower.usd",
+      "bytes": 23241268,
+      "sha256": "64a877c3b82cdc4a48ab8a1f321a2dd3ef7c55d4b10bce222b58c530d978ae58"
+    }
+  ],
+  "course_starter": {"status": "not published; no URL or commit available"},
+  "pretrained_models": {"status": "not selected; obtain under each model card, no fabricated hashes"}
+}

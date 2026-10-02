@@ -1,0 +1,272 @@
+[
+  {
+    "path": "third_party/lerobot/tests/artifacts/cameras/image_128x128.png",
+    "sha256": "9dc9df05797dc0e7b92edc845caab2e4c37c3cfcabb4ee6339c67212b5baba3b",
+    "bytes": 38023,
+    "url": "https://media.githubusercontent.com/media/huggingface/lerobot/58f70b6bd370864139a3795ac3497a9eae8c42d5/tests/artifacts/cameras/image_128x128.png"
+  },
+  {
+    "path": "third_party/lerobot/tests/artifacts/cameras/image_160x120.png",
+    "sha256": "7e11af87616b83c1cdb30330e951b91e86b51c64a1326e1ba5b4a3fbcdec1a11",
+    "bytes": 55698,
+    "url": "https://media.githubusercontent.com/media/huggingface/lerobot/58f70b6bd370864139a3795ac3497a9eae8c42d5/tests/artifacts/cameras/image_160x120.png"
+  },
+  {
+    "path": "third_party/lerobot/tests/artifacts/cameras/image_320x180.png",
+    "sha256": "b8840fb643afe903191248703b1f95a57faf5812ecd9978ac502ee939646fdb2",
+    "bytes": 121115,
+    "url": "https://media.githubusercontent.com/media/huggingface/lerobot/58f70b6bd370864139a3795ac3497a9eae8c42d5/tests/artifacts/cameras/image_320x180.png"
+  },
+  {
+    "path": "third_party/lerobot/tests/artifacts/cameras/image_480x270.png",
+    "sha256": "f79d14daafb1c0cf2fec5d46ee8029a73fe357402fdd31a7cd4a4794d7319a7c",
+    "bytes": 260367,
+    "url": "https://media.githubusercontent.com/media/huggingface/lerobot/58f70b6bd370864139a3795ac3497a9eae8c42d5/tests/artifacts/cameras/image_480x270.png"
+  },
+  {
+    "path": "third_party/lerobot/tests/artifacts/cameras/test_rs.bag",
+    "sha256": "a8d6e64d6cb0e02c94ae125630ee758055bd2e695772c0463a30d63ddc6c5e17",
+    "bytes": 3520862,
+    "url": "https://media.githubusercontent.com/media/huggingface/lerobot/58f70b6bd370864139a3795ac3497a9eae8c42d5/tests/artifacts/cameras/test_rs.bag"
+  },
+  {
+    "path": "third_party/lerobot/tests/artifacts/datasets/lerobot/aloha_sim_insertion_human/frame_0.safetensors",
+    "sha256": "6bdf22208d49cd36d24bc844d4d8bda5e321eafe39d2b470e4fc95c7812fdb24",
+    "bytes": 3687117,
+    "url": "https://media.githubusercontent.com/media/huggingface/lerobot/58f70b6bd370864139a3795ac3497a9eae8c42d5/tests/artifacts/datasets/lerobot/aloha_sim_insertion_human/frame_0.safetensors"
+  },
+  {
+    "path": "third_party/lerobot/tests/artifacts/datasets/lerobot/aloha_sim_insertion_human/frame_1.safetensors",
+    "sha256": "8920d5ebab36ffcba9aa74dcd91677c121f504b4d945b472352d379f9272fabf",
+    "bytes": 3687117,
+    "url": "https://media.githubusercontent.com/media/huggingface/lerobot/58f70b6bd370864139a3795ac3497a9eae8c42d5/tests/artifacts/datasets/lerobot/aloha_sim_insertion_human/frame_1.safetensors"
+  },
+  {
+    "path": "third_party/lerobot/tests/artifacts/datasets/lerobot/aloha_sim_insertion_human/frame_250.safetensors",
+    "sha256": "35723f2db499da3d9d121aa79d2ff4c748effd7c2ea92f277ec543a82fb843ca",
+    "bytes": 3687117,
+    "url": "https://media.githubusercontent.com/media/huggingface/lerobot/58f70b6bd370864139a3795ac3497a9eae8c42d5/tests/artifacts/datasets/lerobot/aloha_sim_insertion_human/frame_250.safetensors"
+  },
+  {
+    "path": "third_party/lerobot/tests/artifacts/datasets/lerobot/aloha_sim_insertion_human/frame_251.safetensors",
+    "sha256": "53172b773d4a78bb3140f10280105c2c4ebcb467f3097579988d42cb87790ab9",
+    "bytes": 3687117,
+    "url": "https://media.githubusercontent.com/media/huggingface/lerobot/58f70b6bd370864139a3795ac3497a9eae8c42d5/tests/artifacts/datasets/lerobot/aloha_sim_insertion_human/frame_251.safetensors"
+  },
+  {
+    "path": "third_party/lerobot/tests/artifacts/datasets/lerobot/aloha_sim_insertion_human/frame_498.safetensors",
+    "sha256": "58a5d91573e7dd2352a1454a5c9118c9ad3798428a0104e5e0b57fc01f780ae7",
+    "bytes": 3687117,
+    "url": "https://media.githubusercontent.com/media/huggingface/lerobot/58f70b6bd370864139a3795ac3497a9eae8c42d5/tests/artifacts/datasets/lerobot/aloha_sim_insertion_human/frame_498.safetensors"
+  },
+  {
+    "path": "third_party/lerobot/tests/artifacts/datasets/lerobot/aloha_sim_insertion_human/frame_499.safetensors",
+    "sha256": "bb65a25e989a32a8b6258d368bd077e4548379c74ab5ada01cc532d658670df0",
+    "bytes": 3687117,
+    "url": "https://media.githubusercontent.com/media/huggingface/lerobot/58f70b6bd370864139a3795ac3497a9eae8c42d5/tests/artifacts/datasets/lerobot/aloha_sim_insertion_human/frame_499.safetensors"
+  },
+  {
+    "path": "third_party/lerobot/tests/artifacts/datasets/lerobot/pusht/frame_0.safetensors",
+    "sha256": "c3dcff0a705ebfdaf11b7f49ad85b464eff03477ace3d63ce45d6a3a10b429d5",
+    "bytes": 111338,
+    "url": "https://media.githubusercontent.com/media/huggingface/lerobot/58f70b6bd370864139a3795ac3497a9eae8c42d5/tests/artifacts/datasets/lerobot/pusht/frame_0.safetensors"
+  },
+  {
+    "path": "third_party/lerobot/tests/artifacts/datasets/lerobot/pusht/frame_1.safetensors",
+    "sha256": "d8ab0274761cdd758bafdf274ce3e6398cd6f0df23393971f3e1b6b465d66ef3",
+    "bytes": 111338,
+    "url": "https://media.githubusercontent.com/media/huggingface/lerobot/58f70b6bd370864139a3795ac3497a9eae8c42d5/tests/artifacts/datasets/lerobot/pusht/frame_1.safetensors"
+  },
+  {
+    "path": "third_party/lerobot/tests/artifacts/datasets/lerobot/pusht/frame_159.safetensors",
+    "sha256": "aee60956925da9687546aafa770d5e6a04f99576f903b08d0bd5f8003a7f4f3e",
+    "bytes": 111338,
+    "url": "https://media.githubusercontent.com/media/huggingface/lerobot/58f70b6bd370864139a3795ac3497a9eae8c42d5/tests/artifacts/datasets/lerobot/pusht/frame_159.safetensors"
+  },
+  {
+    "path": "third_party/lerobot/tests/artifacts/datasets/lerobot/pusht/frame_160.safetensors",
+    "sha256": "c8d9f9cc9e232820760fe4a46b47000c921fa5d868420e55d8dbc05dae56e8bd",
+    "bytes": 111338,
+    "url": "https://media.githubusercontent.com/media/huggingface/lerobot/58f70b6bd370864139a3795ac3497a9eae8c42d5/tests/artifacts/datasets/lerobot/pusht/frame_160.safetensors"
+  },
+  {
+    "path": "third_party/lerobot/tests/artifacts/datasets/lerobot/pusht/frame_80.safetensors",
+    "sha256": "01cfe50c537e3aef0cd5947ec0b15b321b54ecb461baf7b4f2506897158eebc8",
+    "bytes": 111338,
+    "url": "https://media.githubusercontent.com/media/huggingface/lerobot/58f70b6bd370864139a3795ac3497a9eae8c42d5/tests/artifacts/datasets/lerobot/pusht/frame_80.safetensors"
+  },
+  {
+    "path": "third_party/lerobot/tests/artifacts/datasets/lerobot/pusht/frame_81.safetensors",
+    "sha256": "96431ca3479eef2379406ef901cad7ba5eac4f7edcc48ecc9e8d1fa0e99d8017",
+    "bytes": 111338,
+    "url": "https://media.githubusercontent.com/media/huggingface/lerobot/58f70b6bd370864139a3795ac3497a9eae8c42d5/tests/artifacts/datasets/lerobot/pusht/frame_81.safetensors"
+  },
+  {
+    "path": "third_party/lerobot/tests/artifacts/datasets/lerobot/xarm_lift_medium/frame_0.safetensors",
+    "sha256": "3763d7bff7873cb40ea9d6f2f98d45fcf163addcd2809b6c59f273b6c3627ad5",
+    "bytes": 85353,
+    "url": "https://media.githubusercontent.com/media/huggingface/lerobot/58f70b6bd370864139a3795ac3497a9eae8c42d5/tests/artifacts/datasets/lerobot/xarm_lift_medium/frame_0.safetensors"
+  },
+  {
+    "path": "third_party/lerobot/tests/artifacts/datasets/lerobot/xarm_lift_medium/frame_1.safetensors",
+    "sha256": "24150994c6959631dc081b43e4001a8664e13b194ac194a32100f7d3fd2c0d0f",
+    "bytes": 85353,
+    "url": "https://media.githubusercontent.com/media/huggingface/lerobot/58f70b6bd370864139a3795ac3497a9eae8c42d5/tests/artifacts/datasets/lerobot/xarm_lift_medium/frame_1.safetensors"
+  },
+  {
+    "path": "third_party/lerobot/tests/artifacts/datasets/lerobot/xarm_lift_medium/frame_12.safetensors",
+    "sha256": "c9c3fdf34debe47d4b80570a19e676185449df749f37daa2111184c1f439ae5f",
+    "bytes": 85353,
+    "url": "https://media.githubusercontent.com/media/huggingface/lerobot/58f70b6bd370864139a3795ac3497a9eae8c42d5/tests/artifacts/datasets/lerobot/xarm_lift_medium/frame_12.safetensors"
+  },
+  {
+    "path": "third_party/lerobot/tests/artifacts/datasets/lerobot/xarm_lift_medium/frame_13.safetensors",
+    "sha256": "f8cfbe444c14d643da2faea9f6a402ddb37114ab15395c381f1a7982e541f868",
+    "bytes": 85353,
+    "url": "https://media.githubusercontent.com/media/huggingface/lerobot/58f70b6bd370864139a3795ac3497a9eae8c42d5/tests/artifacts/datasets/lerobot/xarm_lift_medium/frame_13.safetensors"
+  },
+  {
+    "path": "third_party/lerobot/tests/artifacts/datasets/lerobot/xarm_lift_medium/frame_23.safetensors",
+    "sha256": "07c5c1a63998884ee747a6d0aa8f49217da3c32af2760dad2a9da794d3517003",
+    "bytes": 85353,
+    "url": "https://media.githubusercontent.com/media/huggingface/lerobot/58f70b6bd370864139a3795ac3497a9eae8c42d5/tests/artifacts/datasets/lerobot/xarm_lift_medium/frame_23.safetensors"
+  },
+  {
+    "path": "third_party/lerobot/tests/artifacts/datasets/lerobot/xarm_lift_medium/frame_24.safetensors",
+    "sha256": "9927ec508e3335f8b10cf3682e41dedb7e647f92a2063a4196f1e48749c47bc5",
+    "bytes": 85353,
+    "url": "https://media.githubusercontent.com/media/huggingface/lerobot/58f70b6bd370864139a3795ac3497a9eae8c42d5/tests/artifacts/datasets/lerobot/xarm_lift_medium/frame_24.safetensors"
+  },
+  {
+    "path": "third_party/lerobot/tests/artifacts/image_transforms/default_transforms.safetensors",
+    "sha256": "6b1e600768a8771c5fe650e038a1193597e3810f032041b2a0d021e4496381c1",
+    "bytes": 3686488,
+    "url": "https://media.githubusercontent.com/media/huggingface/lerobot/58f70b6bd370864139a3795ac3497a9eae8c42d5/tests/artifacts/image_transforms/default_transforms.safetensors"
+  },
+  {
+    "path": "third_party/lerobot/tests/artifacts/image_transforms/single_transforms.safetensors",
+    "sha256": "9d4ebab73eabddc58879a4e770289d19e00a1a4cf2fa5fa33cd3a3246992bc90",
+    "bytes": 40551392,
+    "url": "https://media.githubusercontent.com/media/huggingface/lerobot/58f70b6bd370864139a3795ac3497a9eae8c42d5/tests/artifacts/image_transforms/single_transforms.safetensors"
+  },
+  {
+    "path": "third_party/lerobot/tests/artifacts/policies/aloha_sim_insertion_human_act_/actions.safetensors",
+    "sha256": "ee0c29d3782aa1cadcf4dc6ed767d9460ff00fff9fc70b460502340b832eefcc",
+    "bytes": 5104,
+    "url": "https://media.githubusercontent.com/media/huggingface/lerobot/58f70b6bd370864139a3795ac3497a9eae8c42d5/tests/artifacts/policies/aloha_sim_insertion_human_act_/actions.safetensors"
+  },
+  {
+    "path": "third_party/lerobot/tests/artifacts/policies/aloha_sim_insertion_human_act_/grad_stats.safetensors",
+    "sha256": "1a7a8b1a457149109f843c32bcbb047d09de2201847b9b79f7501b447f77ecf4",
+    "bytes": 31672,
+    "url": "https://media.githubusercontent.com/media/huggingface/lerobot/58f70b6bd370864139a3795ac3497a9eae8c42d5/tests/artifacts/policies/aloha_sim_insertion_human_act_/grad_stats.safetensors"
+  },
+  {
+    "path": "third_party/lerobot/tests/artifacts/policies/aloha_sim_insertion_human_act_/output_dict.safetensors",
+    "sha256": "5e6ce85296b2009e7c2060d336c0429b1c7197d9adb159e7df0ba18003067b36",
+    "bytes": 68,
+    "url": "https://media.githubusercontent.com/media/huggingface/lerobot/58f70b6bd370864139a3795ac3497a9eae8c42d5/tests/artifacts/policies/aloha_sim_insertion_human_act_/output_dict.safetensors"
+  },
+  {
+    "path": "third_party/lerobot/tests/artifacts/policies/aloha_sim_insertion_human_act_/param_stats.safetensors",
+    "sha256": "ea76e6711959fd3f905ec2bdc306f488920f00ec99421e4870d05f6205eb323e",
+    "bytes": 31672,
+    "url": "https://media.githubusercontent.com/media/huggingface/lerobot/58f70b6bd370864139a3795ac3497a9eae8c42d5/tests/artifacts/policies/aloha_sim_insertion_human_act_/param_stats.safetensors"
+  },
+  {
+    "path": "third_party/lerobot/tests/artifacts/policies/aloha_sim_insertion_human_act_1000_steps/actions.safetensors",
+    "sha256": "c2b8f8532c7a0b776de5e536b8b54e30b1a0c2e3d5cc25a2d86fe43e40ae5e8c",
+    "bytes": 515400,
+    "url": "https://media.githubusercontent.com/media/huggingface/lerobot/58f70b6bd370864139a3795ac3497a9eae8c42d5/tests/artifacts/policies/aloha_sim_insertion_human_act_1000_steps/actions.safetensors"
+  },
+  {
+    "path": "third_party/lerobot/tests/artifacts/policies/aloha_sim_insertion_human_act_1000_steps/grad_stats.safetensors",
+    "sha256": "224b5fa4828aa88171b68c036e8919c1eae563e2113f03b6461eadf5bf8525a6",
+    "bytes": 31672,
+    "url": "https://media.githubusercontent.com/media/huggingface/lerobot/58f70b6bd370864139a3795ac3497a9eae8c42d5/tests/artifacts/policies/aloha_sim_insertion_human_act_1000_steps/grad_stats.safetensors"
+  },
+  {
+    "path": "third_party/lerobot/tests/artifacts/policies/aloha_sim_insertion_human_act_1000_steps/output_dict.safetensors",
+    "sha256": "016d2fa8fe5f58017dfd46f4632fdc19dfd751e32a2c7cde2077c6f95546d6bd",
+    "bytes": 68,
+    "url": "https://media.githubusercontent.com/media/huggingface/lerobot/58f70b6bd370864139a3795ac3497a9eae8c42d5/tests/artifacts/policies/aloha_sim_insertion_human_act_1000_steps/output_dict.safetensors"
+  },
+  {
+    "path": "third_party/lerobot/tests/artifacts/policies/aloha_sim_insertion_human_act_1000_steps/param_stats.safetensors",
+    "sha256": "eca0d87a699620e4fec7e68539b0be91e4cc933f6bf12032da52c182ab6f38cf",
+    "bytes": 31672,
+    "url": "https://media.githubusercontent.com/media/huggingface/lerobot/58f70b6bd370864139a3795ac3497a9eae8c42d5/tests/artifacts/policies/aloha_sim_insertion_human_act_1000_steps/param_stats.safetensors"
+  },
+  {
+    "path": "third_party/lerobot/tests/artifacts/policies/pusht_diffusion_/actions.safetensors",
+    "sha256": "19eaaa85f66ba4aa6388dbb83819ffad6ea4363247208f871a8dc385689f6fc8",
+    "bytes": 992,
+    "url": "https://media.githubusercontent.com/media/huggingface/lerobot/58f70b6bd370864139a3795ac3497a9eae8c42d5/tests/artifacts/policies/pusht_diffusion_/actions.safetensors"
+  },
+  {
+    "path": "third_party/lerobot/tests/artifacts/policies/pusht_diffusion_/grad_stats.safetensors",
+    "sha256": "227296eaeeb54acdc3dae2eb8af3d4d08fb87e245337624447140b1e91cfd002",
+    "bytes": 47424,
+    "url": "https://media.githubusercontent.com/media/huggingface/lerobot/58f70b6bd370864139a3795ac3497a9eae8c42d5/tests/artifacts/policies/pusht_diffusion_/grad_stats.safetensors"
+  },
+  {
+    "path": "third_party/lerobot/tests/artifacts/policies/pusht_diffusion_/output_dict.safetensors",
+    "sha256": "271b00cb2f0cd5fd26b1d53463638e3d1a6e92692ec625fcffb420ca190869e5",
+    "bytes": 68,
+    "url": "https://media.githubusercontent.com/media/huggingface/lerobot/58f70b6bd370864139a3795ac3497a9eae8c42d5/tests/artifacts/policies/pusht_diffusion_/output_dict.safetensors"
+  },
+  {
+    "path": "third_party/lerobot/tests/artifacts/policies/pusht_diffusion_/param_stats.safetensors",
+    "sha256": "778fddbbaa64248cee35cb377c02cc2b6076f7ce5855146de677128900617ddf",
+    "bytes": 47424,
+    "url": "https://media.githubusercontent.com/media/huggingface/lerobot/58f70b6bd370864139a3795ac3497a9eae8c42d5/tests/artifacts/policies/pusht_diffusion_/param_stats.safetensors"
+  },
+  {
+    "path": "third_party/lerobot/tests/artifacts/policies/xarm_lift_medium_tdmpc_use_mpc/actions.safetensors",
+    "sha256": "d640988f2269cf6aa03c8ee17f9d096edace83d837f90025011fafec5bf53c61",
+    "bytes": 200,
+    "url": "https://media.githubusercontent.com/media/huggingface/lerobot/58f70b6bd370864139a3795ac3497a9eae8c42d5/tests/artifacts/policies/xarm_lift_medium_tdmpc_use_mpc/actions.safetensors"
+  },
+  {
+    "path": "third_party/lerobot/tests/artifacts/policies/xarm_lift_medium_tdmpc_use_mpc/grad_stats.safetensors",
+    "sha256": "32ddf36af25791935b395c7641531cda14d5c4a2cf654a2e76ac45271665d07a",
+    "bytes": 16904,
+    "url": "https://media.githubusercontent.com/media/huggingface/lerobot/58f70b6bd370864139a3795ac3497a9eae8c42d5/tests/artifacts/policies/xarm_lift_medium_tdmpc_use_mpc/grad_stats.safetensors"
+  },
+  {
+    "path": "third_party/lerobot/tests/artifacts/policies/xarm_lift_medium_tdmpc_use_mpc/output_dict.safetensors",
+    "sha256": "22a1031a2acfc36a455bff73ffbe097cfeb7742b6485e7422507e78d7a682703",
+    "bytes": 164,
+    "url": "https://media.githubusercontent.com/media/huggingface/lerobot/58f70b6bd370864139a3795ac3497a9eae8c42d5/tests/artifacts/policies/xarm_lift_medium_tdmpc_use_mpc/output_dict.safetensors"
+  },
+  {
+    "path": "third_party/lerobot/tests/artifacts/policies/xarm_lift_medium_tdmpc_use_mpc/param_stats.safetensors",
+    "sha256": "b5dca7940998421ae58e9e26b2b2641b058d23b0270b7a147ebf85fbbdce7184",
+    "bytes": 35496,
+    "url": "https://media.githubusercontent.com/media/huggingface/lerobot/58f70b6bd370864139a3795ac3497a9eae8c42d5/tests/artifacts/policies/xarm_lift_medium_tdmpc_use_mpc/param_stats.safetensors"
+  },
+  {
+    "path": "third_party/lerobot/tests/artifacts/policies/xarm_lift_medium_tdmpc_use_policy/actions.safetensors",
+    "sha256": "2212ae7b910d14d723214f5af50985e419f7bd0f4261565ef48b1ef495443d6d",
+    "bytes": 200,
+    "url": "https://media.githubusercontent.com/media/huggingface/lerobot/58f70b6bd370864139a3795ac3497a9eae8c42d5/tests/artifacts/policies/xarm_lift_medium_tdmpc_use_policy/actions.safetensors"
+  },
+  {
+    "path": "third_party/lerobot/tests/artifacts/policies/xarm_lift_medium_tdmpc_use_policy/grad_stats.safetensors",
+    "sha256": "32ddf36af25791935b395c7641531cda14d5c4a2cf654a2e76ac45271665d07a",
+    "bytes": 16904,
+    "url": "https://media.githubusercontent.com/media/huggingface/lerobot/58f70b6bd370864139a3795ac3497a9eae8c42d5/tests/artifacts/policies/xarm_lift_medium_tdmpc_use_policy/grad_stats.safetensors"
+  },
+  {
+    "path": "third_party/lerobot/tests/artifacts/policies/xarm_lift_medium_tdmpc_use_policy/output_dict.safetensors",
+    "sha256": "22a1031a2acfc36a455bff73ffbe097cfeb7742b6485e7422507e78d7a682703",
+    "bytes": 164,
+    "url": "https://media.githubusercontent.com/media/huggingface/lerobot/58f70b6bd370864139a3795ac3497a9eae8c42d5/tests/artifacts/policies/xarm_lift_medium_tdmpc_use_policy/output_dict.safetensors"
+  },
+  {
+    "path": "third_party/lerobot/tests/artifacts/policies/xarm_lift_medium_tdmpc_use_policy/param_stats.safetensors",
+    "sha256": "b5dca7940998421ae58e9e26b2b2641b058d23b0270b7a147ebf85fbbdce7184",
+    "bytes": 35496,
+    "url": "https://media.githubusercontent.com/media/huggingface/lerobot/58f70b6bd370864139a3795ac3497a9eae8c42d5/tests/artifacts/policies/xarm_lift_medium_tdmpc_use_policy/param_stats.safetensors"
+  }
+]

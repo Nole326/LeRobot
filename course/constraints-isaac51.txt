@@ -1,0 +1,11 @@
+# Historical unified-install diagnostic constraints, NOT the final install recipe.
+# This combination has application dependency conflicts. Use separate sim/BC
+# environments documented in docs/ENVIRONMENT_SETUP_20261001.md instead.
+torch==2.7.0+cu128
+torchvision==0.22.0+cu128
+numpy==1.26.0
+gymnasium==1.2.0
+torchcodec==0.3.0
+opencv-python-headless==4.11.0.86
+protobuf==6.33.0
+lerobot==0.4.2

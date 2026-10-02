@@ -1,0 +1,9 @@
+# Preserve imported evidence bytes even on Windows with global autocrlf enabled.
+/course/** -text
+/third_party/** -text
+/manifests/*.json text eol=lf
+/scripts/*.py text eol=lf
+/docs/*.md text eol=lf
+/README.md text eol=lf
+/AGENTS.md text eol=lf
+/THIRD_PARTY_NOTICES.md text eol=lf

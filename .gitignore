@@ -1,0 +1,32 @@
+# Private configuration and credentials
+.env
+.env.*
+!.env.example
+.netrc
+*.pem
+*.key
+secrets/
+**/.agents/local/
+**/personal_config.md
+# Runtime products (upstream files already tracked remain intact)
+__pycache__/
+*.pyc
+/.local/
+/downloads/
+/datasets/
+/outputs/
+/logs/
+/wandb/
+/cache/
+/venv*/
+/course/.local-downloads/
+/course/venv*/
+/course/logs/
+/course/cache/
+/course/wandb/
+# Owner keeps all course/server/experiment records private.
+/course/docs/
+/course/validation_*/
+/course/README.md
+/private/
+/reports/
