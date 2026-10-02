@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+海报文字改为按原位置重绘的字体轮廓，提供原生4K文字PNG与可缩放文字SVG；保留原背景渐变、纹理与官方照片，统一小标题中英文颜色，并核对官方英文术语。
+
+Rebuild poster lettering as font outlines at its original positions, supplying native-4K text in PNG and scalable text in SVG; preserve the background gradients, texture and official photograph, match bilingual subheading colors, and review official English terminology.
+
 将海报中的机器人照片替换为官方 SO-101 清晰原图，仅等比缩放并裁切背景留白；同步更新双语致谢和图片来源。`v0.1.0-baseline` 标签不变。
 
 Replace the robot photograph with the official clear SO-101 image, using proportional resizing and background-margin cropping only; update bilingual acknowledgements and image attribution. The `v0.1.0-baseline` tag remains unchanged.
