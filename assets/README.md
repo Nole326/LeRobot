@@ -1,21 +1,20 @@
 # 项目海报 / Project poster
 
-当前文件实际分辨率：3840 × 2160（4K UHD）。双语修复图原始输出为 1672 × 941，经用户授权使用 Lanczos 高质量插值放大；不是原生 4K 细节，也没有通过放大恢复额外真实信息。
+当前海报为课程项目海报的双语版，画布为3840×2160。机器人照片直接使用 [LeRobot SO-101 官方文档](https://huggingface.co/docs/lerobot/so101) 的清晰原图，不再使用生成或手工修补的机器人图像。
 
-Actual file resolution: 3840 × 2160 (4K UHD). The bilingual restoration was generated at 1672 × 941 and enlarged using owner-approved Lanczos interpolation. It does not contain native 4K detail, and enlargement does not recover additional real information.
+The current poster is a bilingual version of the course project poster on a 3840×2160 canvas. The robot photograph is taken directly from the [official LeRobot SO-101 documentation](https://huggingface.co/docs/lerobot/so101), replacing the generated or retouched robot image.
 
-`lerobot-tabletop-pushing-bilingual.png` 是经用户授权发布的双语修复海报。联系人信息与页码已删除；短标题采用同行中英对照，正文采用中文在上、英文在下。海报展示项目目标，不是实验结果或功能验收证明。
+原始照片保存在 [so101-follower-official.webp](so101-follower-official.webp)，尺寸2048×1536，文件保持下载原样。海报中仅等比缩小并裁去少量上下背景留白，未修改机器人或贴纸内容。
 
-`lerobot-tabletop-pushing-bilingual.png` is the owner-approved bilingual restored poster. Contact information and page numbering have been removed; short headings use inline bilingual text, while body text places Chinese above English. The poster presents project objectives, not experimental results or proof of completed implementation.
+The original photograph is stored as [so101-follower-official.webp](so101-follower-official.webp), at 2048×1536, unchanged from the download. In the poster it is proportionally downscaled with a small crop of the top and bottom background margins; the robot and sticker contents are not retouched.
 
-基于用户提供的海报，使用内置图像生成工具进行 AI 修复与文字排版。机器人图片参考来源为 [Hugging Face LeRobot SO-101 官方文档](https://huggingface.co/docs/lerobot/so101)。AI 修复可能重建图像细节，不应将其作为精确的硬件结构或尺寸参考。
+- 官方下载地址 / Official download: [SO101_Follower.webp](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/lerobot/SO101_Follower.webp)
+- SHA-256: `855809851ecf2ac5a28b2f0050b4baca3adc5a18c5175908399f9c6a52dd6877`
 
-AI restoration and typography editing were performed with the built-in image-generation tool, based on the user-provided poster. The robot-image reference is the [official Hugging Face LeRobot SO-101 documentation](https://huggingface.co/docs/lerobot/so101). AI restoration may reconstruct details and should not be used as an exact reference for hardware geometry or dimensions.
+海报文字与排版沿用已确认的双语版本，由1672×941插值至4K；这部分不是原生4K细节。机器人照片已独立替换为上述官方高分辨率图片。图片权利归属不因本项目使用而改变。
 
-上游图像的权利归属不因本次修复而改变；原始课程 PDF、带联系人信息的原图及私有课程记录不在本仓库公开。
+The approved bilingual typography and layout were interpolated from 1672×941 to 4K and do not contain native 4K detail. The robot photograph has independently been replaced by the higher-resolution official image above. Use in this project does not change the image's ownership.
 
-Restoration does not change the rights to the upstream imagery. The original course PDF, the original poster with contact details, and private course records are not published in this repository.
+原始课程PDF、联系人信息及私有课程记录不公开。海报展示项目目标，不是训练结果或功能验收证明。
 
-机器人贴纸上的图标已单独校正：直接采用原海报的图标像素，轻微锐化并缩放后贴回，再局部提亮，增强白色边框及右侧深色细节以匹配周围贴纸，不使用生成模型重绘。图标内部保留原始清晰度限制，其他海报像素不变。
-
-The robot sticker symbol was separately corrected using pixels from the original poster, mildly sharpened, resized and composited, then locally brightened with enhanced white edging and right-side dark detail to match the surrounding sticker without generative redrawing. The interior retains its original clarity limitations; other poster pixels are unchanged.
+The original course PDF, contact information and private course records are not published. The poster presents project objectives, not training results or proof of functional acceptance.

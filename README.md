@@ -4,7 +4,7 @@
 
 A robot-learning workspace for a reinforcement learning course project: from approaching a block and making contact to correcting the pushing motion, we explore how a desktop robot arm can move a block into a target region and keep it there.
 
-![LeRobot 桌面推物双语海报 / Bilingual tabletop pushing poster](assets/lerobot-tabletop-pushing-bilingual.png?v=20261002-edge2)
+![LeRobot 桌面推物双语海报 / Bilingual tabletop pushing poster](assets/lerobot-tabletop-pushing-bilingual.png?v=20261002-official)
 
 [查看项目海报 / View project poster](https://raw.githubusercontent.com/Nole326/LeRobot/main/assets/lerobot-tabletop-pushing-bilingual.png)
 
@@ -134,9 +134,9 @@ Prefer separate adapters for project-specific changes. When upstream changes are
 
 We thank [Hugging Face LeRobot](https://github.com/huggingface/lerobot), [Lightwheel LeIsaac](https://github.com/LightwheelAI/leisaac) and [IsaacLab](https://github.com/isaac-sim/IsaacLab) for their open-source foundations. Follow each project's license when citing, distributing or modifying its code; integration here does not change upstream ownership.
 
-海报按用户提供的课程项目海报制作双语修复版，已移除联系人信息与页码。机器人图像参考来源为 [LeRobot SO-101 官方文档](https://huggingface.co/docs/lerobot/so101)；修复版不是官方发布的硬件照片，也不表示上游为本项目背书。
+当前海报课程项目海报制作双语版。机器人图像参考来源为 [LeRobot SO-101 官方文档](https://huggingface.co/docs/lerobot/so101)。
 
-The bilingual poster is restored from the user-provided course project poster, with contact information and page numbering removed. Its robot-image reference is the [official LeRobot SO-101 documentation](https://huggingface.co/docs/lerobot/so101). The restored artwork is not an official hardware photograph and does not imply upstream endorsement.
+The current poster is a bilingual version of the course project poster. The robot image is sourced from the [official LeRobot SO-101 documentation](https://huggingface.co/docs/lerobot/so101).
 
 公开内容限于源码、通用说明和获准发布的修复海报。原始课程材料、报告、服务器记录、实验输出、凭据及私有配置不随仓库发布。
 
