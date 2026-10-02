@@ -1,0 +1,41 @@
+# Planning template, NOT a runnable trainer configuration.
+# Empty strings/lists and zero budgets mean UNCONFIRMED, never inferred defaults.
+schema_version = 1
+
+[policy]
+name = "act" # act | smolvla; share the data/control/evaluation contract.
+image_keys = ["observation.images.front", "observation.images.wrist"]
+proprio_names = ["shoulder_pan.pos", "shoulder_lift.pos", "elbow_flex.pos", "wrist_flex.pos", "wrist_roll.pos", "gripper.pos"]
+observation_schema_id = ""
+task_condition = "" # Record the target instruction source, not simulator truth.
+chunk_size = 0
+execute_steps = 0
+
+[control]
+action_schema_id = ""
+representation = "" # absolute_joint | delta_ee; no automatic conversion.
+frame = "" # joint | table | robot_base
+components = []
+units = [] # one unit per component: rad | m | normalized
+lower = [] # physical command limits, AFTER de-normalization
+upper = []
+physics_dt_s = 0.0
+physics_steps_per_action = 0
+policy_hz = 0.0
+
+[data]
+action_schema_id = ""
+observation_schema_id = ""
+split_unit = "episode"
+statistics_split = "train"
+
+[training]
+phase = "offline_bc" # offline_bc | online_rl
+seed = 0
+budget = 0
+budget_unit = "updates" # updates for BC; environment_steps for online RL
+
+[evaluation]
+protocol_id = ""
+max_decisions = 0
+seed_manifest_sha256 = ""

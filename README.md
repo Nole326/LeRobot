@@ -1,14 +1,16 @@
-# LeRobot · 桌面推物 / Tabletop Pushing
+# LeRobot · 桌面操作 / Pick & Place
 
-面向强化学习课程项目的机器人学习工作区：从接近物块、建立接触到推动纠偏，探索桌面机械臂如何将物块推入目标区域并稳定停留。
+基于 LeRobot、LeIsaac 和 SO-101 的视觉桌面操作项目。从 PickOrange 入门，学习根据图像识别指定物体与目标区域，完成接近、抓取、抬升、搬运和稳定放置，再扩展到多物体泛化评测与真机部署。
 
-A robot-learning workspace for a reinforcement learning course project: from approaching a block and making contact to correcting the pushing motion, we explore how a desktop robot arm can move a block into a target region and keep it there.
+A visual tabletop manipulation project built on LeRobot, LeIsaac and the SO-101. Starting with PickOrange, we learn to identify designated objects and goal regions from images, then approach, grasp, lift, transport and place objects stably before extending to multi-object generalization and real-robot deployment.
 
-![LeRobot 桌面推物双语海报 / Bilingual tabletop pushing poster](assets/lerobot-tabletop-pushing-bilingual.svg?v=20261002-uniform-type)
+![LeRobot 桌面操作双语海报 / Bilingual pick-and-place poster](assets/lerobot-tabletop-pushing-bilingual.svg?v=20261003-pdf-aligned)
 
-[查看项目海报 / View project poster](https://raw.githubusercontent.com/Nole326/LeRobot/main/assets/lerobot-tabletop-pushing-bilingual.png)
+[查看项目海报 / View project poster](assets/lerobot-tabletop-pushing-bilingual.png)，[文字可无损放大版 / Scalable-text version](assets/lerobot-tabletop-pushing-bilingual.svg) · [4K PNG](assets/lerobot-tabletop-pushing-bilingual.png)
 
-[文字可无损放大版 / Scalable-text version](assets/lerobot-tabletop-pushing-bilingual.svg) · [4K PNG](assets/lerobot-tabletop-pushing-bilingual.png)
+从环境接入到策略训练的实施步骤见[开发起步指南](docs/GETTING_STARTED.md)。任务、控制和评测遵循课程正式说明；课程指定的软件版本与接口优先于公开示例的默认设置。
+
+See the [development guide](docs/GETTING_STARTED.md) for the path from environment integration to policy training. The formal course specification governs the task, control and evaluation; course-provided software versions and interfaces take precedence over public example defaults.
 
 [项目目标 / Objectives](#项目目标--objectives) · [源码与工具 / Source-and-tools](#源码与工具--source-and-tools) · [快速开始 / Quick-start](#快速开始--quick-start) · [文档 / Documentation](#文档--documentation) · [参考与致谢 / References-and-acknowledgements](#参考与致谢--references-and-acknowledgements)
 
@@ -18,27 +20,31 @@ A robot-learning workspace for a reinforcement learning course project: from app
 
 **Development baseline: `v0.1.1-baseline`.** See the [baseline guide](docs/BASELINE.md) for pinned sources and setup instructions, and the [changelog](CHANGELOG.md) for version history.
 
-**任务与控制。** 以 SO-101 桌面单臂为参考平台，研究从随机起点将物块推入指定区域的闭环控制。海报中的策略动作是二维末端位移；重点关注接触位置变化后如何调整动作，而不只是移动到一个固定坐标。
+**任务与控制。** 策略至少使用图像与机器人本体状态，不直接读取物体和目标的仿真真值位置。多物体任务输出桌面坐标系下的受限末端动作，经课程提供的 IK、限位、限速和安全接口执行。动作的具体维度、单位、范围与控制周期随正式接口确认。
 
-**Task and control.** Using the SO-101 desktop arm as a reference platform, the project studies closed-loop pushing from randomized starting positions into a target region. The poster specifies two-dimensional end-effector displacements as policy actions, with an emphasis on adapting to changing contact points rather than simply reaching a fixed coordinate.
+**Task and control.** Policies use at least images and robot proprioception, without directly reading simulator ground-truth object or target positions. The multi-object task uses constrained end-effector actions in the table frame, executed through the course-provided IK, joint limits, rate limits and safety interfaces. Action dimensions, units, ranges and control timing follow the formal interface.
 
-**算法与对照。** 计划探索 PPO / SAC 接触控制，与几何方法比较，并分析物块定位误差对策略表现的影响。环境、控制频率、奖励和成功判定将在任务接口确定后完善。
+**算法与对照。** 通过遥操作采集示范，准备视觉规则、ACT 行为克隆和 SmolVLA 小型视觉语言动作策略基线，再研究强化学习与残差微调。算法不限于 PPO 或 SAC；BC 和预训练策略用于初始化或对照，不能替代 RL 训练。各方法统一测试条件，并用消融检验示范初始化、奖励设计或其他改进的作用。
 
-**Algorithms and baselines.** We plan to explore PPO / SAC for contact control, compare learned policies with geometric methods, and study sensitivity to block-localization errors. The environment, control frequency, reward and success criteria will be refined once the task interfaces are defined.
+**Algorithms and baselines.** Collect teleoperated demonstrations for visual rule-based, ACT behavior-cloning and SmolVLA compact vision-language-action baselines, then investigate reinforcement learning and residual fine-tuning. Algorithms are not restricted to PPO or SAC; BC and pretrained policies provide initialization or comparisons, not a substitute for RL training. Use shared test conditions and ablations to assess demonstration initialization, reward design or other improvements.
 
-**仿真到真机。** 目标是结合关节反馈与相机物块定位，持续读取状态并修正动作，同时对齐仿真与真实机器人的观测和动作含义。SO-101 的硬件背景见 [LeRobot 官方文档](https://huggingface.co/docs/lerobot/so101)。
+**仿真到真机。** 在仿真中完成标准任务和泛化评测，通过部署检查后，再在 SO-101 上运行学习策略。保持视觉处理和动作含义一致，分析外观、光照与延迟带来的差异；视觉追踪丢失或触发安全条件时暂停并等待人工处理。平台介绍见 [LeRobot SO-101 文档](https://huggingface.co/docs/lerobot/so101)。
 
-**Simulation to reality.** The goal is to combine joint feedback with camera-based block localization, repeatedly observe and correct motion, and align observation and action semantics between simulation and hardware. See the [official LeRobot documentation](https://huggingface.co/docs/lerobot/so101) for SO-101 hardware background.
+**Simulation to reality.** Complete standard tasks and generalization evaluation in simulation, pass deployment checks, then run the learned policy on the SO-101. Align visual processing and action semantics, and analyze appearance, lighting and latency differences. Pause for human intervention if visual tracking is lost or a safety condition is triggered. See the [LeRobot SO-101 documentation](https://huggingface.co/docs/lerobot/so101) for the platform.
 
 ## 当前范围 / Current scope
 
-本项目基于 LeRobot、LeIsaac 和 IsaacLab 开发，目前已完成源码整合，提供固定版本的源码、依赖清单和独立验证工具。桌面推物环境适配、策略训练、评估和真机部署是下一阶段的工作。
+本项目基于 LeRobot、LeIsaac 和 IsaacLab 开发，已提供固定版本源码、依赖清单和独立验证工具。当前仍是接口与训练准备阶段，没有一键可用的正式任务训练器；采集、BC、RL、评测和真机部署分别验收。
 
-This project builds on LeRobot, LeIsaac and IsaacLab. Source integration is complete, with pinned sources, dependency inventories and standalone diagnostic tools. Tabletop-pushing environment adaptation, policy training, evaluation and hardware deployment are the next development stages.
+This project builds on LeRobot, LeIsaac and IsaacLab, with pinned sources, dependency inventories and standalone diagnostic tools. It is still in interface and training preparation, not a ready-to-run formal-task trainer. Collection, BC, RL, evaluation and hardware deployment have separate acceptance checks.
 
-已有 PickOrange 等上游示例用于接口与运行链路验证，不等同于海报中的桌面推物任务。保留这些源码是为了便于复用和对照，不表示沿用其任务定义、动作空间或评分规则。
+入门环境为 `LeIsaac-SO101-PickOrange-v0`，用于验证 reset/step、相机、夹爪、遥操作和数据链路。多物体任务使用课程提供的环境与评测接口；正式评测环境、控制器和评分规则不作修改。
 
-Bundled upstream examples such as PickOrange serve as references for interface and execution-path checks; they are not the tabletop pushing task shown in the poster. Their inclusion supports reuse and comparison, not adoption of their task definitions, action spaces or scoring rules.
+The introductory environment, `LeIsaac-SO101-PickOrange-v0`, supports checks of reset/step, cameras, gripper control, teleoperation and the data pipeline. The multi-object task uses course-provided environments and evaluation interfaces; formal evaluation environments, controllers and scoring rules remain unchanged.
+
+评测分别覆盖已见条件、组合外推条件和完全未见条件，记录成功率、完成时间、误抓率、漏抓率与放置误差。成功要求指定物体进入对应区域，并满足规定的位置误差与稳定时间；覆盖全部指定回合，不挑选表现好的场景。训练奖励可以设计，但不直接作为不同方法的评分依据。
+
+Evaluate seen, compositional-generalization and entirely unseen conditions separately, reporting success rate, completion time, wrong-object grasp rate, missed-grasp rate and placement error. Success requires the designated object to reach its corresponding region within the specified position tolerance and stability duration. Complete every prescribed episode rather than selecting favorable scenes. Training rewards may vary, but do not directly determine comparative scores.
 
 ## 源码与工具 / Source and tools
 
@@ -75,7 +81,9 @@ Bundled upstream examples such as PickOrange serve as references for interface a
 ├── course/
 │   ├── scripts/              # Standalone diagnostic utilities
 │   └── constraints-*.txt     # Dependency constraint examples
-├── scripts/                  # Source audit and fixture recovery
+├── configs/                  # Unconfirmed experiment-plan template
+├── scripts/                  # Source audit, plan inspection, fixture recovery
+├── tests/                    # First-party regression tests
 ├── manifests/                # Versions, hashes and asset inventories
 ├── docs/                     # Generic integration documentation
 └── THIRD_PARTY_NOTICES.md
@@ -111,9 +119,21 @@ The Isaac Sim runtime, external scene assets, full datasets and pretrained weigh
 
 ## 后续工作 / Next steps
 
-首先对齐观测、动作单位与时间关系，核验终止、截断及 `final_observation` 处理；再接入正式任务环境，建立可复现的基线与评估协议。只有相应验证通过后，才推进训练与真机实验。
+无需安装仿真环境，即可检查实验计划。模板中未确认的字段保持空白，以下命令返回 `incomplete`（退出码 3）是预期行为；它不下载模型、不分配 GPU、不启动训练。
 
-First align observations, action units and timing, and verify termination, truncation and `final_observation` handling. Then integrate the formal task environment and establish reproducible baselines and evaluation protocols. Training and hardware experiments follow only after their respective checks pass.
+Inspect an experiment plan without installing the simulator. Unconfirmed fields remain blank; `incomplete` (exit code 3) is expected for the template. The command does not download models, allocate a GPU or start training.
+
+```bash
+python scripts/inspect_plan.py configs/experiment-plan.toml --print-config
+```
+
+先对齐观测、动作单位与采样时序，核验终止、截断及 `final_observation`；再采集少量示范检查同步、重放和成功标记，建立按完整回合划分的数据集。随后推进 ACT/SmolVLA、RL 基线与改进方法，并在统一场景、seed 和指标下完成对照、消融及失败分析。
+
+First align observations, action units and sampling times, and verify termination, truncation and `final_observation`. Collect a small set of demonstrations to check synchronization, replay and success labels, then build episode-level dataset splits. Proceed to ACT/SmolVLA, RL baselines and improvements, comparing methods and analyzing ablations and failures under shared scenes, seeds and metrics.
+
+保留数据来源与筛选说明、配置、模型、归一化、保存/加载流程、完整日志和成功/失败视频。仿真稳定并通过部署检查后再进行真机演示；未见物体、多目标或长程操作作为后续扩展，不替代基础任务。
+
+Retain data provenance and filtering notes, configurations, models, normalization, save/load procedures, complete logs and success/failure videos. Attempt hardware demonstrations only after stable simulation and deployment checks. Unseen objects, multiple goals and longer-horizon operations are extensions, not replacements for the core task.
 
 项目代码优先采用独立适配层；上游源码的修改记录在补丁和版本清单中，便于对照与复现。参与开发请参阅[贡献说明](CONTRIBUTING.md)。
 
@@ -121,6 +141,9 @@ Project-specific code uses separate adapters where possible. Changes to upstream
 
 ## 文档 / Documentation
 
+- [开发起步与阶段验收 / Development and acceptance guide](docs/GETTING_STARTED.md)
+- [观测、动作、数据与恢复接口 / Observation, action, data and recovery contracts](docs/INTERFACE_CONTRACTS.md)
+- [训练前验证与限制 / Pre-training validation and limits](docs/TRAINING_VALIDATION.md)
 - [初始基准与版本范围 / Initial baseline and scope](docs/BASELINE.md)
 - [修改与验证规范 / Contribution and validation guidelines](CONTRIBUTING.md)
 - [版本记录 / Changelog](CHANGELOG.md)
@@ -136,6 +159,6 @@ Project-specific code uses separate adapters where possible. Changes to upstream
 
 We thank [Hugging Face LeRobot](https://github.com/huggingface/lerobot), [Lightwheel LeIsaac](https://github.com/LightwheelAI/leisaac) and [IsaacLab](https://github.com/isaac-sim/IsaacLab) for their open-source foundations. Follow each project's license when citing, distributing or modifying its code; integration here does not change upstream ownership.
 
-海报为课程项目海报的双语版。机器人图像来源为 [LeRobot SO-101 官方文档](https://huggingface.co/docs/lerobot/so101)。
+海报为课程项目海报优化调整后的中英双语版。机器人图像来源为 [LeRobot SO-101 官方文档](https://huggingface.co/docs/lerobot/so101)。
 
-The current poster is a bilingual version of the course project poster. The robot image is sourced from the [official LeRobot SO-101 documentation](https://huggingface.co/docs/lerobot/so101).
+The poster is a refined and adapted Chinese-English version of the course project poster. The robot image is sourced from the [official LeRobot SO-101 documentation](https://huggingface.co/docs/lerobot/so101).

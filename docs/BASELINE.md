@@ -37,9 +37,9 @@ This version retains the upstream sources and versions from `v0.1.0-baseline`, w
 
 ## 尚未完成 / Not yet established
 
-桌面推物正式环境与评分接口、端到端 PPO/SAC 训练、真实机械臂部署、完整依赖锁定及任意时刻的训练现场恢复，不属于本版完成承诺。现有诊断脚本中的 PickOrange 示例不能代替正式推物任务。
+正式任务环境与评分接口、端到端 RL 训练、真实机械臂部署、完整依赖锁定及任意时刻的训练现场恢复，不属于本版完成承诺。PickOrange 是入门验证环境，不能代替完整多物体任务验收；海报不是正式接口规范。
 
-The formal tabletop-pushing environment and scoring interface, end-to-end PPO/SAC training, real-robot deployment, a complete dependency lock and arbitrary-point training-state restoration are outside this version's completion claims. PickOrange examples in diagnostic scripts do not replace the formal pushing task.
+The formal task environment and scoring interface, end-to-end RL training, real-robot deployment, a complete dependency lock and arbitrary-point training-state restoration are outside this version's completion claims. PickOrange is an introductory environment, not acceptance of the full multi-object task; the poster is not an interface specification.
 
 ## 后续改动 / Future changes
 

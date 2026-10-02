@@ -28,6 +28,10 @@ git diff --check
 git diff --cached --stat
 ```
 
+涉及动作、数据、训练或评测接口时，同时更新[接口约定](docs/INTERFACE_CONTRACTS.md)和配置检查测试；私有实验配置不提交。运行 `python scripts/inspect_plan.py configs/experiment-plan.toml --print-config` 可查看模板缺项，退出码 3 是未填写模板的预期结果，不是训练失败。具体阶段分工见[开发起步指南](docs/GETTING_STARTED.md)。
+
+For action, data, training or evaluation interface changes, update the [contracts](docs/INTERFACE_CONTRACTS.md) and plan-inspection tests; do not commit private experiment configurations. Run `python scripts/inspect_plan.py configs/experiment-plan.toml --print-config` to list template gaps. Exit code 3 is expected for the unfilled template, not a training failure. See the [development guide](docs/GETTING_STARTED.md) for stage ownership.
+
 自动检查核验源码哈希、公开工具 Python 语法、通用 Markdown 的本地文件链接及海报尺寸。它不运行上游代码，不验证外部网页可用性，也不是完整安全审计或 GPU 测试。
 
 Automated checks validate source hashes, public utility Python syntax, local file links in generic Markdown and poster dimensions. They do not execute upstream code or verify external websites, and are not a complete security audit or GPU test.

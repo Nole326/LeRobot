@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+依据当前项目任务说明重写README与海报文案，突出视觉多物体抓放、遥操与BC/VLA基线、强化学习、泛化评测和安全部署。海报保留原有字体字号、排版、纯色图形及官方照片，重新生成原生4K PNG和矢量文字SVG。
+
+Rewrite the README and poster copy around the current task specification: visual multi-object pick-and-place, teleoperation and BC/VLA baselines, reinforcement learning, generalization evaluation and safe deployment. Retain the poster's typefaces, sizes, layout, flat-color artwork and official photograph, regenerating the native-4K PNG and outlined-text SVG.
+
+将当前项目说明对齐为视觉抓放，保留早期海报，明确海报不定义控制接口。新增开发起步指南、观测/动作/数据/恢复接口约定和无依赖的实验计划检查器：检查 schema、动作单位/关节顺序、控制频率、chunk 执行长度、数据划分和预算单位。未确认参数保留空白，检查结果不替代训练验收。
+
+Align the project description with visual pick-and-place while retaining the earlier poster and distinguishing it from the control specification. Add a development guide, observation/action/data/recovery contracts and a dependency-free plan inspector covering schemas, action units/joint order, control timing, chunk execution, dataset splits and budget units. Leave unconfirmed values blank; static checks do not replace training acceptance.
+
+仓库检查同时覆盖未暂存且未忽略的项目新文件，避免新增源码和文档遗漏语法/链接检查；上游文件与公开工具哈希清单保持原样。
+
+Repository checks now include non-ignored new first-party files before staging, preventing new source and documentation from missing syntax/link checks. Upstream files and public-utility hash manifests remain unchanged.
+
 新增训练前验证工具：末帧与超时转移检查、ACT padding、匹配的随机数/采样位置存档及独立进程恢复对照。工具独立于上游源码，尚未接入正式训练入口，使用范围见[训练前验证](docs/TRAINING_VALIDATION.md)。
 
 Add pre-training checks for final observations and timeout transitions, ACT padding, matching RNG/sample-position checkpoints and fresh-process recovery. The tools are separate from upstream sources and not yet integrated into a production trainer; see [training validation](docs/TRAINING_VALIDATION.md) for scope.

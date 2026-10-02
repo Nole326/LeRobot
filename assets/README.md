@@ -1,8 +1,8 @@
 # 项目海报 / Project poster
 
-当前海报为课程项目海报的双语版，画布为3840×2160。机器人照片直接使用 [LeRobot SO-101 官方文档](https://huggingface.co/docs/lerobot/so101) 的清晰原图，不再使用生成或手工修补的机器人图像。
+当前海报介绍视觉 Pick & Place：多物体抓放、模仿学习与强化学习、泛化评测及安全真机部署。内容依据项目任务说明，画布为3840×2160，沿用原双语海报的版式、配色、图形和字体层级。机器人照片使用 [LeRobot SO-101 官方文档](https://huggingface.co/docs/lerobot/so101) 的清晰原图。
 
-The current poster is a bilingual version of the course project poster on a 3840×2160 canvas. The robot photograph is taken directly from the [official LeRobot SO-101 documentation](https://huggingface.co/docs/lerobot/so101), replacing the generated or retouched robot image.
+The current poster presents visual Pick & Place: multi-object manipulation, imitation and reinforcement learning, generalization evaluation and safe real-robot deployment. Its content follows the project task specification on a 3840×2160 canvas, retaining the previous bilingual poster's layout, colors, graphics and type hierarchy. The robot photograph comes from the [official LeRobot SO-101 documentation](https://huggingface.co/docs/lerobot/so101).
 
 原始照片保存在 [so101-follower-official.webp](so101-follower-official.webp)，尺寸2048×1536，文件保持下载原样。海报中仅等比缩小并裁去少量上下背景留白，未修改机器人或贴纸内容。
 
@@ -35,9 +35,9 @@ On the 3840×2160 canvas, section numbers use 72px, subheadings 54px, bold Chine
 
 ## 术语核对 / Terminology review
 
-硬件名称“SO-101 follower”沿用[SO-101官方文档](https://huggingface.co/docs/lerobot/so101)；“end-effector”沿用[动作表示文档](https://huggingface.co/docs/lerobot/action_representations)。目标区域统一译为“goal region”，参考官方[HIL-SERL任务示例](https://huggingface.co/docs/lerobot/hilserl)中的推物描述。PPO/SAC保留算法缩写；任务步骤、小标题和课程安排为本项目译文，不宣称是官方任务定义或官方课程文案。
+硬件名称“SO-101 follower”沿用[SO-101官方文档](https://huggingface.co/docs/lerobot/so101)；“end-effector”沿用[动作表示文档](https://huggingface.co/docs/lerobot/action_representations)。任务名称使用“Pick & Place”；其余说明为对应中文的项目译文。海报中的模仿学习是初始化与对照，不能替代项目要求的强化学习；算法不限定为PPO/SAC，受限末端动作也不预设为二维。
 
-“SO-101 follower” follows the [official hardware documentation](https://huggingface.co/docs/lerobot/so101), and “end-effector” follows the [action-representation documentation](https://huggingface.co/docs/lerobot/action_representations). The poster consistently uses “goal region,” following the pushing example in the official [HIL-SERL guide](https://huggingface.co/docs/lerobot/hilserl). PPO/SAC remain algorithm abbreviations. Task steps, section headings and course arrangements are project translations, not official task definitions or official course copy.
+“SO-101 follower” follows the [official hardware documentation](https://huggingface.co/docs/lerobot/so101), and “end-effector” follows the [action-representation documentation](https://huggingface.co/docs/lerobot/action_representations). The task is named “Pick & Place”; other descriptions are project translations of the Chinese text. Imitation learning provides initialization and baselines rather than replacing the required reinforcement learning. Algorithms are not limited to PPO/SAC, and constrained end-effector actions are not presumed to be two-dimensional.
 
 图片权利归属不因本项目使用而改变。
 

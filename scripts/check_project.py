@@ -35,16 +35,19 @@ def png_size(path):
     return struct.unpack('>II', header[16:24])
 
 
-def tracked_files():
-    output = subprocess.check_output(['git', '-C', str(ROOT), 'ls-files', '-z'])
-    return [ROOT / name for name in output.decode('utf-8').split('\0') if name]
+def project_files():
+    """Include non-ignored new first-party files before staging a change."""
+    output = subprocess.check_output(['git', '-C', str(ROOT), 'ls-files', '-z',
+                                      '--cached', '--others', '--exclude-standard'])
+    names = sorted(set(name for name in output.decode('utf-8').split('\0') if name))
+    return [ROOT / name for name in names if not name.startswith('third_party/')]
 
 
 def main():
     if sys.version_info < (3, 11):
         raise SystemExit('Use Python 3.11+ for the repository checks.')
     subprocess.run([sys.executable, '-B', str(ROOT/'scripts/audit_repository.py')], check=True)
-    files = [p for p in tracked_files() if p.relative_to(ROOT).parts[0] != 'third_party']
+    files = project_files()
     python_count = markdown_count = 0
     for path in files:
         if path.suffix == '.py':

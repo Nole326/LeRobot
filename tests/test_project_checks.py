@@ -1,11 +1,13 @@
 import struct
+import subprocess
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]/'scripts'))
-from check_project import check_markdown, png_size
+from check_project import check_markdown, png_size, project_files
 
 
 class ProjectChecksTest(unittest.TestCase):
@@ -46,6 +48,18 @@ class ProjectChecksTest(unittest.TestCase):
         p.write_bytes(b'not a png')
         with self.assertRaises(ValueError):
             png_size(p)
+
+    def test_new_files_checked_but_ignored_files_excluded(self):
+        subprocess.run(['git', 'init', '-q', str(self.root)], check=True)
+        (self.root/'.gitignore').write_text('private/\n', encoding='utf-8')
+        (self.root/'new.py').write_text('pass\n', encoding='utf-8')
+        (self.root/'private').mkdir()
+        (self.root/'private/secret.md').write_text('not inspected', encoding='utf-8')
+        (self.root/'third_party').mkdir()
+        (self.root/'third_party/vendor.py').touch()
+        with patch('check_project.ROOT', self.root):
+            names = {p.relative_to(self.root).as_posix() for p in project_files()}
+        self.assertEqual(names, {'.gitignore', 'new.py'})
 
 
 if __name__ == '__main__':

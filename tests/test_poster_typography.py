@@ -53,6 +53,30 @@ class PosterTypographyTest(unittest.TestCase):
         self.assertEqual(self.groups['loop-en'].get('data-font-size-px'),
                          self.groups['action-en'].get('data-font-size-px'))
 
+    def test_pick_and_place_copy(self):
+        expected = {
+            'title-cn': '桌面操作',
+            'title-right': '/ Pick & Place',
+            'task-cn': '多物体视觉抓取与放置',
+            'algorithm-cn': '模仿学习 + 强化学习',
+            'stable-cn': '抓取后稳定放置',
+            'interfaces-cn': '视觉丢失或触发安全条件时暂停，等待人工。',
+        }
+        for name, text in expected.items():
+            self.assertEqual(self.groups[name].get('aria-label'), text)
+        copy = ' '.join(g.get('aria-label', '') for g in self.groups.values()).lower()
+        for obsolete in ('tabletop pushing', '推动动作', '推入', '2d end-effector', '接触控制'):
+            self.assertNotIn(obsolete, copy)
+
+    def test_approved_type_sizes_preserved(self):
+        expected = {'number': '72', 'section': '54', 'headline-cn': '68',
+                    'headline-en': '58', 'body-cn': '46', 'body-en': '46',
+                    'title-cn': '136', 'title-latin': '160'}
+        for group in self.groups.values():
+            role = group.get('data-type-role')
+            if role in expected:
+                self.assertEqual(group.get('data-font-size-px'), expected[role])
+
 
 if __name__ == '__main__':
     unittest.main()
