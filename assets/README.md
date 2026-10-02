@@ -15,3 +15,7 @@ AI restoration and typography editing were performed with the built-in image-gen
 上游图像的权利归属不因本次修复而改变；原始课程 PDF、带联系人信息的原图及私有课程记录不在本仓库公开。
 
 Restoration does not change the rights to the upstream imagery. The original course PDF, the original poster with contact details, and private course records are not published in this repository.
+
+机器人贴纸上的图标已单独校正：直接采用原海报的图标像素，轻微锐化并缩放后贴回，不使用生成模型重绘。保留原始清晰度限制，其他海报像素不变。
+
+The robot sticker symbol was separately corrected using pixels from the original poster, mildly sharpened, resized and composited without generative redrawing. Its original clarity limitations remain; other poster pixels are unchanged.
