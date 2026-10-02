@@ -4,7 +4,11 @@
 
 A robot-learning workspace for a reinforcement learning course project: from approaching a block and making contact to correcting the pushing motion, we explore how a desktop robot arm can move a block into a target region and keep it there.
 
-![LeRobot 桌面推物双语海报 / Bilingual tabletop pushing poster](assets/lerobot-tabletop-pushing-bilingual.png)
+![LeRobot 桌面推物双语海报 / Bilingual tabletop pushing poster](assets/lerobot-tabletop-pushing-bilingual.png?v=20261002-edge2)
+
+[查看 4K 原图](https://raw.githubusercontent.com/Nole326/LeRobot/main/assets/lerobot-tabletop-pushing-bilingual.png)：README 中的缩放预览可能弱化细小边缘。
+
+[View the 4K image](https://raw.githubusercontent.com/Nole326/LeRobot/main/assets/lerobot-tabletop-pushing-bilingual.png): the scaled README preview may soften fine edges.
 
 [项目目标 / Objectives](#项目目标--objectives) · [源码与工具 / Source-and-tools](#源码与工具--source-and-tools) · [快速开始 / Quick-start](#快速开始--quick-start) · [文档 / Documentation](#文档--documentation) · [参考与致谢 / References-and-acknowledgements](#参考与致谢--references-and-acknowledgements)
 
