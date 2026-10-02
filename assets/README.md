@@ -17,17 +17,21 @@ The original photograph is stored as [so101-follower-official.webp](so101-follow
 
 Chinese, English and numerical text in the [4K PNG](lerobot-tabletop-pushing-bilingual.png) is rendered directly from font outlines at 3840×2160, rather than enlarged from low-resolution lettering. The [SVG version](lerobot-tabletop-pushing-bilingual.svg) stores text as scalable outlines and needs no installed fonts. Backgrounds and graphics are vector shapes; only the official photograph remains raster and has finite detail.
 
-配色依据最初提供的课程海报，而不是后续生成版。原图的大面积区域经取样确认为纯色：主背景`#F6F5F0`，照片底板`#E7ECE9`，流程底板`#E8ECE4`，深绿区域`#173B36`，物块`#39778B`，目标框底色`#D9E8D8`。背景、色块和图形已重建为纯色矢量形状，不含生成版的渐变、噪声、纹理、阴影、箭头和页脚竖线。保留已确认双语版的文字外框位置及照片显示区域，图形尺寸适配双语布局；不宣称与最初中文单语版布局逐像素一致。
+配色依据最初提供的课程海报，而不是后续生成版。原图的大面积区域经取样确认为纯色：主背景`#F6F5F0`，照片底板`#E7ECE9`，流程底板`#E8ECE4`，深绿区域`#173B36`，物块`#39778B`，目标框底色`#D9E8D8`。背景、色块和图形已重建为纯色矢量形状，不含生成版的渐变、噪声、纹理、阴影、箭头和页脚竖线。保留已确认双语布局与照片显示区域；文字改用统一层级和自然字形比例，长句换行，不再强行适配每行旧外框。不宣称与最初中文单语版布局逐像素一致。
 
-Colors are sampled from the first supplied course poster, not later generated versions. Large regions in that original are flat: canvas `#F6F5F0`, photograph panel `#E7ECE9`, diagram panel `#E8ECE4`, dark green `#173B36`, blocks `#39778B`, and goal-box fill `#D9E8D8`. Backgrounds and graphics are rebuilt as flat vector shapes, without generated gradients, noise, texture, shadows, an arrow or a footer divider. The approved bilingual text bounds and photograph display area are retained, with shape dimensions adapted to the bilingual layout; this is not claimed to be pixel-identical to the first Chinese-only layout.
+Colors are sampled from the first supplied course poster, not later generated versions. Large regions in that original are flat: canvas `#F6F5F0`, photograph panel `#E7ECE9`, diagram panel `#E8ECE4`, dark green `#173B36`, blocks `#39778B`, and goal-box fill `#D9E8D8`. Backgrounds and graphics are rebuilt as flat vector shapes, without generated gradients, noise, texture, shadows, an arrow or a footer divider. The approved bilingual arrangement and photograph area are retained. Text now uses consistent type roles and natural glyph proportions; long sentences wrap instead of being fitted to individual old bounds. This is not claimed to be pixel-identical to the first Chinese-only layout.
 
 SVG嵌入完整2048×1536官方照片的无损PNG编码，解码像素与下载的WebP原图一致；显示时仅等比缩放并裁切背景留白。官方WebP文件保持原样。
 
 The SVG embeds a losslessly encoded PNG of the complete official 2048×1536 photograph, whose decoded pixels match the downloaded WebP. Display uses proportional scaling and background-margin cropping only. The original WebP file remains unchanged.
 
-中文使用接近原图的微软雅黑，英文和数字使用Calibri，主标题拉丁字符使用Times New Roman Bold；原图没有附带字体信息，因此字体为视觉匹配，不声称识别出原始字体。01/02/03之后的小标题分别从原中文采样颜色，同行英文与中文使用同一填色。不分发字体文件。
+中文使用接近原图的微软雅黑，英文和数字使用Calibri，主标题拉丁字符使用Times New Roman Bold；原图没有附带字体信息，因此字体为视觉匹配，不声称识别出原始字体。对应层级使用相同字号、字重、颜色与行距，所有字形等比缩放；01/02/03小标题的中英文同色。不分发字体文件。
 
-Chinese uses visually matched Microsoft YaHei; English and numerals use Calibri, with Times New Roman Bold for the Latin main title. The original image contains no font metadata, so these are visual matches, not identified original fonts. Each bilingual subheading after 01/02/03 uses one fill color sampled from its original Chinese text. No font files are distributed.
+Chinese uses visually matched Microsoft YaHei; English and numerals use Calibri, with Times New Roman Bold for the Latin main title. The original image contains no font metadata, so these are visual matches, not identified original fonts. Corresponding roles share size, weight, color and line height, with isotropic glyph scaling. Chinese and English in the 01/02/03 subheadings share one color. No font files are distributed.
+
+在3840×2160画布上，正文编号为72px，小标题54px，中文粗体主句68px、对应英文58px，中英文说明均为46px。它们是字体em字号，不是逐句可见像素高度；字母上下伸部不同不会改变字号。第三段长英文说明按语义换行。仓库测试检查对应层级一致、无非等比拉伸且长句不缩小。
+
+On the 3840×2160 canvas, section numbers use 72px, subheadings 54px, bold Chinese main statements 68px, their English translations 58px, and both Chinese and English explanations 46px. These are font-em sizes, not sentence-specific visible pixel heights; ascenders and descenders do not change font size. The long English explanation in section 03 wraps at a semantic boundary. Repository tests check consistent roles, isotropic scaling and wrapping without shrinking.
 
 ## 术语核对 / Terminology review
 
