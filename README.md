@@ -6,9 +6,7 @@ A robot-learning workspace for a reinforcement learning course project: from app
 
 ![LeRobot 桌面推物双语海报 / Bilingual tabletop pushing poster](assets/lerobot-tabletop-pushing-bilingual.png?v=20261002-edge2)
 
-[查看项目海报](https://raw.githubusercontent.com/Nole326/LeRobot/main/assets/lerobot-tabletop-pushing-bilingual.png)
-
-[View project poster](https://raw.githubusercontent.com/Nole326/LeRobot/main/assets/lerobot-tabletop-pushing-bilingual.png)
+[查看项目海报 / View project poster](https://raw.githubusercontent.com/Nole326/LeRobot/main/assets/lerobot-tabletop-pushing-bilingual.png)
 
 [项目目标 / Objectives](#项目目标--objectives) · [源码与工具 / Source-and-tools](#源码与工具--source-and-tools) · [快速开始 / Quick-start](#快速开始--quick-start) · [文档 / Documentation](#文档--documentation) · [参考与致谢 / References-and-acknowledgements](#参考与致谢--references-and-acknowledgements)
 
