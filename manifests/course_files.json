@@ -88,5 +88,15 @@
     "path": "course/scripts/validate_sim.py",
     "bytes": 3891,
     "sha256": "e7d92287adf0d18b66c4f852e1115fbe1bfadb3dd089adc7dcb4817589602dc0"
+  },
+  {
+    "path": "course/scripts/training_contracts.py",
+    "bytes": 5126,
+    "sha256": "ef78761d0c956829adb20888e6049322e8ed544d3a4c862f0451e8380870a264"
+  },
+  {
+    "path": "course/scripts/validate_training_readiness.py",
+    "bytes": 16332,
+    "sha256": "970af0bc1da0518ce221478652b5c7cd6665e6f4611d7dba53c06649d3a853bf"
   }
 ]

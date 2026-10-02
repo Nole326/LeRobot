@@ -2,9 +2,9 @@
 
 ## Unreleased
 
-暂无待发布的重要变化。
+新增训练前验证工具：末帧与超时转移检查、ACT padding、匹配的随机数/采样位置存档及独立进程恢复对照。工具独立于上游源码，尚未接入正式训练入口，使用范围见[训练前验证](docs/TRAINING_VALIDATION.md)。
 
-No notable changes pending release.
+Add pre-training checks for final observations and timeout transitions, ACT padding, matching RNG/sample-position checkpoints and fresh-process recovery. The tools are separate from upstream sources and not yet integrated into a production trainer; see [training validation](docs/TRAINING_VALIDATION.md) for scope.
 
 ## v0.1.1-baseline — 2026-10-02
 
