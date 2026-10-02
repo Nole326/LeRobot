@@ -2,9 +2,9 @@
 
 ## Unreleased
 
-海报文字改为按原位置重绘的字体轮廓，提供原生4K文字PNG与可缩放文字SVG；保留原背景渐变、纹理与官方照片，统一小标题中英文颜色，并核对官方英文术语。
+海报文字改为按已确认双语版位置重绘的字体轮廓，提供原生4K文字PNG与可缩放文字SVG；背景及图形配色校准到最初课程海报的纯色区域，移除后续生成的纹理、渐变及新增装饰，保留官方照片，统一小标题中英文颜色，并核对官方英文术语。
 
-Rebuild poster lettering as font outlines at its original positions, supplying native-4K text in PNG and scalable text in SVG; preserve the background gradients, texture and official photograph, match bilingual subheading colors, and review official English terminology.
+Rebuild poster lettering as font outlines at the approved bilingual positions, supplying native-4K text in PNG and scalable text in SVG; calibrate flat background and graphic colors to the first course poster, remove subsequently generated texture, gradients and added decorations, retain the official photograph, match bilingual subheading colors, and review official English terminology.
 
 将海报中的机器人照片替换为官方 SO-101 清晰原图，仅等比缩放并裁切背景留白；同步更新双语致谢和图片来源。`v0.1.0-baseline` 标签不变。
 
