@@ -4,7 +4,7 @@
   </a>
 </p>
 
-<h1 align="center">LeRobot</h1>
+<h1 align="center">LeRobot：强化学习项目</h1>
 <h3 align="center">视觉桌面操作：从仿真学习到 SO-101 真机部署</h3>
 
 <p align="center">
@@ -21,11 +21,6 @@
   <a href="#开发路线">开发路线</a> ·
   <a href="#文档">文档</a> ·
   <a href="CONTRIBUTING.md">参与开发</a>
-</p>
-
-<p align="center">
-  <a href="assets/lerobot-tabletop-pushing-bilingual.svg">可缩放海报</a> ·
-  <a href="assets/lerobot-tabletop-pushing-bilingual.png">4K PNG</a>
 </p>
 
 ---

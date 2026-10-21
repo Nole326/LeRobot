@@ -4,7 +4,7 @@
   </a>
 </p>
 
-<h1 align="center">LeRobot</h1>
+<h1 align="center">LeRobot: Reinforcement Learning Project</h1>
 <h3 align="center">Visual Tabletop Manipulation: From Simulation to SO-101 Deployment</h3>
 
 <p align="center">
@@ -21,11 +21,6 @@
   <a href="#development-path">Development path</a> ·
   <a href="#documentation">Documentation</a> ·
   <a href="CONTRIBUTING.md">Contributing</a>
-</p>
-
-<p align="center">
-  <a href="assets/lerobot-tabletop-pushing-bilingual.svg">Scalable poster</a> ·
-  <a href="assets/lerobot-tabletop-pushing-bilingual.png">4K PNG</a>
 </p>
 
 ---
