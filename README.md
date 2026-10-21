@@ -29,16 +29,15 @@
 
 ## 当前范围
 
-- **LiftCube**：已加入课程起点、配套环境说明、BC/参考 PPO 及评测入口。它是抓取并抬升方块的开发环境，不是完整多物体抓放任务。
-- **统一接口**：当前 LiftCube 使用 front RGB、6 维关节位置与绝对电机目标。速度、末端位置的兼容字段是补零，不是实测反馈；完整输入和频率见[任务说明](course/liftcube/README.md#接口--interface)。
-- **模型路线**：ACT、SmolVLA、OpenVLA-OFT、π₀.₅、GR00T 是待接入或验证的方向，不代表已经提供可用的课程任务权重。
-- **正式训练前**：演示动作映射、模型适配及完整存档恢复仍需验收。参考训练器可运行不等于训练、泛化或真机性能已经验证。
+- **开发环境**：SO-101 LiftCube，提供环境适配、演示读取、BC、参考 PPO 和评测入口。配套镜像与运行方法见 [LiftCube 指南](course/liftcube/README.md)。
+- **模型计划**：ACT、SmolVLA、OpenVLA-OFT、π₀.₅ 与 GR00T；模型适配、演示动作映射和训练恢复仍在完善。
+- **目标任务**：从方块抓取与抬升扩展到视觉多物体抓放，按课程发布的环境和评分规则评测，再进行真机部署。
 
-课程正式任务、控制器、评分规则优先于海报和上游示例。策略使用图像与许可本体状态，不读取物体/目标真值；训练奖励可按规则使用特权信息。最终任务接口与当前 LiftCube 的关节控制不能混为一谈。
+当前 LiftCube 使用单路 front RGB 与六关节控制，具体输入、动作和时序见[接口说明](course/liftcube/README.md#接口--interface)。策略仅使用图像与许可本体状态，物体和目标真值用于训练奖励或离线分析。
 
 ## 快速开始
 
-只检查仓库内容，不安装模拟器、不分配 GPU、不启动训练：
+获取代码并运行仓库检查（需要 Git 和 Python 3.11+）：
 
 ```bash
 git clone -c core.longpaths=true -c core.autocrlf=false https://github.com/Nole326/LeRobot.git
@@ -46,15 +45,13 @@ cd LeRobot
 python scripts/check_project.py
 ```
 
-检查需要 Git 和 Python 3.11+。克隆参数只作用于新仓库，保留上游换行并兼容 Windows 深层路径。自动检查覆盖源码完整性、语法、文档链接、测试和海报尺寸，不代表真实仿真或训练通过。
+该检查不启动仿真或训练。运行 LiftCube 请按[镜像与环境说明](course/liftcube/README.md#运行环境--runtime)获取配套镜像，在容器内执行任务命令。
 
-开发环境从 [LiftCube 使用说明](course/liftcube/README.md) 开始：其中提供[配套镜像下载渠道、SHA256 与导入步骤](course/liftcube/README.md#运行环境--runtime)。运行代码应在符合所在平台规范的隔离环境中进行，保留配套 Torch/CUDA，不混入历史快照的 Python 路径。
-
-原始源码开发基准为 `v0.1.1-baseline`，见[基准说明](docs/BASELINE.md)；后续团队开发从最新 `main` 创建功能分支。版本变化记入 [CHANGELOG](CHANGELOG.md)。
+项目版本见[基准说明](docs/BASELINE.md)与 [CHANGELOG](CHANGELOG.md)。参与开发请从最新 `main` 创建功能分支，流程见[贡献指南](CONTRIBUTING.md)。
 
 ## 仓库结构
 
-按 rl-garden 的职责分层组织，复用现有 `starter` 包，不重复建立另一套模型/环境框架：
+任务代码位于 `course/liftcube/src/starter/`，按接口、数据、算法和评测分层：
 
 ```text
 .
@@ -66,7 +63,7 @@ python scripts/check_project.py
 │   │   ├── algorithms/        # BC、RL与参考PPO
 │   │   ├── training/          # 配置驱动的训练入口
 │   │   ├── evaluation/        # 共用评测与策略加载
-│   │   ├── rewards/           # 训练奖励，不改正式评分
+│   │   ├── rewards/           # 训练奖励
 │   │   └── logging/           # 指标记录
 │   ├── configs/              # 当前任务配置
 │   └── patches/              # 相对课程原包的可逆修改
@@ -74,27 +71,24 @@ python scripts/check_project.py
 ├── configs/                  # 公共实验计划模板
 ├── scripts/                  # 仓库、来源与计划检查
 ├── tests/                    # 项目回归测试
-├── third_party/              # 固定上游源码，不作实验草稿
+├── third_party/              # 固定版本的上游源码
 ├── manifests/                # 源码、版本与哈希清单
 ├── docs/                     # 架构、接口、运行与复现说明
-└── assets/                   # 已批准的项目素材
+└── assets/                   # 海报与项目素材
 ```
 
-[架构与扩展约定](docs/ARCHITECTURE.md)说明各层职责、模型接入位置和协作流程。模型在合入后共同存在于 `main`；分支用于开发改动，不用于永久存放不同算法、seed 或 checkpoint。
-
-镜像、数据、权重、运行日志与私有部署记录不进入 Git，仓库记录其来源、许可、固定版本与校验方式。
+模型接入与各层职责见[架构说明](docs/ARCHITECTURE.md)。镜像、数据与权重单独获取，来源和版本见[依赖说明](docs/DEPENDENCIES.md)。
 
 ## 开发路线
 
-1. 对齐观测、动作、图像预处理和时序，核验终态、超时及安全接口。
-2. 验收少量完整演示：单位、关节顺序、同步、重放和成功标记；按完整回合划分数据。
-3. 建立规则、ACT 与小规模 VLA 基线，再比较 OpenVLA-OFT、π₀.₅ 等候选。
-4. 先建立普通 RL 对照，再探索 VLA 直接微调或 residual；分别记录示范、交互与计算成本。
-5. 使用相同任务、场景、seed 和成功判据评测，做消融与失败分析；通过部署检查后再上真机。
+1. 完成控制接口、演示数据与重放验证。
+2. 建立规则、ACT 和小规模 VLA 基线，比较其他 VLA 的任务适应性。
+3. 进行 RL 训练，探索直接微调与 residual，并完成消融实验。
+4. 在已见、组合外推和未见条件下统一评测，再对齐真机部署。
 
-BC和预训练VLA用于初始化或对照，不替代课程要求的RL训练。评测区分已见、组合外推与完全未见条件，记录成功率、时间、误抓/漏抓与放置误差；具体成功条件和时限以正式发布为准，不套用其他示例的默认上限。
+BC与预训练VLA作为初始化或对照，RL为独立训练阶段。评测记录成功率、完成时间、误抓/漏抓和放置误差，具体成功判据及时间上限随任务环境确定。
 
-RLinf 可为 VLA 的 SFT→RL、流式动作策略优化、chunk 执行及评测提供参考，但不是开箱即用的课程 SO-101 训练器。具体可借鉴内容、版本差异与适配缺口见 [RLinf 接入评估](docs/RLINF.md)。目前未将其加入运行依赖。
+VLA 强化学习实现参考 [RLinf](docs/RLINF.md)，目前尚未接入本项目运行环境。
 
 ### 上游版本
 
@@ -106,7 +100,7 @@ RLinf 可为 VLA 的 SFT→RL、流式动作策略优化、chunk 执行及评测
 | LeIsaac | 0.4.0 | [24d3bcd](https://github.com/LightwheelAI/leisaac/tree/24d3bcd3f1e4585740fc79921782c41617237812) |
 | IsaacLab | v2.3.0 | [3c6e67b](https://github.com/isaac-sim/IsaacLab/tree/3c6e67bb5c7ada942a6d1884ab69338f57596f77) |
 
-完整导入保留上游许可和来源清单；45 项 LFS 测试素材已作为普通 Git 文件保存，无需另行 LFS 下载或子模块初始化。
+源码来源与完整性信息见[导入清单](docs/IMPORT_MANIFEST.md)。
 
 ## 文档
 
@@ -125,6 +119,6 @@ RLinf 可为 VLA 的 SFT→RL、流式动作策略优化、chunk 执行及评测
 
 ## 参考与致谢
 
-感谢 [LeRobot](https://github.com/huggingface/lerobot)、[LeIsaac](https://github.com/LightwheelAI/leisaac) 和 [IsaacLab](https://github.com/isaac-sim/IsaacLab) 提供的开源基础。工程分层参考 [rl-garden](https://github.com/Nole326/rl-garden)，VLA 强化学习方案参考 [RLinf](https://github.com/RLinf/RLinf)。引用与分发遵循各自许可，不改变上游版权归属。
+感谢 [LeRobot](https://github.com/huggingface/lerobot)、[LeIsaac](https://github.com/LightwheelAI/leisaac) 和 [IsaacLab](https://github.com/isaac-sim/IsaacLab)。工程分层参考 [rl-garden](https://github.com/Nole326/rl-garden)，VLA 强化学习方案参考 [RLinf](https://github.com/RLinf/RLinf)。相关许可见[第三方说明](THIRD_PARTY_NOTICES.md)。
 
 海报为课程项目海报优化调整后的中英双语版。机器人图像来源为 [LeRobot SO-101 官方文档](https://huggingface.co/docs/lerobot/so101)。

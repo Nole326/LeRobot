@@ -28,9 +28,9 @@ Give each commit a concise description, adding rationale and validation results 
 
 For a milestone release, move the accumulated entries into a versioned, dated section and retain a fresh `Unreleased` section. Update the README and relevant version docs, run checks, commit, then create an annotated Git tag on that commit and push both. Never overwrite published tags. A GitHub Release can reuse the same summary; a separate Markdown file per version is unnecessary.
 
-README 面向项目读者，介绍目标、用法和当前进度。图片来源放在致谢或素材说明中；沟通过程、编辑指令及内部操作记录不写入 README。
+README 面向组员和首次访问的开发者：先说明项目用途、可用功能和起步方法，再链接到详细文档。简短区分已实现与计划中的功能；安装细节、验证记录和协作规则放到对应文档。图片来源保留在致谢或素材说明中，沟通过程与内部操作记录不写入首页。
 
-Write the README for project readers: describe goals, usage and current progress. Keep image attribution in acknowledgements or asset notes, and leave conversations, editing instructions and internal operations out of the README.
+Write for teammates and first-time developers: explain the purpose, available features and first steps, then link to details. Distinguish implemented and planned features briefly; keep setup details, validation records and collaboration rules in their own documents. Retain image credits in acknowledgements or asset notes, leaving conversations and internal operations out of the homepage.
 
 提交前执行统一检查：
 

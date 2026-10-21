@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+精简中英文README的重复提醒与内部过程说明，保留任务状态、使用入口和关键接口限制，详细内容链接到开发文档。
+
+Trim repeated caveats and internal process notes from both READMEs, retaining task status, entry points and key interface limits with links to development documentation.
+
 README首页调整为海报置顶、居中项目标题和简介、English | 简体中文切换及文档导航；中英文采用相同结构，保留原海报和正文，不增加网页运行依赖。
 
 Restyle both README headers with the existing poster first, centered project title and introduction, an English | 简体中文 switch and document navigation. Preserve poster assets and body content without adding web runtime dependencies.
