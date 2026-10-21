@@ -9,7 +9,7 @@ The original initial commit is preserved; source snapshots are added without rew
 - Expanded nested IsaacLab dependency, plus a canonical copy.
 - 4,361 upstream file entries including intentional redundancy.
 - All 45 LFS test fixtures: 72,385,557 bytes, retrieved from official fixed commits and SHA256-verified.
-- 16 independent diagnostic source files and two constraint examples under course/. No course documents or experiment outputs despite that directory name.
+- Standalone diagnostic tools, dependency constraints and the LiftCube starter under course/. Original course documents and experiment outputs are excluded.
 - Generic documentation, automated content audit, fixture recovery and manifests.
 
 The sole upstream text change is third_party/lerobot/.gitattributes: seven LFS rules become ordinary binary-file rules. No algorithm/environment/scoring code changed. Original and imported blobs are recorded. Original .gitmodules remains provenance; there are no unresolved root gitlinks.
@@ -22,6 +22,14 @@ Course PDFs, requirement summaries, reports, validation records, screenshots, se
 
 The owner-approved exception is the redacted bilingual project poster and its generic project introduction. This does not authorize publishing the original poster with contact details or other private course materials.
 
-manifests/projects.json records commits/trees; source_files.json validates upstream content; lfs_objects.json records fixtures; course_files.json covers only public utility code and constraints. These files support automated auditing, not private deployment inventory.
+manifests/projects.json records commits/trees; source_files.json validates upstream content; lfs_objects.json records fixtures; course_files.json covers public course code, configurations, patches and generic task instructions. These files support automated auditing, not private deployment inventory.
 
 Import validation covers source integrity and Python syntax, not fresh GPU deployment, formal evaluation or end-to-end training success.
+
+## LiftCube starter import
+
+The independent `course/liftcube/` package contains 45 original source/configuration files plus one new render-preparation module. Its archive SHA, original/current file hashes and modified-file flags are in [liftcube_source.json](../manifests/liftcube_source.json). The [patch](../course/liftcube/patches/team-interface.patch) records all code changes. The original evaluation YAML is unchanged. A repository test checks hashes and reconstructs original source by reversing the patch in a temporary directory.
+
+This package uses Isaac Sim 4.5.0 / Isaac Lab v2.1.1 / LeIsaac v0.1.2 from the matching image, independently of the newer `third_party/` snapshots. Code, configurations and generic usage instructions are included; simulator archives, datasets, weights, original course instructions and private records are excluded. See the [LiftCube guide](../course/liftcube/README.md).
+
+The image guide records the original SJTU cloud-drive distribution page, archive SHA256 and image ID. A share link does not redistribute the image through Git or change its access/license terms. Data and model identifiers are kept separate from the environment archive.

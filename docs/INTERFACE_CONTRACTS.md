@@ -4,6 +4,10 @@
 
 This page defines development checks, not the formal environment specification. The configuration template is a design checklist, not an integrated production interface; empty values are unresolved. Interface changes need new schema identifiers, conversion tests and migration notes, not just a changed dimension.
 
+当前 [LiftCube起点](../course/liftcube/README.md)使用front 64×64及六关节绝对电机目标；SO101速度/末端兼容字段补零。实际环境60Hz，30Hz策略由评测适配保持两tick。它与本文待确认的受限末端任务接口分开，不直接换算维度后混用。
+
+The current [LiftCube starter](../course/liftcube/README.md) uses front 64×64 RGB and six absolute motor targets, with zero-filled SO101 velocity/EE slots. Its environment runs at 60Hz; the evaluation adapter holds 30Hz policy targets for two ticks. This remains separate from the unresolved constrained end-effector task interface below.
+
 ## 1. 观测 / Observations
 
 策略输入显式列出图像键、本体字段顺序、形状、单位、归一化、时间戳和任务条件。图像必须对应动作前的观测，记录曝光/采样时刻与策略读取时刻。物体和目标信息来自许可的视觉或任务条件通道，不能把仿真真值改名为本体字段后传入网络。训练 reward、诊断信息与网络输入分开；critic 输入也须独立确认许可。

@@ -10,6 +10,10 @@ Build one minimal loop before increasing model size or training budget: read obs
 
 Read this page, then the [interface contracts](INTERFACE_CONTRACTS.md), [dependencies](DEPENDENCIES.md) and [training validation](TRAINING_VALIDATION.md). The formal task definition takes precedence over artwork and upstream examples. Leave unpublished parameters unresolved instead of substituting familiar defaults.
 
+当前LiftCube开发从[专用说明](../course/liftcube/README.md)开始：获取配套镜像、核验SHA并在容器中运行短测。PickOrange及旧版上游快照保留作参考；不要把两套环境的依赖路径混用。
+
+For current LiftCube work, start with the [task guide](../course/liftcube/README.md): obtain the matching image, verify its SHA and run a short check inside the container. PickOrange and historical upstream snapshots remain references; keep the two dependency paths separate.
+
 先在本地运行以下检查。第一条应成功；第二条对未填写的模板应返回退出码 3，并逐项列出缺失字段。
 
 Run these local checks first. The first should pass; the second should return exit code 3 for the unfilled template, listing the unresolved fields.
@@ -43,6 +47,10 @@ Use the same demonstrations and evaluation protocol for ACT and SmolVLA. Their i
 `third_party/` 是冻结的上游参考，不是日常实验草稿区。当前 `course/scripts/` 是独立诊断工具，`scripts/` 是仓库和计划检查，`tests/` 放回归测试，`configs/` 放可公开的计划模板。具体适配器通过验收后再接入训练入口，不先创建一堆空训练命令。私有机器配置、数据、权重和结果留在仓库外或忽略目录。
 
 `third_party/` is a frozen upstream reference, not a scratch area for experiments. `course/scripts/` holds standalone diagnostics, `scripts/` repository and plan checks, `tests/` regressions, and `configs/` public planning templates. Integrate adapters into a trainer after validation rather than creating empty training commands. Keep machine configuration, data, weights and results outside the repository or in ignored directories.
+
+LiftCube代码位于`course/liftcube/`：模型、数据和环境适配在`src/starter/`，任务配置在该目录的`configs/`。新增模型沿用共同动作和评测接口；公共接口修正与模型专属实现分开评审。
+
+LiftCube code lives in `course/liftcube/`: models, data and environment adapters under `src/starter/`, with task configurations in its `configs/`. New models share action and evaluation contracts; review shared-interface fixes separately from model-specific implementations.
 
 现有诊断脚本中有固定挂载路径、20帧数据和小模型等专用条件，运行前看脚本说明，不把它们当成通用采集器或完整训练器。[训练验证](TRAINING_VALIDATION.md)说明了已覆盖与未覆盖的内容。
 

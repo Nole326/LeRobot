@@ -1,0 +1,364 @@
+--- a/src/starter/data/hf_adapter.py
++++ b/src/starter/data/hf_adapter.py
+@@ -1,4 +1,8 @@
+-"""Read local LeRobot v2.1 and v3 datasets for BC training."""
++"""Read local LeRobot v2.1 and v3 datasets for BC training.
++
++Local modification 2026-10-20: shared bilinear RGB resize; reject unapproved
++action clipping before decoding videos or constructing training labels.
++"""
+ 
+ from __future__ import annotations
+ 
+@@ -10,6 +14,7 @@
+ 
+ from starter.interfaces.action import ActionSpec, JOINT_NAMES, DEFAULT_LOW, DEFAULT_HIGH, radians_to_motor
+ from starter.interfaces.observation import ObservationSpec
++from starter.interfaces.vision import IdentityProcessor
+ 
+ from .schema import EnvManifest
+ 
+@@ -60,6 +65,7 @@
+     max_episodes: int | None = None,
+     max_frames: int | None = None,
+     action_units: str | None = None,
++    allow_action_clipping: bool = False,
+ ) -> tuple[dict[str, np.ndarray], EnvManifest, ObservationSpec, ActionSpec, dict[str, Any]]:
+     """Load local LeRobot v2.1 or v3.0 data into canonical BC arrays.
+ 
+@@ -77,6 +83,7 @@
+             root, info, camera=camera, image_height=image_height, image_width=image_width,
+             include_ee=include_ee, max_episodes=max_episodes, max_frames=max_frames,
+             action_units=action_units,
++            allow_action_clipping=allow_action_clipping,
+         )
+     if version != "v2.1":
+         raise HFAdapterError(
+@@ -163,14 +170,15 @@
+ def _load_lerobot_v3(
+     root: Path, info: dict[str, Any], *, camera: str, image_height: int,
+     image_width: int, include_ee: bool, max_episodes: int | None,
+-    max_frames: int | None, action_units: str | None,
++    max_frames: int | None, action_units: str | None, allow_action_clipping: bool,
+ ) -> tuple[dict[str, np.ndarray], EnvManifest, ObservationSpec, ActionSpec, dict[str, Any]]:
+     """Join v3 episode metadata, packed parquet rows, and packed MP4 frames.
+ 
+     Dataset units are not encoded in LeRobot's feature schema, so the caller
+     must explicitly declare them. The LiftCube demonstrations use radians for
+     arm positions and [0, 1] for gripper. Actions beyond the physical joint
+-    limits are clipped to the commands the simulator can actually execute.
++    limits require explicit diagnostic approval before clipping. The source
++    zero point/unit mapping must be established before using these as BC labels.
+     """
+     if action_units != "radians_gripper_0_1":
+         raise HFAdapterError(
+@@ -257,16 +265,22 @@
+             remaining -= take
+     if total == 0:
+         raise HFAdapterError("No v3 frames loaded")
+-    images = np.empty((total, image_height, image_width, 3), dtype=np.uint8)
+-    for video_path, targets in selected_video.items():
+-        _decode_selected_rgb_frames(video_path, targets, images, (image_height, image_width))
+     actions_raw = np.concatenate([part["action"] for part in episode_parts])
+     states_raw = np.concatenate([part["state"] for part in episode_parts])
+     action = _lift_cube_radians_to_motor(actions_raw)
+     state = _lift_cube_radians_to_motor(states_raw)
+     clipped = (action < DEFAULT_LOW) | (action > DEFAULT_HIGH)
+     clip_count = np.count_nonzero(clipped, axis=0).astype(int).tolist()
++    if any(clip_count) and not allow_action_clipping:
++        raise HFAdapterError(
++            f"Action mapping exceeds SO101 limits; per-joint counts={clip_count}. "
++            "Verify source units/zero points before BC; allow_action_clipping=True "
++            "is for explicit diagnostics, not dataset acceptance."
++        )
+     action = np.clip(action, DEFAULT_LOW, DEFAULT_HIGH).astype(np.float32)
++    images = np.empty((total, image_height, image_width, 3), dtype=np.uint8)
++    for video_path, targets in selected_video.items():
++        _decode_selected_rgb_frames(video_path, targets, images, (image_height, image_width))
+     proprio = np.zeros((total, 21 if include_ee else 18), dtype=np.float32)
+     proprio[:, :6] = state
+     for part in episode_parts:
+@@ -460,9 +474,8 @@
+         arr = np.clip(arr, 0, 255).astype(np.uint8)
+     h, w = size
+     if arr.shape[0] != h or arr.shape[1] != w:
+-        yy = (np.linspace(0, arr.shape[0] - 1, h)).astype(np.int64)
+-        xx = (np.linspace(0, arr.shape[1] - 1, w)).astype(np.int64)
+-        arr = arr[yy][:, xx]
++        tensor = IdentityProcessor(output_size=(h, w))(arr)
++        arr = tensor.permute(1, 2, 0).clamp(0, 1).mul(255).byte().cpu().numpy()
+     if arr.shape[-1] != 3:
+         raise HFAdapterError(f"image channels {arr.shape}")
+     return arr
+--- a/src/starter/envs/lift_cube.py
++++ b/src/starter/envs/lift_cube.py
+@@ -1,4 +1,8 @@
+ """Adapter for LeIsaac LiftCube. No object GT in policy observations.
++
++Local course adaptation (2026-10-20): camera/readiness, SO101 padding,
++actual control frequency, causal command history and pre-reset terminal capture.
++Original archive retained unchanged.
+ 
+ Created inside the course container as ``ManagerBasedRLEnv(LiftCubeEnvCfg)``.
+ LeIsaac v0.1.2 registers this task as ``LeIsaac-SO101-LiftCube-v0``.
+@@ -16,7 +20,6 @@
+     clip_action,
+     motor_to_radians,
+     radians_to_motor,
+-    radians_velocity_to_motor,
+ )
+ from starter.interfaces.observation import Observation, ObservationSpec, pack_proprio, proprio_dim
+ from starter.envs.lift_cube_privileged import (
+@@ -134,6 +137,8 @@
+         device: str = "cuda:0",
+         max_episode_steps: int = 640,
+     ) -> None:
++        if n_envs != 1:
++            raise ValueError("This scalar adapter supports n_envs=1 only.")
+         self.camera = camera
+         self.include_ee = include_ee_in_proprio
+         self.device = device
+@@ -144,6 +149,8 @@
+         self._app = None
+         self._raw = raw_env if raw_env is not None else self._make_raw_env()
+         self._unwrapped = self._unwrap(self._raw)
++        if self._owns_env:
++            control_hz = 1.0 / float(self._unwrapped.step_dt)
+         self.action_spec = ActionSpec(frequency_hz=control_hz)
+         self.observation_spec = ObservationSpec(
+             image_shape=(image_height, image_width, 3),
+@@ -160,6 +167,8 @@
+         self._episode_id = -1
+         self._step_count = 0
+         self._last_action = np.zeros(self.action_spec.dim, dtype=np.float32)
++        self._terminal_obs = None
++        self._terminal_privileged = None
+ 
+     def _make_raw_env(self) -> Any:
+         from starter.envs.container import isaac_runtime_ready
+@@ -181,7 +190,14 @@
+             env_cfg.actions.gripper_action.preserve_order = True
+             dt = float(env_cfg.sim.dt) * int(env_cfg.decimation)
+             env_cfg.episode_length_s = float(self.max_episode_steps) * dt
+-            return manager_cls(cfg=env_cfg)
++            class TerminalCaptureEnv(manager_cls):
++                def _reset_idx(raw, env_ids):
++                    callback = getattr(raw, "_course_before_reset", None)
++                    if callback is not None:
++                        callback()
++                    super()._reset_idx(env_ids)
++
++            return TerminalCaptureEnv(cfg=env_cfg)
+         except IsaacUnavailableError:
+             raise
+         except Exception as exc:
+@@ -206,6 +222,8 @@
+         self._episode_id += 1
+         self._step_count = 0
+         self._last_action = np.zeros(self.action_spec.dim, dtype=np.float32)
++        self._terminal_obs = None
++        self._terminal_privileged = None
+         kwargs: dict[str, Any] = {}
+         if seed is not None:
+             kwargs["seed"] = seed
+@@ -214,6 +232,10 @@
+         except TypeError:
+             result = self._raw.reset()
+         obs_raw, info_raw = self._split_reset(result)
++        if self._owns_env:
++            from starter.envs.render_ready import prepare_front_rgb
++
++            obs_raw, self.render_readiness = prepare_front_rgb(self._unwrapped, obs_raw, self.camera)
+         obs = self._convert_obs(obs_raw)
+         info = self._public_info(success=False, reason="", reward=0.0)
+         return obs, info
+@@ -221,18 +243,33 @@
+     def step(self, action: np.ndarray) -> tuple[Observation, float, bool, bool, dict[str, Any]]:
+         action = clip_action(np.asarray(action, dtype=np.float32), self.action_spec)
+         isaac_action = self._to_isaac_action(action)
+-        result = self._raw.step(isaac_action)
++        self._terminal_obs = None
++        self._terminal_privileged = None
++        self._last_action = action.copy()
++        if self._owns_env:
++            self._unwrapped._course_before_reset = self._capture_terminal
++        try:
++            result = self._raw.step(isaac_action)
++        finally:
++            if self._owns_env:
++                self._unwrapped._course_before_reset = None
+         obs_raw, _reward, terminated, truncated, info_raw = self._split_step(result)
+-        obs = self._convert_obs(obs_raw)
++        obs = self._terminal_obs if self._terminal_obs is not None else self._convert_obs(obs_raw)
+         terminated_b = bool(self._first_bool(terminated))
+         truncated_b = bool(self._first_bool(truncated))
+         success = self._read_success()
+         used_reward = SPARSE_SUCCESS_REWARD if success else 0.0
+         reason = self._infer_reason(success, terminated_b, truncated_b, info_raw)
+-        self._last_action = action
+         self._step_count += 1
+         info = self._public_info(success=success, reason=reason, reward=used_reward)
+         return obs, used_reward, terminated_b, truncated_b, info
++
++    def _capture_terminal(self) -> None:
++        """Capture before Isaac's automatic reset; never expose GT to the policy."""
++        raw = self._unwrapped.observation_manager.compute(update_history=False)
++        self._terminal_obs = self._convert_obs(raw)
++        self._terminal_obs.image = self._terminal_obs.image.copy()
++        self._terminal_privileged = self.get_privileged_state()
+ 
+     def close(self) -> None:
+         for obj in (self._raw, self._vector_env, self._unwrapped):
+@@ -263,17 +300,13 @@
+         policy = self._policy_dict(obs_raw)
+         image = self._extract_image(policy)
+         joint_pos = self._extract_vec(policy, ("joint_pos", "observation.state"), default=6)
+-        joint_vel = self._extract_vec(policy, ("joint_vel",), default=6)
+-        echoed = self._extract_vec(policy, ("actions", "last_action"), default=6, required=False)
+         if "joint_pos" in policy or "observation.state" in policy:
+             joint_pos = radians_to_motor(joint_pos)
+-        if "joint_vel" in policy:
+-            joint_vel = radians_velocity_to_motor(joint_vel)
+-        if echoed is not None:
+-            last_action = radians_to_motor(echoed)
+-        else:
+-            last_action = self._last_action
+-        ee = self._extract_ee(policy)
++        last_action = self._last_action
++        # Match the TA-confirmed SO101 data/real-robot contract. Simulator-only
++        # measurements must not become inputs that disappear on the real robot.
++        joint_vel = np.zeros(6, dtype=np.float32)
++        ee = np.zeros(3, dtype=np.float32)
+         proprio = pack_proprio(joint_pos, joint_vel, last_action, ee, include_ee=self.include_ee)
+         return Observation(
+             image=image,
+@@ -296,7 +329,7 @@
+         return policy
+ 
+     def _extract_image(self, policy: dict[str, Any]) -> np.ndarray:
+-        candidates = [self.camera, "front", "wrist", "top"]
++        candidates = [self.camera]
+         raw = None
+         for key in candidates:
+             if key in policy:
+@@ -307,8 +340,7 @@
+                 raw = policy[nested]
+                 break
+         if raw is None:
+-            h, w, _ = self.observation_spec.image_shape
+-            return np.zeros((h, w, 3), dtype=np.uint8)
++            raise ValueError(f"Required camera {self.camera!r} is absent.")
+         img = self._to_numpy(raw)
+         img = np.asarray(img)
+         if img.ndim == 4:
+@@ -370,6 +402,8 @@
+ 
+     def get_privileged_state(self) -> LiftCubePrivilegedState:
+         """LiftCube cube, base, and jaw state for reward code. Not a policy observation."""
++        if self._terminal_privileged is not None:
++            return self._terminal_privileged
+         scene = getattr(self._unwrapped, "scene", None)
+         if scene is None:
+             raise RuntimeError("LiftCube scene is not available")
+--- /dev/null
++++ b/src/starter/envs/render_ready.py
+@@ -0,0 +1,33 @@
++"""Local adaptation: refresh RGB after reset without advancing physics.
++
++Uses the render-only procedure already checked in the course pi05 diagnostics.
++"""
++import time
++import numpy as np
++
++
++def prepare_front_rgb(raw, observation, camera):
++    from isaacsim.core.utils.stage import is_stage_loading
++
++    sensor = raw.scene.sensors[camera]
++    previous = None
++    stable = 0
++    started = time.monotonic()
++    for frame in range(300):
++        if time.monotonic() - started > 180:
++            raise RuntimeError("RGB preparation timed out before policy execution")
++        raw.sim.render()
++        sensor.reset()  # Invalidate only the sensor's bookkeeping, not the scene.
++        sensor.update(0.0, force_recompute=True)
++        rgb = sensor.data.output["rgb"][..., :3].clone()
++        pixels = rgb[0].cpu().numpy()
++        change = None if previous is None else float(np.abs(pixels.astype(float) - previous).mean())
++        stable = stable + 1 if frame >= 30 and not is_stage_loading() and change is not None and change < 1.5 else 0
++        previous = pixels.astype(float)
++        if stable >= 10:
++            if not np.isfinite(pixels).all() or float(pixels.std()) <= 10:
++                raise RuntimeError("Invalid RGB after render preparation")
++            observation["policy"][camera] = rgb
++            return observation, {"render_frames": frame + 1, "last_mean_change": change,
++                                 "elapsed_s": time.monotonic() - started, "physics_steps": 0}
++    raise RuntimeError("RGB did not stabilize before policy execution")
+--- a/src/starter/evaluation/evaluate.py
++++ b/src/starter/evaluation/evaluate.py
+@@ -6,6 +6,8 @@
+ import importlib
+ from pathlib import Path
+ from typing import Any
++
++import numpy as np
+ 
+ from starter.config import PROJECT_ROOT, add_common_args, apply_common_overrides, get_device, resolve_config
+ from starter.envs.container import ensure_in_leisaac_container
+@@ -65,8 +67,13 @@
+     reason = ""
+     success = False
+     failure_class = "unknown"
++    # Local adaptation: preserve official environment ticks/horizon while a
++    # 30 Hz policy holds each target for two ticks in the actual 60 Hz task.
++    hold_steps = policy_action_hold_steps(env, policy)
++    action = None
+     while True:
+-        action = policy.act(obs, deterministic=deterministic)
++        if length % hold_steps == 0:
++            action = np.asarray(policy.act(obs, deterministic=deterministic)).copy()
+         obs, reward, terminated, truncated, info = env.step(action)
+         total += float(reward)
+         length += 1
+@@ -102,6 +109,18 @@
+     )
+ 
+ 
++def policy_action_hold_steps(env: Any, policy: PolicyModel) -> int:
++    env_hz = float(env.action_spec.frequency_hz)
++    policy_hz = float(getattr(policy, "action_spec", env.action_spec).frequency_hz)
++    if not np.isfinite([env_hz, policy_hz]).all() or min(env_hz, policy_hz) <= 0:
++        raise ValueError("Policy/environment frequency must be finite and positive")
++    ratio = env_hz / policy_hz
++    ticks = round(ratio)
++    if ticks < 1 or not np.isclose(ratio, ticks, atol=1e-6, rtol=0):
++        raise ValueError(f"Cannot hold {policy_hz} Hz policy at {env_hz} Hz environment ticks")
++    return ticks
++
++
+ def evaluate(cfg: dict[str, Any]) -> dict[str, Any]:
+     device = get_device(cfg.get("device"))
+     ckpt = cfg.get("checkpoint", {}).get("path")
+@@ -148,7 +167,9 @@
+         env_backend="lift_cube",
+         config_path=cfg.get("_config_path"),
+         checkpoint=checkpoint,
+-        extra={"git": try_git_hash(), "deterministic": deterministic},
++        extra={"git": try_git_hash(), "deterministic": deterministic,
++               "environment_hz": env.action_spec.frequency_hz,
++               "policy_action_hold_steps": policy_action_hold_steps(env, policy)},
+     )
+     paths = write_eval_outputs(
+         log_dir,
+--- a/src/starter/training/train_bc.py
++++ b/src/starter/training/train_bc.py
+@@ -53,6 +53,7 @@
+         max_episodes=data_cfg.get("max_episodes"),
+         max_frames=data_cfg.get("max_frames"),
+         action_units=data_cfg.get("action_units"),
++        allow_action_clipping=bool(data_cfg.get("allow_action_clipping", False)),
+     )
+ 
+ 

@@ -1,0 +1,42 @@
+seed: 0
+device: cpu
+
+env:
+  id: LeIsaac-SO101-LiftCube-v0
+  camera: front
+  image_height: 64
+  image_width: 64
+  max_episode_steps: 640
+  control_hz: 30
+  include_ee_in_proprio: true
+
+data:
+  path: ../datasets/lift_cube
+  # LeRobot v3 lift_cube stores arm targets in radians and gripper in [0, 1].
+  action_units: radians_gripper_0_1
+  max_episodes: null
+  max_frames: null
+  val_ratio: 0.25
+  batch_size: 16
+  num_workers: 0
+
+model:
+  name: small_cnn
+  hidden_dim: 64
+  image_channels: 3
+
+train:
+  epochs: 3
+  learning_rate: 0.001
+  weight_decay: 0.0
+  loss: mse
+  max_batches_per_epoch: 8
+  log_every: 1
+
+checkpoint:
+  path: outputs/bc/checkpoint.pt
+  save_optimizer: false
+
+logging:
+  dir: outputs/bc
+  save_config_copy: true

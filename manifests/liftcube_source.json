@@ -1,0 +1,338 @@
+{
+  "source": "course-provided lerobot-rl-stu.tar.gz",
+  "source_archive_sha256": "59ffa4153550064583ed9a6e4475e7647e6ea49a41e5712be25952d8249c4473",
+  "license_declaration": "MIT in original pyproject.toml; no standalone LICENSE in archive",
+  "excluded": [
+    "original course README",
+    ".git",
+    "__pycache__",
+    "compiled Python files",
+    "Docker image",
+    "datasets",
+    "private validation records"
+  ],
+  "files": [
+    {
+      "path": "course/liftcube/.gitignore",
+      "archive_path": "lerobot-rl-stu/startcode-lerobot/.gitignore",
+      "original_sha256": "f9701e1d3a989437bc34312dcd241eec21e95aa8c90e795a5eecd40276f5af6b",
+      "sha256": "f9701e1d3a989437bc34312dcd241eec21e95aa8c90e795a5eecd40276f5af6b",
+      "modified": false
+    },
+    {
+      "path": "course/liftcube/configs/bc_lift_cube.yaml",
+      "archive_path": "lerobot-rl-stu/startcode-lerobot/configs/bc_lift_cube.yaml",
+      "original_sha256": "554391859258bc498a39d5bc04fe864f65bbbda903b54e0dc4fcafd1a672c95c",
+      "sha256": "554391859258bc498a39d5bc04fe864f65bbbda903b54e0dc4fcafd1a672c95c",
+      "modified": false
+    },
+    {
+      "path": "course/liftcube/configs/eval_lift_cube.yaml",
+      "archive_path": "lerobot-rl-stu/startcode-lerobot/configs/eval_lift_cube.yaml",
+      "original_sha256": "ddd05f8f95b712dd3063fc5bdb6a6c079429be7ae913786a374e747ac220ed00",
+      "sha256": "ddd05f8f95b712dd3063fc5bdb6a6c079429be7ae913786a374e747ac220ed00",
+      "modified": false
+    },
+    {
+      "path": "course/liftcube/configs/lift_cube.yaml",
+      "archive_path": "lerobot-rl-stu/startcode-lerobot/configs/lift_cube.yaml",
+      "original_sha256": "c532ab14a795d205a9694ff409d51d9a7937880ea6fe06b357713d1e5ade161b",
+      "sha256": "c532ab14a795d205a9694ff409d51d9a7937880ea6fe06b357713d1e5ade161b",
+      "modified": false
+    },
+    {
+      "path": "course/liftcube/configs/rl_lift_cube.yaml",
+      "archive_path": "lerobot-rl-stu/startcode-lerobot/configs/rl_lift_cube.yaml",
+      "original_sha256": "a0615e04d5cdaaea89f3b99c555d275bb2a7578fe2d327bef6ff1d705d11c842",
+      "sha256": "a0615e04d5cdaaea89f3b99c555d275bb2a7578fe2d327bef6ff1d705d11c842",
+      "modified": false
+    },
+    {
+      "path": "course/liftcube/pyproject.toml",
+      "archive_path": "lerobot-rl-stu/startcode-lerobot/pyproject.toml",
+      "original_sha256": "ebe3750dc14b2418061a7da3ee0945266c47bd7019c7b9bcccbbe232cd6c0577",
+      "sha256": "ebe3750dc14b2418061a7da3ee0945266c47bd7019c7b9bcccbbe232cd6c0577",
+      "modified": false
+    },
+    {
+      "path": "course/liftcube/src/starter/__init__.py",
+      "archive_path": "lerobot-rl-stu/startcode-lerobot/src/starter/__init__.py",
+      "original_sha256": "c65e105fc79699f4f080083f1e1a7dbf6b583804a38d6b9b5809384f3ace0ed5",
+      "sha256": "c65e105fc79699f4f080083f1e1a7dbf6b583804a38d6b9b5809384f3ace0ed5",
+      "modified": false
+    },
+    {
+      "path": "course/liftcube/src/starter/algorithms/__init__.py",
+      "archive_path": "lerobot-rl-stu/startcode-lerobot/src/starter/algorithms/__init__.py",
+      "original_sha256": "bd5704b881425761d57ee9d7d0ac13e4df31e72fc6a0ba347310dd757a3ed9b2",
+      "sha256": "bd5704b881425761d57ee9d7d0ac13e4df31e72fc6a0ba347310dd757a3ed9b2",
+      "modified": false
+    },
+    {
+      "path": "course/liftcube/src/starter/algorithms/bc.py",
+      "archive_path": "lerobot-rl-stu/startcode-lerobot/src/starter/algorithms/bc.py",
+      "original_sha256": "67b16ddb9458440121e2aafb6b7d17fa1a9a88b20be450c12c186d7c12a96e23",
+      "sha256": "67b16ddb9458440121e2aafb6b7d17fa1a9a88b20be450c12c186d7c12a96e23",
+      "modified": false
+    },
+    {
+      "path": "course/liftcube/src/starter/algorithms/reference/__init__.py",
+      "archive_path": "lerobot-rl-stu/startcode-lerobot/src/starter/algorithms/reference/__init__.py",
+      "original_sha256": "ceeb4e3b825c9b8ae8be0f2b6d804af04512800247a4a83cf50d5ca6b62166ea",
+      "sha256": "ceeb4e3b825c9b8ae8be0f2b6d804af04512800247a4a83cf50d5ca6b62166ea",
+      "modified": false
+    },
+    {
+      "path": "course/liftcube/src/starter/algorithms/reference/ppo.py",
+      "archive_path": "lerobot-rl-stu/startcode-lerobot/src/starter/algorithms/reference/ppo.py",
+      "original_sha256": "9bf2750cfc0c22e2299661eba02fec0efbaf4cd1062825e4ac000c3b85b01cbc",
+      "sha256": "9bf2750cfc0c22e2299661eba02fec0efbaf4cd1062825e4ac000c3b85b01cbc",
+      "modified": false
+    },
+    {
+      "path": "course/liftcube/src/starter/algorithms/rl.py",
+      "archive_path": "lerobot-rl-stu/startcode-lerobot/src/starter/algorithms/rl.py",
+      "original_sha256": "e52e01eb6868afba18fa162f859d60a210e69d68f90c877a100cbbc241df69f2",
+      "sha256": "e52e01eb6868afba18fa162f859d60a210e69d68f90c877a100cbbc241df69f2",
+      "modified": false
+    },
+    {
+      "path": "course/liftcube/src/starter/config.py",
+      "archive_path": "lerobot-rl-stu/startcode-lerobot/src/starter/config.py",
+      "original_sha256": "17f388afedde4901e9a266995adbb875dfbe460f3d5f4b9b1445c83497d3892a",
+      "sha256": "17f388afedde4901e9a266995adbb875dfbe460f3d5f4b9b1445c83497d3892a",
+      "modified": false
+    },
+    {
+      "path": "course/liftcube/src/starter/data/__init__.py",
+      "archive_path": "lerobot-rl-stu/startcode-lerobot/src/starter/data/__init__.py",
+      "original_sha256": "6a7c85dce1458240c57b404d2f400fe4057b60a5be1c6573b13792b108930d21",
+      "sha256": "6a7c85dce1458240c57b404d2f400fe4057b60a5be1c6573b13792b108930d21",
+      "modified": false
+    },
+    {
+      "path": "course/liftcube/src/starter/data/hf_adapter.py",
+      "archive_path": "lerobot-rl-stu/startcode-lerobot/src/starter/data/hf_adapter.py",
+      "original_sha256": "f9fd5922f5d5bcc50ec7a11f13ac00636f2b7f756c4e58724b3d21236189dbf6",
+      "sha256": "4aa117b0165a5725c0a11fa413b19bee54fe5ad542cd6896731cf620aeb689d6",
+      "modified": true
+    },
+    {
+      "path": "course/liftcube/src/starter/data/loader.py",
+      "archive_path": "lerobot-rl-stu/startcode-lerobot/src/starter/data/loader.py",
+      "original_sha256": "86d9ceb663dfaa32b1d4b127535e7b20f78e5c164e226714413a27de34f1dea3",
+      "sha256": "86d9ceb663dfaa32b1d4b127535e7b20f78e5c164e226714413a27de34f1dea3",
+      "modified": false
+    },
+    {
+      "path": "course/liftcube/src/starter/data/schema.py",
+      "archive_path": "lerobot-rl-stu/startcode-lerobot/src/starter/data/schema.py",
+      "original_sha256": "17035cdb89eee01029c1b7f5de3ffa412f8e6282f5584c99395bd6e63c96b778",
+      "sha256": "17035cdb89eee01029c1b7f5de3ffa412f8e6282f5584c99395bd6e63c96b778",
+      "modified": false
+    },
+    {
+      "path": "course/liftcube/src/starter/data/validator.py",
+      "archive_path": "lerobot-rl-stu/startcode-lerobot/src/starter/data/validator.py",
+      "original_sha256": "acd1656c3d8332a5eee9b7b1a604489be6d7fc12dbbb052e758db95f4c1c552a",
+      "sha256": "acd1656c3d8332a5eee9b7b1a604489be6d7fc12dbbb052e758db95f4c1c552a",
+      "modified": false
+    },
+    {
+      "path": "course/liftcube/src/starter/envs/__init__.py",
+      "archive_path": "lerobot-rl-stu/startcode-lerobot/src/starter/envs/__init__.py",
+      "original_sha256": "c4cbc50d9becffa2d95bd374ac0073bc5d72a90c9ca50c04f732e28f98dbdb94",
+      "sha256": "c4cbc50d9becffa2d95bd374ac0073bc5d72a90c9ca50c04f732e28f98dbdb94",
+      "modified": false
+    },
+    {
+      "path": "course/liftcube/src/starter/envs/base.py",
+      "archive_path": "lerobot-rl-stu/startcode-lerobot/src/starter/envs/base.py",
+      "original_sha256": "b9ab027fee2b743d523cf4763f38b7af197856bf84b1f7ac4b4c6e3cc3e31e2e",
+      "sha256": "b9ab027fee2b743d523cf4763f38b7af197856bf84b1f7ac4b4c6e3cc3e31e2e",
+      "modified": false
+    },
+    {
+      "path": "course/liftcube/src/starter/envs/container.py",
+      "archive_path": "lerobot-rl-stu/startcode-lerobot/src/starter/envs/container.py",
+      "original_sha256": "27d9167e74b0a3f795a13b8214e840a14314932b2304d7b81b7cafffba220246",
+      "sha256": "27d9167e74b0a3f795a13b8214e840a14314932b2304d7b81b7cafffba220246",
+      "modified": false
+    },
+    {
+      "path": "course/liftcube/src/starter/envs/factory.py",
+      "archive_path": "lerobot-rl-stu/startcode-lerobot/src/starter/envs/factory.py",
+      "original_sha256": "a2818e65c2fee3165826c083eb3b06163015fcd967ecfb5199fcd008af3dcd9e",
+      "sha256": "a2818e65c2fee3165826c083eb3b06163015fcd967ecfb5199fcd008af3dcd9e",
+      "modified": false
+    },
+    {
+      "path": "course/liftcube/src/starter/envs/lift_cube.py",
+      "archive_path": "lerobot-rl-stu/startcode-lerobot/src/starter/envs/lift_cube.py",
+      "original_sha256": "b6452ec0dc8bc7a32a476ba09ed736153d2f999e1ca17ead7be59bc0f6fba47b",
+      "sha256": "c0659eba39fb1c568d2aed24d24ee1397dcd85aa5cc37b141ba4d36f950f0a9f",
+      "modified": true
+    },
+    {
+      "path": "course/liftcube/src/starter/envs/lift_cube_privileged.py",
+      "archive_path": "lerobot-rl-stu/startcode-lerobot/src/starter/envs/lift_cube_privileged.py",
+      "original_sha256": "d063989ee6d0631bc93aed6f799de8e8da4f6d7030172a33c88f5b5a8a3c6fbe",
+      "sha256": "d063989ee6d0631bc93aed6f799de8e8da4f6d7030172a33c88f5b5a8a3c6fbe",
+      "modified": false
+    },
+    {
+      "path": "course/liftcube/src/starter/envs/render_ready.py",
+      "archive_path": null,
+      "original_sha256": null,
+      "sha256": "66651bad314e0eac9057add7b2a0f360a2c8bf5b8c84294928bfcc536dae6d05",
+      "modified": true
+    },
+    {
+      "path": "course/liftcube/src/starter/evaluation/__init__.py",
+      "archive_path": "lerobot-rl-stu/startcode-lerobot/src/starter/evaluation/__init__.py",
+      "original_sha256": "21c65d78440be69108baac8071217d1710840474f375111978cbf4ac3993ffb1",
+      "sha256": "21c65d78440be69108baac8071217d1710840474f375111978cbf4ac3993ffb1",
+      "modified": false
+    },
+    {
+      "path": "course/liftcube/src/starter/evaluation/evaluate.py",
+      "archive_path": "lerobot-rl-stu/startcode-lerobot/src/starter/evaluation/evaluate.py",
+      "original_sha256": "cf6b82a91c9b0ad4d389ff96e2b9756496718a07acb37fd61ad1f2faa49b6286",
+      "sha256": "65ac3e8cdc6e512ea7d5b29bfe0891f9f4e6e5328d8a93857139268e7137c24c",
+      "modified": true
+    },
+    {
+      "path": "course/liftcube/src/starter/evaluation/random_policy.py",
+      "archive_path": "lerobot-rl-stu/startcode-lerobot/src/starter/evaluation/random_policy.py",
+      "original_sha256": "4414b834c9268ff6a25c807e288f3ede97a9ec23464ba794a0705b4f19a13078",
+      "sha256": "4414b834c9268ff6a25c807e288f3ede97a9ec23464ba794a0705b4f19a13078",
+      "modified": false
+    },
+    {
+      "path": "course/liftcube/src/starter/interfaces/__init__.py",
+      "archive_path": "lerobot-rl-stu/startcode-lerobot/src/starter/interfaces/__init__.py",
+      "original_sha256": "ff4e89dda553d9160fec0a340ac34f6df1a4ffa1743d99031f535cb20230a8b3",
+      "sha256": "ff4e89dda553d9160fec0a340ac34f6df1a4ffa1743d99031f535cb20230a8b3",
+      "modified": false
+    },
+    {
+      "path": "course/liftcube/src/starter/interfaces/action.py",
+      "archive_path": "lerobot-rl-stu/startcode-lerobot/src/starter/interfaces/action.py",
+      "original_sha256": "ea6b18bcef4f217db287ff8d0d92414f73c09734199e246df6cf2c528c01897d",
+      "sha256": "ea6b18bcef4f217db287ff8d0d92414f73c09734199e246df6cf2c528c01897d",
+      "modified": false
+    },
+    {
+      "path": "course/liftcube/src/starter/interfaces/model.py",
+      "archive_path": "lerobot-rl-stu/startcode-lerobot/src/starter/interfaces/model.py",
+      "original_sha256": "6f4c8a9bf828304b5c2409458c16a2887708484712613fa07513142f8087f72c",
+      "sha256": "6f4c8a9bf828304b5c2409458c16a2887708484712613fa07513142f8087f72c",
+      "modified": false
+    },
+    {
+      "path": "course/liftcube/src/starter/interfaces/observation.py",
+      "archive_path": "lerobot-rl-stu/startcode-lerobot/src/starter/interfaces/observation.py",
+      "original_sha256": "99a8bdd12ef23a0ebdd305894ea1d8858743dbe81a020c6df47c647f35935ac3",
+      "sha256": "99a8bdd12ef23a0ebdd305894ea1d8858743dbe81a020c6df47c647f35935ac3",
+      "modified": false
+    },
+    {
+      "path": "course/liftcube/src/starter/interfaces/policy.py",
+      "archive_path": "lerobot-rl-stu/startcode-lerobot/src/starter/interfaces/policy.py",
+      "original_sha256": "1e7be07357540c1b66e60ff0685afe4882806d8cc70332e1f35bc2b016875e70",
+      "sha256": "1e7be07357540c1b66e60ff0685afe4882806d8cc70332e1f35bc2b016875e70",
+      "modified": false
+    },
+    {
+      "path": "course/liftcube/src/starter/interfaces/reward.py",
+      "archive_path": "lerobot-rl-stu/startcode-lerobot/src/starter/interfaces/reward.py",
+      "original_sha256": "7a47afb3206e1ffd8e6e03328b94fb22dd94f970c911a78aa5981a72d81d1402",
+      "sha256": "7a47afb3206e1ffd8e6e03328b94fb22dd94f970c911a78aa5981a72d81d1402",
+      "modified": false
+    },
+    {
+      "path": "course/liftcube/src/starter/interfaces/vision.py",
+      "archive_path": "lerobot-rl-stu/startcode-lerobot/src/starter/interfaces/vision.py",
+      "original_sha256": "7579d4a8b312bdc58ffbdc12eda098b3ecf2146cbccb439b3c45e17da1ab9638",
+      "sha256": "7579d4a8b312bdc58ffbdc12eda098b3ecf2146cbccb439b3c45e17da1ab9638",
+      "modified": false
+    },
+    {
+      "path": "course/liftcube/src/starter/logging/__init__.py",
+      "archive_path": "lerobot-rl-stu/startcode-lerobot/src/starter/logging/__init__.py",
+      "original_sha256": "a20283ac6646729e23022b29a63821c0e2e78d4c2e74ac66ebfb98ccce978309",
+      "sha256": "a20283ac6646729e23022b29a63821c0e2e78d4c2e74ac66ebfb98ccce978309",
+      "modified": false
+    },
+    {
+      "path": "course/liftcube/src/starter/logging/metrics.py",
+      "archive_path": "lerobot-rl-stu/startcode-lerobot/src/starter/logging/metrics.py",
+      "original_sha256": "99cedfb9ef3cdb70ff7e32b79f0a7821a4268aafcc622d94eb4207a00f568ae0",
+      "sha256": "99cedfb9ef3cdb70ff7e32b79f0a7821a4268aafcc622d94eb4207a00f568ae0",
+      "modified": false
+    },
+    {
+      "path": "course/liftcube/src/starter/rewards/__init__.py",
+      "archive_path": "lerobot-rl-stu/startcode-lerobot/src/starter/rewards/__init__.py",
+      "original_sha256": "19aa97d44f0858eef8df20dd0e47aeee86a61b3714ce9253133bb849d5711822",
+      "sha256": "19aa97d44f0858eef8df20dd0e47aeee86a61b3714ce9253133bb849d5711822",
+      "modified": false
+    },
+    {
+      "path": "course/liftcube/src/starter/rewards/lift_cube.py",
+      "archive_path": "lerobot-rl-stu/startcode-lerobot/src/starter/rewards/lift_cube.py",
+      "original_sha256": "a15e207d947a2b90ef1acef8e2d988912eb350a47668dcfab0693bfbc865ae28",
+      "sha256": "a15e207d947a2b90ef1acef8e2d988912eb350a47668dcfab0693bfbc865ae28",
+      "modified": false
+    },
+    {
+      "path": "course/liftcube/src/starter/scripts/__init__.py",
+      "archive_path": "lerobot-rl-stu/startcode-lerobot/src/starter/scripts/__init__.py",
+      "original_sha256": "4f3e75c86bff2f28d6ef2666f6b2cd7823cba8f9c533a40d449846b64c1a7647",
+      "sha256": "4f3e75c86bff2f28d6ef2666f6b2cd7823cba8f9c533a40d449846b64c1a7647",
+      "modified": false
+    },
+    {
+      "path": "course/liftcube/src/starter/scripts/inspect_dataset.py",
+      "archive_path": "lerobot-rl-stu/startcode-lerobot/src/starter/scripts/inspect_dataset.py",
+      "original_sha256": "3fd93fcd5ee53536a68739c97b97f293a6aa5d6e7a6f23839df5d8d92aeede22",
+      "sha256": "3fd93fcd5ee53536a68739c97b97f293a6aa5d6e7a6f23839df5d8d92aeede22",
+      "modified": false
+    },
+    {
+      "path": "course/liftcube/src/starter/scripts/smoke_test.py",
+      "archive_path": "lerobot-rl-stu/startcode-lerobot/src/starter/scripts/smoke_test.py",
+      "original_sha256": "dba5c618b2534df13b671f865c36903b97356260fe253a3a7da8f276bd332980",
+      "sha256": "dba5c618b2534df13b671f865c36903b97356260fe253a3a7da8f276bd332980",
+      "modified": false
+    },
+    {
+      "path": "course/liftcube/src/starter/training/__init__.py",
+      "archive_path": "lerobot-rl-stu/startcode-lerobot/src/starter/training/__init__.py",
+      "original_sha256": "2606b3f69cf170e0d0d9bd09bc166974b37ec1be23ccb857fec3bfb5534e3326",
+      "sha256": "2606b3f69cf170e0d0d9bd09bc166974b37ec1be23ccb857fec3bfb5534e3326",
+      "modified": false
+    },
+    {
+      "path": "course/liftcube/src/starter/training/train_bc.py",
+      "archive_path": "lerobot-rl-stu/startcode-lerobot/src/starter/training/train_bc.py",
+      "original_sha256": "884d28fea0f88e7ff7dc4b10632184f39013e97bdf18e3e351c195110a33dee1",
+      "sha256": "00b3e217996b48facbf9b6efebc85c7f07cffe5990df1bd3868e4e9c048af67b",
+      "modified": true
+    },
+    {
+      "path": "course/liftcube/src/starter/training/train_rl.py",
+      "archive_path": "lerobot-rl-stu/startcode-lerobot/src/starter/training/train_rl.py",
+      "original_sha256": "ccbd2abeb49b68d6e240b6ea6f49992e3ba7f8a19ef49a0a53cccc7a71c3c6de",
+      "sha256": "ccbd2abeb49b68d6e240b6ea6f49992e3ba7f8a19ef49a0a53cccc7a71c3c6de",
+      "modified": false
+    },
+    {
+      "path": "course/liftcube/src/starter/utils.py",
+      "archive_path": "lerobot-rl-stu/startcode-lerobot/src/starter/utils.py",
+      "original_sha256": "b0b928d0ac900a7c99035d2485d7a1fc5267ab85984089eb1ab869f9661f1d25",
+      "sha256": "b0b928d0ac900a7c99035d2485d7a1fc5267ab85984089eb1ab869f9661f1d25",
+      "modified": false
+    }
+  ]
+}

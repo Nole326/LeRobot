@@ -1,0 +1,40 @@
+seed: 0
+device: cpu
+
+env:
+  id: LeIsaac-SO101-LiftCube-v0
+  camera: front
+  image_height: 64
+  image_width: 64
+  max_episode_steps: 640
+  control_hz: 30
+  include_ee_in_proprio: true
+  n_envs: 1
+  sim_device: cuda:0
+
+model:
+  name: small_cnn
+  hidden_dim: 64
+  image_channels: 3
+
+ppo:
+  # Optional BC checkpoint for PPO initialization; null trains from scratch.
+  bc_checkpoint_path: null
+  rollout_steps: 640
+  num_updates: 2
+  minibatch_size: 32
+  ppo_epochs: 2
+  learning_rate: 0.0003
+  gamma: 0.99
+  gae_lambda: 0.95
+  clip_range: 0.2
+  value_coef: 0.5
+  entropy_coef: 0.01
+  max_grad_norm: 0.5
+
+checkpoint:
+  path: outputs/rl/checkpoint.pt
+
+logging:
+  dir: outputs/rl
+  save_config_copy: true

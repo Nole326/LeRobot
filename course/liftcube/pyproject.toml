@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lift-cube-starter"
+version = "0.1.0"
+description = "LiftCube starter: BC and RL on LeIsaac SO-101 LiftCube"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "LiftCube Starter" }]
+dependencies = [
+    "numpy>=1.24",
+    "pyyaml>=6.0",
+    "torch>=2.2",
+]
+
+[project.optional-dependencies]
+data = ["pyarrow>=15", "av>=12"]
+gym = ["gymnasium>=0.29"]
+# Course / public versions vary. Install the versions provided by the course.
+isaac = []
+lerobot = ["lerobot"]
+
+[tool.setuptools.packages.find]
+where = ["src"]

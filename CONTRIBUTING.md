@@ -4,6 +4,20 @@
 
 Start initial development from `v0.1.1-baseline`; subsequent collaborative work should normally branch from the latest `main` to include merged changes. Prefer standalone adapters over modifying frozen upstream source. Changes to algorithms, rewards, observations, controllers and evaluation protocols need explicit records and validation.
 
+## LiftCube并行开发 / Parallel LiftCube development
+
+`feature/liftcube`用于导入公共起点，合入main后结束。ACT、SmolVLA、OpenVLA-OFT、π₀.₅和RL等工作从最新main分别创建短期功能分支，例如`feature/liftcube-act`、`feature/liftcube-smolvla`、`feature/liftcube-openvla-oft`、`feature/liftcube-pi05`、`feature/liftcube-rl`，通过PR将可复用实现合入main。这里只约定命名，不预先建立空分支。
+
+Use `feature/liftcube` to import shared foundations, then close it after merging into main. Start short-lived branches such as `feature/liftcube-act`, `feature/liftcube-smolvla`, `feature/liftcube-openvla-oft`, `feature/liftcube-pi05` and `feature/liftcube-rl` from current main, merging reusable implementations through PRs. These are naming examples, not pre-created branches.
+
+分支隔离开发中的代码改动，各模型实现合入后在main中共存。基线、SFT和RL微调通过配置与权重来源区分，seed和checkpoint不另开分支。公共数据读取、动作映射和评测修复尽早单独合入，其他模型分支及时同步。只有确实需要多项未合入改动联合验证时，才临时增加`dev/liftcube`集成分支。
+
+Branches isolate code under development; model implementations coexist on main after merging. Distinguish baselines, SFT and RL through configurations and weight provenance, not branches per seed or checkpoint. Merge shared data/action/evaluation fixes separately and synchronize model branches. Add a temporary `dev/liftcube` integration branch only when multiple pending changes require joint validation.
+
+Git保存代码、配置、数据/权重清单和哈希。大镜像通过原渠道或获准的容器仓库分发，数据与权重使用有权限控制的存储或模型/数据仓库；记录固定版本、许可和获取方式，避免将运行产物加入Git历史。
+
+Keep code, configurations and data/weight manifests with hashes in Git. Distribute large images through their original channel or an approved container registry, and datasets/weights through access-controlled storage or model/data repositories. Record fixed versions, licenses and retrieval instructions rather than adding runtime artifacts to Git history.
+
 ## 版本记录 / Version history
 
 每次 commit 用简短标题说明改动，必要时在正文补充原因和验证结果。错字、格式等小修正通常只需提交说明；新增功能、重要修复、依赖升级和兼容性变化同时记入 [CHANGELOG.md](CHANGELOG.md) 的 `Unreleased`，替换其中的占位文字，按中文一段、英文一段记录。

@@ -1,5 +1,8 @@
 # Preserve imported evidence bytes even on Windows with global autocrlf enabled.
 /course/** -text
+# Preserve original EOF spacing and syntactic context spaces in reversible patches.
+/course/liftcube/** whitespace=-blank-at-eof
+/course/liftcube/patches/*.patch -whitespace
 /third_party/** -text
 /manifests/*.json text eol=lf
 /scripts/*.py text eol=lf
