@@ -1,14 +1,36 @@
-# LeRobot · Visual Tabletop Manipulation
+<p align="center">
+  <a href="assets/lerobot-tabletop-pushing-bilingual.svg">
+    <img src="assets/lerobot-tabletop-pushing-bilingual.svg?v=20261003-pdf-aligned" width="960" alt="Bilingual LeRobot tabletop manipulation poster">
+  </a>
+</p>
 
-[中文](README.md) · **English**
+<h1 align="center">LeRobot</h1>
+<h3 align="center">Visual Tabletop Manipulation: From Simulation to SO-101 Deployment</h3>
 
-A visual pick-and-place project built on LeRobot, LeIsaac and the SO-101. Start with PickOrange to learn the data/control pipeline, establish training and evaluation on LiftCube, then align with the course multi-object task and real-robot deployment.
+<p align="center">
+  Visual pick-and-place, imitation learning and reinforcement learning with LeRobot, LeIsaac and the SO-101.
+</p>
 
-![Bilingual LeRobot tabletop manipulation poster](assets/lerobot-tabletop-pushing-bilingual.svg?v=20261003-pdf-aligned)
+<p align="center">
+  <strong>English</strong> | <a href="README.md">简体中文</a>
+</p>
 
-[View project poster](assets/lerobot-tabletop-pushing-bilingual.png), [scalable-text version](assets/lerobot-tabletop-pushing-bilingual.svg) · [4K PNG](assets/lerobot-tabletop-pushing-bilingual.png)
+<p align="center">
+  <a href="#quick-start">Quick start</a> ·
+  <a href="#repository-layout">Repository layout</a> ·
+  <a href="#development-path">Development path</a> ·
+  <a href="#documentation">Documentation</a> ·
+  <a href="CONTRIBUTING.md">Contributing</a>
+</p>
 
-[Quick start](#quick-start) · [Repository layout](#repository-layout) · [Development path](#development-path) · [Documentation](#documentation) · [Contributing](CONTRIBUTING.md)
+<p align="center">
+  <a href="assets/lerobot-tabletop-pushing-bilingual.svg">Scalable poster</a> ·
+  <a href="assets/lerobot-tabletop-pushing-bilingual.png">4K PNG</a>
+</p>
+
+---
+
+Start with PickOrange to learn the data/control pipeline, establish training and evaluation on LiftCube, then align with the course multi-object task and real-robot deployment.
 
 ## Current scope
 

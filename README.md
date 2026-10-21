@@ -1,14 +1,36 @@
-# LeRobot · 视觉桌面操作
+<p align="center">
+  <a href="assets/lerobot-tabletop-pushing-bilingual.svg">
+    <img src="assets/lerobot-tabletop-pushing-bilingual.svg?v=20261003-pdf-aligned" width="960" alt="LeRobot 桌面操作双语海报">
+  </a>
+</p>
 
-**中文** · [English](README.en.md)
+<h1 align="center">LeRobot</h1>
+<h3 align="center">视觉桌面操作：从仿真学习到 SO-101 真机部署</h3>
 
-基于 LeRobot、LeIsaac 和 SO-101 的视觉抓放项目：从 PickOrange 熟悉数据与控制链路，以 LiftCube 建立训练和评测流程，再对齐课程多物体任务与真机部署。
+<p align="center">
+  基于 LeRobot、LeIsaac 与 SO-101，探索视觉抓放、模仿学习和强化学习。
+</p>
 
-![LeRobot 桌面操作双语海报](assets/lerobot-tabletop-pushing-bilingual.svg?v=20261003-pdf-aligned)
+<p align="center">
+  <a href="README.en.md">English</a> | <strong>简体中文</strong>
+</p>
 
-[查看项目海报](assets/lerobot-tabletop-pushing-bilingual.png)，[文字可无损放大版](assets/lerobot-tabletop-pushing-bilingual.svg) · [4K PNG](assets/lerobot-tabletop-pushing-bilingual.png)
+<p align="center">
+  <a href="#快速开始">快速开始</a> ·
+  <a href="#仓库结构">仓库结构</a> ·
+  <a href="#开发路线">开发路线</a> ·
+  <a href="#文档">文档</a> ·
+  <a href="CONTRIBUTING.md">参与开发</a>
+</p>
 
-[快速开始](#快速开始) · [仓库结构](#仓库结构) · [开发路线](#开发路线) · [文档](#文档) · [参与开发](CONTRIBUTING.md)
+<p align="center">
+  <a href="assets/lerobot-tabletop-pushing-bilingual.svg">可缩放海报</a> ·
+  <a href="assets/lerobot-tabletop-pushing-bilingual.png">4K PNG</a>
+</p>
+
+---
+
+从 PickOrange 熟悉数据与控制链路，以 LiftCube 建立训练和评测流程，再对齐课程多物体任务与真机部署。
 
 ## 当前范围
 

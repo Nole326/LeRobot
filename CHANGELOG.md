@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+README首页调整为海报置顶、居中项目标题和简介、English | 简体中文切换及文档导航；中英文采用相同结构，保留原海报和正文，不增加网页运行依赖。
+
+Restyle both README headers with the existing poster first, centered project title and introduction, an English | 简体中文 switch and document navigation. Preserve poster assets and body content without adding web runtime dependencies.
+
 根README拆为可切换的中文和英文入口，按rl-garden职责分层整理导航，补充现有starter包的架构、模型扩展与分支协作约定。新增RLinf接入评估，区分VLA训练参考、SO101硬件支持与课程任务适配缺口；不更改运行代码、依赖或冻结评测配置。
 
 Split the root README into linked Chinese and English editions, organize navigation by rl-garden-style responsibilities, and document the existing starter package, model extension points and branch workflow. Add an RLinf assessment distinguishing VLA training references, SO101 hardware support and course-task adaptation gaps. Runtime code, dependencies and frozen evaluation configurations remain unchanged.
