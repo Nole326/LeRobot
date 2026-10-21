@@ -30,3 +30,9 @@ __pycache__/
 /course/README.md
 /private/
 /reports/
+# LiftCube runtime products are external to the source import.
+/course/liftcube/datasets/
+/course/liftcube/logs/
+/course/liftcube/cache/
+/course/liftcube/*.tar
+/course/liftcube/*.tar.gz

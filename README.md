@@ -12,6 +12,14 @@ A visual tabletop manipulation project built on LeRobot, LeIsaac and the SO-101.
 
 See the [development guide](docs/GETTING_STARTED.md) for the path from environment integration to policy training. The formal course specification governs the task, control and evaluation; course-provided software versions and interfaces take precedence over public example defaults.
 
+新增 [SO-101 LiftCube开发起点](course/liftcube/README.md)，包含配套镜像说明、BC/PPO入口、数据读取与接口修改。该目录使用课程配套的Isaac Lab v2.1.1／LeIsaac v0.1.2，与下方历史源码快照分开；镜像和演示数据通过原渠道获取。
+
+The [SO-101 LiftCube starter](course/liftcube/README.md) adds matching-image instructions, BC/PPO entry points, data loading and interface changes. It uses the course's Isaac Lab v2.1.1 / LeIsaac v0.1.2 runtime separately from the historical snapshots below; obtain images and demonstrations through their original channels.
+
+配套镜像的云盘入口、SHA256和导入步骤见[镜像与环境说明](course/liftcube/README.md#运行环境--runtime)。
+
+See [image and runtime instructions](course/liftcube/README.md#运行环境--runtime) for the cloud-drive link, SHA256 and import steps.
+
 [项目目标 / Objectives](#项目目标--objectives) · [源码与工具 / Source-and-tools](#源码与工具--source-and-tools) · [快速开始 / Quick-start](#快速开始--quick-start) · [文档 / Documentation](#文档--documentation) · [参考与致谢 / References-and-acknowledgements](#参考与致谢--references-and-acknowledgements)
 
 ## 项目目标 / Objectives
@@ -79,6 +87,7 @@ Evaluate seen, compositional-generalization and entirely unseen conditions separ
 │   │   └── dependencies/IsaacLab/
 │   └── isaaclab/
 ├── course/
+│   ├── liftcube/             # Course starter, configurations and interface patches
 │   ├── scripts/              # Standalone diagnostic utilities
 │   └── constraints-*.txt     # Dependency constraint examples
 ├── configs/                  # Unconfirmed experiment-plan template
@@ -142,6 +151,7 @@ Project-specific code uses separate adapters where possible. Changes to upstream
 ## 文档 / Documentation
 
 - [开发起步与阶段验收 / Development and acceptance guide](docs/GETTING_STARTED.md)
+- [LiftCube源码、镜像与运行方法 / LiftCube source, image and runtime](course/liftcube/README.md)
 - [观测、动作、数据与恢复接口 / Observation, action, data and recovery contracts](docs/INTERFACE_CONTRACTS.md)
 - [训练前验证与限制 / Pre-training validation and limits](docs/TRAINING_VALIDATION.md)
 - [初始基准与版本范围 / Initial baseline and scope](docs/BASELINE.md)

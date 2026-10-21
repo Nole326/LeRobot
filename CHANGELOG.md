@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+导入课程LiftCube起点代码及配置，新增独立运行说明、原始／当前文件哈希和可逆接口补丁。加入SO101补零、相机与时序检查、自动重置前终态捕获、纯渲染准备及超限数据拒绝；保留原评测配置和既有上游快照。镜像、数据、权重及私有部署记录不纳入仓库。
+
+Import the course LiftCube starter and configurations with standalone runtime instructions, original/current hashes and a reversible interface patch. Add SO101 padding, camera/timing checks, pre-reset terminal capture, render-only preparation and out-of-range data rejection; preserve the evaluation configuration and existing upstream snapshots. Images, datasets, weights and private deployment records remain external.
+
+补充配套环境的交大云盘获取入口、跨平台SHA256核验与镜像导入步骤；同步开发起步、依赖和部署说明，区分LiftCube课程环境与历史上游快照。
+
+Add the matching image's SJTU cloud-drive link, cross-platform SHA256 checks and import steps; align the development, dependency and deployment guides while keeping the LiftCube runtime separate from historical upstream snapshots.
+
 依据当前项目任务说明重写README与海报文案，突出视觉多物体抓放、遥操与BC/VLA基线、强化学习、泛化评测和安全部署。海报保留原有字体字号、排版、纯色图形及官方照片，重新生成原生4K PNG和矢量文字SVG。
 
 Rewrite the README and poster copy around the current task specification: visual multi-object pick-and-place, teleoperation and BC/VLA baselines, reinforcement learning, generalization evaluation and safe deployment. Retain the poster's typefaces, sizes, layout, flat-color artwork and official photograph, regenerating the native-4K PNG and outlined-text SVG.

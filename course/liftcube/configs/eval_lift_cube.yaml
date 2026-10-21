@@ -1,0 +1,27 @@
+seed: 0
+device: cpu
+
+env:
+  id: LeIsaac-SO101-LiftCube-v0
+  camera: front
+  image_height: 64
+  image_width: 64
+  max_episode_steps: 640
+  control_hz: 30
+  include_ee_in_proprio: true
+  n_envs: 1
+  sim_device: cuda:0
+
+eval:
+  num_episodes: 4
+  deterministic: true
+
+checkpoint:
+  path: outputs/bc/checkpoint.pt
+
+logging:
+  dir: outputs/eval
+  save_config_copy: true
+  write_json: true
+  write_csv: true
+  save_trajectories: false

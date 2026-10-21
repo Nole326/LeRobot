@@ -7,6 +7,7 @@ Original license, copyright, citation and per-file notices are retained. This in
 | Hugging Face LeRobot | `58f70b6bd370864139a3795ac3497a9eae8c42d5` | `third_party/lerobot/LICENSE`: Apache-2.0 and incorporated-component notices |
 | Lightwheel LeIsaac | `24d3bcd3f1e4585740fc79921782c41617237812` | `third_party/leisaac/LICENSE`: Apache-2.0 |
 | Isaac Lab | `3c6e67bb5c7ada942a6d1884ab69338f57596f77` | `third_party/isaaclab/LICENSE`: BSD-3-Clause; also LICENSE-mimic and per-file notices |
+| Course LiftCube starter | archive SHA256 `59ffa4153550064583ed9a6e4475e7647e6ea49a41e5712be25952d8249c4473` | Original `pyproject.toml` declares MIT; the supplied archive has no standalone LICENSE file. Author/license metadata is preserved in `course/liftcube/pyproject.toml`. |
 
 LeIsaac's nested IsaacLab dependency is expanded, retaining all notices. Its original .gitmodules remains as provenance, not as a root submodule configuration.
 
@@ -15,3 +16,5 @@ All 45 pinned LeRobot LFS test fixtures were retrieved from official fixed-commi
 Isaac Sim, NVIDIA images, CUDA, package distributions, pretrained weights and separately released simulation assets have their own terms; obtain them from official sources under those terms. They are not relicensed here.
 
 Private course and server/experiment records are excluded. No blanket new license is imposed on original integration material during this import; the owner may choose one separately. Upstream code remains under its original terms.
+
+The LiftCube starter is separate from the historical third_party snapshots. Original/current hashes and interface changes are recorded in manifests/liftcube_source.json and course/liftcube/patches/team-interface.patch. Original course instructions, Git metadata and Python caches are excluded. The course Docker image and its separately licensed simulator binaries/assets are not redistributed here; its identifier and checksum support use through the original distribution channel.

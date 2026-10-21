@@ -25,3 +25,11 @@ The owner-approved exception is the redacted bilingual project poster and its ge
 manifests/projects.json records commits/trees; source_files.json validates upstream content; lfs_objects.json records fixtures; course_files.json covers only public utility code and constraints. These files support automated auditing, not private deployment inventory.
 
 Import validation covers source integrity and Python syntax, not fresh GPU deployment, formal evaluation or end-to-end training success.
+
+## LiftCube starter import
+
+The independent `course/liftcube/` package contains 45 original source/configuration files plus one new render-preparation module. Its archive SHA, original/current file hashes and modified-file flags are in [liftcube_source.json](../manifests/liftcube_source.json). The [patch](../course/liftcube/patches/team-interface.patch) records all code changes. The original evaluation YAML is unchanged. A repository test checks hashes and reconstructs original source by reversing the patch in a temporary directory.
+
+This package uses Isaac Sim 4.5.0 / Isaac Lab v2.1.1 / LeIsaac v0.1.2 from the matching image, independently of the newer `third_party/` snapshots. Code, configurations and generic usage instructions are included; simulator archives, datasets, weights, original course instructions and private records are excluded. See the [LiftCube guide](../course/liftcube/README.md).
+
+The image guide records the original SJTU cloud-drive distribution page, archive SHA256 and image ID. A share link does not redistribute the image through Git or change its access/license terms. Data and model identifiers are kept separate from the environment archive.
