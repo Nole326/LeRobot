@@ -11,6 +11,8 @@ from starter.config import PROJECT_ROOT, add_common_args, apply_common_overrides
 from starter.data.hf_adapter import load_lerobot_dataset
 from starter.data.loader import CanonicalDataset, episode_aware_split, make_dataloader
 from starter.utils import build_policy, seed_all
+from starter.training.checkpoint import load_training, save_training, training_identity, training_path
+from starter.training.events import open_writer, log_row
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -27,11 +29,14 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     )
     parser.add_argument("--max-episodes", type=int, default=None)
     parser.add_argument("--max-frames", type=int, default=None)
+    parser.add_argument("--resume", type=str, default=None, help="Trusted full training checkpoint, not an inference export.")
     return parser.parse_args(argv)
 
 
 def load_training_data(cfg: dict) -> tuple:
     data_cfg = cfg.get("data", {})
+    if data_cfg.get("allow_action_clipping", False):
+        raise ValueError("Action clipping is diagnostic-only; BC requires verified unmodified labels")
     path = data_cfg.get("path")
     env_cfg = cfg.get("env", {})
     if not path:
@@ -83,17 +88,37 @@ def main(argv: list[str] | None = None) -> dict:
     val_ds = CanonicalDataset(payload, obs_spec, action_spec, manifest, indices=val_idx, validate=False) if len(val_idx) else None
     batch_size = int(cfg.get("data", {}).get("batch_size", 16))
     workers = int(cfg.get("data", {}).get("num_workers", 0))
+    if workers != 0:
+        raise ValueError("Resumable BC currently requires data.num_workers=0")
     train_loader = make_dataloader(train_ds, batch_size=batch_size, shuffle=True, num_workers=workers)
     val_loader = make_dataloader(val_ds, batch_size=batch_size, shuffle=False, num_workers=0) if val_ds is not None and len(val_ds) else None
 
     model = build_policy(cfg, obs_spec, action_spec, device)
     trainer = BCTrainer(model, log_every=int(cfg.get("train", {}).get("log_every", 1)))
-    history = trainer.fit(
+    identity = training_identity("bc", cfg, payload)
+    saved_path = training_path(cfg)
+    if not args.resume and Path(saved_path).exists():
+        raise FileExistsError(f"Existing training checkpoint: {saved_path}; use --resume or a new output path")
+    writer = open_writer(cfg)
+    progress = load_training(args.resume, model, identity) if args.resume else {"epoch": 0, "updates": 0, "history": []}
+    history = progress["history"]
+
+    def checkpoint_epoch(epoch, row):
+        history.append(row)
+        save_training(saved_path, model, identity, {"epoch": epoch, "updates": row["optimizer_steps"], "history": history})
+        log_row(writer, "bc", row, row["optimizer_steps"])
+
+    trainer.fit(
         train_loader,
         epochs=int(cfg.get("train", {}).get("epochs", 3)),
         max_batches_per_epoch=cfg.get("train", {}).get("max_batches_per_epoch"),
         val_loader=val_loader,
+        start_epoch=int(progress["epoch"]),
+        start_step=int(progress["updates"]),
+        on_epoch_end=checkpoint_epoch,
     )
+    if writer is not None:
+        writer.close()
     ckpt = cfg.get("checkpoint", {}).get("path", "outputs/bc/checkpoint.pt")
     Path(ckpt).parent.mkdir(parents=True, exist_ok=True)
     trainer.save(ckpt)

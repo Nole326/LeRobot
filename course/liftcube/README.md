@@ -6,16 +6,16 @@ A starting point for picking up a tabletop cube, with an environment adapter, de
 
 ## 当前状态 / Status
 
-环境与数据接口可用于开发；BC/PPO仍是参考实现，正式训练前需完成以下接入：
+环境与BC/PPO训练基础已接入；正式训练前仍需完成演示动作标定与实际设备路径验收。训练和恢复用法见[训练指南](TRAINING.md)，任务迁移与采集方案见[开发路线](../../docs/LIFTCUBE_TRANSFER.md)。
 
-The environment and data interfaces are available for development. BC/PPO remain reference implementations with the following work pending before formal training:
+Environment and BC/PPO training foundations are connected. Demonstration calibration and device-level validation remain prerequisites for formal training. See the [training guide](TRAINING.md) and [task-transfer and collection plan](../../docs/LIFTCUBE_TRANSFER.md).
 
-| 环节 / Component | 待完成 / Pending work |
+| 环节 / Component | 当前实现 / Implementation |
 | --- | --- |
-| 默认策略 / Default policy | SmallCNN当前只使用图像，本体融合尚未接入 / SmallCNN is image-only; proprioceptive fusion is not connected |
-| BC→RL | 30Hz演示与60Hz环境之间的训练时序适配；当前不能直接加载BC初始化RL / Training-time adaptation between 30Hz demonstrations and the 60Hz environment; direct BC initialization of RL is currently rejected |
-| 存档恢复 / Checkpoint recovery | 当前保存权重与接口配置；优化器、训练进度和完整RNG尚未保存 / Weights and interface specs are saved, but optimizer, training progress and complete RNG state are not |
-| PPO超时 / PPO timeouts | 当前将截断与终止一并处理，需明确任务时域及bootstrap规则 / Truncation and termination currently share a mask; task-horizon and bootstrap semantics need to be defined |
+| 默认策略 / Default policy | RGB＋关节位置＋上一执行命令，屏蔽兼容补零字段 / RGB, joint positions and previous commands; compatibility padding is ignored |
+| BC→RL | 30Hz策略在60Hz环境中保持两tick；严格匹配模型与数据规格 / 30Hz decisions hold for two 60Hz ticks; model/data contracts are checked |
+| 存档恢复 / Checkpoint recovery | BC按epoch、PPO按完整回合/更新边界保存模型、Adam、进度与RNG；合成CPU恢复通过 / Model, Adam, progress and RNG at epoch/completed-rollout boundaries; synthetic CPU recovery checked |
+| PPO超时 / PPO timeouts | 外部截断从reset前终态bootstrap，GAE在回合边界断开；有限时域可显式配置 / External timeouts bootstrap from pre-reset observations; GAE stops at episode boundaries; finite-horizon mode is explicit |
 
 演示动作映射也需先完成核对，数据要求见下方[起步说明](#起步--getting-started)。ACT/VLA接入后共用环境和评测接口。
 
@@ -92,9 +92,9 @@ Offline reading requires PyArrow and PyAV; check existing packages and preserve 
 
 ## 来源与修改 / Provenance and changes
 
-[来源清单](../../manifests/liftcube_source.json)记录原始归档及逐文件原始／当前SHA。[接口补丁](patches/team-interface.patch)记录全部源码修改：显式相机、单环境检查、动作历史、缩放一致、实际频率、SO101补零、终态捕获、渲染准备和数据限幅检查。评测配置保持原包内容。
+[来源清单](../../manifests/liftcube_source.json)记录原始归档及逐文件原始／当前SHA。[开发补丁](patches/team-interface.patch)记录环境接口与训练基础修改；评测配置保持原包内容。
 
-The [source manifest](../../manifests/liftcube_source.json) records the original archive and original/current file hashes. The [patch](patches/team-interface.patch) contains all changes: camera/scalar checks, action history, consistent resizing, actual timing, SO101 padding, terminal capture, render preparation and clipping checks. The evaluation configuration retains its original contents.
+The [source manifest](../../manifests/liftcube_source.json) records original/current file hashes. The [patch](patches/team-interface.patch) covers environment-interface and training-foundation changes. The evaluation configuration retains its original contents.
 
 原包 `pyproject.toml` 声明MIT，未附独立LICENSE文件；保留原声明和作者字段，见[第三方说明](../../THIRD_PARTY_NOTICES.md)。镜像、数据和权重分别遵循其来源条款。
 

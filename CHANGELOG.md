@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+接入LiftCube的RGB＋关节/命令融合、30Hz训练动作保持、分离超时bootstrap/GAE和完整BC/PPO边界存档恢复；新增TensorBoard曲线入口及合成CPU检查。补充ACT/VLA任务迁移与专家演示采集路线。演示动作标定及真实设备路径仍待验收，原评测配置和物理保持不变。
+
+Connect LiftCube RGB/proprioceptive fusion, 30Hz training action holding, separate timeout bootstrap/GAE masks and complete BC/PPO boundary checkpoints. Add TensorBoard logging, synthetic CPU checks and task-transfer/data-collection guidance. Demonstration calibration and device-level validation remain pending; evaluation defaults and physics are unchanged.
+
 精简中英文README的重复提醒与内部过程说明，保留任务状态、使用入口和关键接口限制，详细内容链接到开发文档。
 
 Trim repeated caveats and internal process notes from both READMEs, retaining task status, entry points and key interface limits with links to development documentation.

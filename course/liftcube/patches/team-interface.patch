@@ -1,3 +1,254 @@
+--- a/configs/bc_lift_cube.yaml
++++ b/configs/bc_lift_cube.yaml
+@@ -35,7 +35,7 @@
+ 
+ checkpoint:
+   path: outputs/bc/checkpoint.pt
+-  save_optimizer: false
++  # Inference export above; full epoch-boundary state is saved alongside it.
+ 
+ logging:
+   dir: outputs/bc
+--- a/configs/rl_lift_cube.yaml
++++ b/configs/rl_lift_cube.yaml
+@@ -18,6 +18,10 @@
+   image_channels: 3
+ 
+ ppo:
++  policy_hz: 30
++  # External time limits bootstrap from the pre-reset final observation.
++  # Set false only for an explicitly defined finite-horizon terminal objective.
++  bootstrap_timeouts: true
+   # Optional BC checkpoint for PPO initialization; null trains from scratch.
+   bc_checkpoint_path: null
+   rollout_steps: 640
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -16,6 +16,7 @@
+ ]
+ 
+ [project.optional-dependencies]
++logging = ["tensorboard>=2.14"]
+ data = ["pyarrow>=15", "av>=12"]
+ gym = ["gymnasium>=0.29"]
+ # Course / public versions vary. Install the versions provided by the course.
+--- a/src/starter/algorithms/bc.py
++++ b/src/starter/algorithms/bc.py
+@@ -24,22 +24,34 @@
+         epochs: int,
+         max_batches_per_epoch: int | None = None,
+         val_loader: DataLoader | None = None,
++        start_epoch: int = 0,
++        on_epoch_end: Any = None,
++        start_step: int = 0,
+     ) -> list[dict[str, float]]:
+         history: list[dict[str, float]] = []
+-        for epoch in range(epochs):
++        updates = start_step
++        if epochs < start_epoch:
++            raise ValueError("epochs is a total budget, smaller than restored progress")
++        if train_loader.num_workers != 0 or (val_loader is not None and val_loader.num_workers != 0):
++            raise ValueError("Resumable BC requires num_workers=0 (worker RNG state is not serialized)")
++        for epoch in range(start_epoch, epochs):
+             losses = []
+             for batch_idx, batch in enumerate(train_loader):
+                 stats = self.model.update(batch)
++                updates += 1
+                 losses.append(float(stats["loss"]))
+                 if max_batches_per_epoch is not None and (batch_idx + 1) >= max_batches_per_epoch:
+                     break
+             row = {
+                 "epoch": float(epoch),
+                 "train_loss": float(sum(losses) / max(len(losses), 1)),
++                "optimizer_steps": updates,
+             }
+             if val_loader is not None:
+                 row["val_loss"] = self.evaluate_loss(val_loader)
+             history.append(row)
++            if on_epoch_end is not None:
++                on_epoch_end(epoch + 1, row)
+             if epoch % self.log_every == 0:
+                 print(f"[bc] epoch={epoch} train_loss={row['train_loss']:.4f}" + (
+                     f" val_loss={row['val_loss']:.4f}" if "val_loss" in row else ""
+--- a/src/starter/algorithms/reference/ppo.py
++++ b/src/starter/algorithms/reference/ppo.py
+@@ -11,6 +11,7 @@
+ from starter.interfaces.model import SmallCNNPolicy
+ from starter.interfaces.reward import RewardShaper
+ from starter.rewards.lift_cube import shape_reward
++from starter.envs.timing import policy_action_hold_steps
+ 
+ from ..rl import RolloutBuffer
+ 
+@@ -22,15 +23,22 @@
+     last_value: torch.Tensor,
+     gamma: float,
+     gae_lambda: float,
++    *,
++    next_values: torch.Tensor | None = None,
+ ) -> tuple[torch.Tensor, torch.Tensor]:
+-    """GAE-Lambda. `dones` is 1 at terminated or truncated boundaries."""
++    """Stop GAE at every episode boundary. next_values already masks termination.
++
++    Timeout transitions bootstrap from their pre-reset terminal observation.
++    The legacy path (without next_values) treats all boundaries as terminal.
++    """
+     t_steps = rewards.shape[0]
+     advantages = torch.zeros_like(rewards)
+     gae = torch.zeros((), device=rewards.device)
+     next_value = last_value
+     for t in reversed(range(t_steps)):
+         mask = 1.0 - dones[t]
+-        delta = rewards[t] + gamma * next_value * mask - values[t]
++        bootstrap = next_value * mask if next_values is None else next_values[t]
++        delta = rewards[t] + gamma * bootstrap - values[t]
+         gae = delta + gamma * gae_lambda * mask * gae
+         advantages[t] = gae
+         next_value = values[t]
+@@ -53,6 +61,7 @@
+         ppo_epochs: int = 2,
+         minibatch_size: int = 32,
+         reward_shaper: RewardShaper | None = None,
++        bootstrap_timeouts: bool = True,
+     ) -> None:
+         self.policy = policy
+         self.reward_shaper = shape_reward if reward_shaper is None else reward_shaper
+@@ -64,6 +73,7 @@
+         self.max_grad_norm = max_grad_norm
+         self.ppo_epochs = ppo_epochs
+         self.minibatch_size = minibatch_size
++        self.bootstrap_timeouts = bootstrap_timeouts
+         self.policy.opt = torch.optim.Adam(self.policy.parameters(), lr=learning_rate)
+ 
+     def collect(self, env: Any, num_steps: int, seed: int | None = None) -> tuple[RolloutBuffer, dict[str, float]]:
+@@ -73,18 +83,31 @@
+         ep_returns: list[float] = []
+         successes = 0
+         episodes = 0
+-        for _ in range(num_steps):
++        if num_steps < 1:
++            raise ValueError("num_steps must be positive")
++        hold_steps = policy_action_hold_steps(env, self.policy)
++        physics_ticks = 0
++        done = False
++        # Finish the last episode before updating/saving: no hidden in-flight
++        # simulator state is needed at the next update's seeded reset boundary.
++        while len(buf) < num_steps or not done:
+             action, extra = self.policy.act_with_info(obs, deterministic=False)
+-            next_obs, public_reward, terminated, truncated, step_info = env.step(action)
++            reward = 0.0
++            for _ in range(hold_steps):
++                next_obs, public_reward, terminated, truncated, step_info = env.step(action)
++                physics_ticks += 1
++                reward += self._shaped_reward(
++                    env, action=action, public_reward=float(public_reward),
++                    terminated=bool(terminated), truncated=bool(truncated), info=step_info,
++                )
++                if terminated or truncated:
++                    break
+             done = bool(terminated or truncated)
+-            reward = self._shaped_reward(
+-                env,
+-                action=action,
+-                public_reward=float(public_reward),
+-                terminated=bool(terminated),
+-                truncated=bool(truncated),
+-                info=step_info if isinstance(step_info, dict) else {},
+-            )
++            next_value = 0.0
++            if not terminated and (not truncated or self.bootstrap_timeouts):
++                with torch.no_grad():
++                    tensors = self.policy._batch_from_obs_list([next_obs])
++                    next_value = float(self.policy.critic(self.policy.features(tensors)).item())
+             buf.add(
+                 obs=obs,
+                 action_env=action,
+@@ -94,22 +117,25 @@
+                 reward=reward,
+                 done=done,
+                 truncated=bool(truncated),
++                next_value=next_value,
+             )
+             ep_return += reward
+             obs = next_obs
+             if done:
+                 episodes += 1
+                 ep_returns.append(ep_return)
+-                successes += int(bool(step_info.get("success", terminated and not truncated)))
++                successes += int(bool(step_info.get("success", False)))
+                 ep_return = 0.0
+-                obs, info = env.reset()
++                if len(buf) < num_steps:
++                    obs, info = env.reset()
+         last_value = 0.0
+-        if len(buf) > 0:
++        if len(buf) > 0 and not done:
+             with torch.no_grad():
+                 _, extra = self.policy.act_with_info(obs, deterministic=True)
+                 last_value = float(extra["value"].detach().cpu())
+         metrics = {
+             "rollout_steps": float(len(buf)),
++            "physics_ticks": float(physics_ticks),
+             "episode_count": float(episodes),
+             "mean_return": float(np.mean(ep_returns) if ep_returns else ep_return),
+             "success_count": float(successes),
+@@ -155,6 +181,7 @@
+             values = tensors["value"]
+             rewards = tensors["reward"]
+             dones = tensors["done"]
++            next_values = tensors["next_value"]
+         else:
+             device = self.policy.device_name
+             images = batch["image"]
+@@ -167,10 +194,12 @@
+             values = batch["value"].to(device)
+             rewards = batch["reward"].to(device)
+             dones = batch["done"].to(device)
++            next_values = batch["next_value"].to(device)
+ 
+         last_v = torch.tensor(last_value, dtype=torch.float32, device=device)
+-        advantages, returns = compute_gae(rewards, values, dones, last_v, self.gamma, self.gae_lambda)
+-        advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)
++        advantages, returns = compute_gae(rewards, values, dones, last_v, self.gamma, self.gae_lambda,
++                                           next_values=next_values)
++        advantages = (advantages - advantages.mean()) / (advantages.std(unbiased=False) + 1e-8)
+         n = rewards.shape[0]
+         idx = np.arange(n)
+         last_stats: dict[str, float] = {}
+--- a/src/starter/algorithms/rl.py
++++ b/src/starter/algorithms/rl.py
+@@ -23,6 +23,7 @@
+     rewards: list[float] = field(default_factory=list)
+     dones: list[float] = field(default_factory=list)  # terminated or truncated
+     truncated: list[float] = field(default_factory=list)
++    next_values: list[float] = field(default_factory=list)
+ 
+     def add(
+         self,
+@@ -34,6 +35,7 @@
+         reward: float,
+         done: bool,
+         truncated: bool,
++        next_value: float,
+     ) -> None:
+         self.images.append(np.asarray(obs.image))
+         self.proprio.append(np.asarray(obs.proprio, dtype=np.float32))
+@@ -44,6 +46,7 @@
+         self.rewards.append(float(reward))
+         self.dones.append(float(done))
+         self.truncated.append(float(truncated))
++        self.next_values.append(float(next_value))
+ 
+     def __len__(self) -> int:
+         return len(self.rewards)
+@@ -61,6 +64,7 @@
+             "reward": torch.tensor(self.rewards, dtype=torch.float32, device=device),
+             "done": torch.tensor(self.dones, dtype=torch.float32, device=device),
+             "truncated": torch.tensor(self.truncated, dtype=torch.float32, device=device),
++            "next_value": torch.tensor(self.next_values, dtype=torch.float32, device=device),
+         }
+ 
+     def clear(self) -> None:
 --- a/src/starter/data/hf_adapter.py
 +++ b/src/starter/data/hf_adapter.py
 @@ -1,4 +1,8 @@
@@ -296,18 +547,51 @@
 +            return observation, {"render_frames": frame + 1, "last_mean_change": change,
 +                                 "elapsed_s": time.monotonic() - started, "physics_steps": 0}
 +    raise RuntimeError("RGB did not stabilize before policy execution")
---- a/src/starter/evaluation/evaluate.py
-+++ b/src/starter/evaluation/evaluate.py
-@@ -6,6 +6,8 @@
- import importlib
- from pathlib import Path
- from typing import Any
+--- /dev/null
++++ b/src/starter/envs/timing.py
+@@ -0,0 +1,26 @@
++"""Action holding without changing the simulator clock or episode horizon."""
++from dataclasses import replace
 +
 +import numpy as np
++
++
++def policy_action_hold_steps(env, policy) -> int:
++    return action_hold_steps(env.action_spec.frequency_hz, policy.action_spec.frequency_hz)
++
++
++def action_hold_steps(env_hz, policy_hz) -> int:
++    env_hz, policy_hz = float(env_hz), float(policy_hz)
++    if not np.isfinite([env_hz, policy_hz]).all() or min(env_hz, policy_hz) <= 0:
++        raise ValueError("Policy/environment frequency must be finite and positive")
++    ratio = env_hz / policy_hz
++    ticks = round(ratio)
++    if ticks < 1 or not np.isclose(ratio, ticks, atol=1e-6, rtol=0):
++        raise ValueError(f"Cannot hold {policy_hz} Hz policy at {env_hz} Hz environment ticks")
++    return ticks
++
++
++def decision_specs(env, frequency_hz):
++    """Declare the actual decision clock; callers must execute the hold."""
++    action = replace(env.action_spec, frequency_hz=float(frequency_hz))
++    action_hold_steps(env.action_spec.frequency_hz, frequency_hz)
++    return replace(env.observation_spec, control_hz=float(frequency_hz)), action
+--- a/src/starter/evaluation/evaluate.py
++++ b/src/starter/evaluation/evaluate.py
+@@ -7,9 +7,12 @@
+ from pathlib import Path
+ from typing import Any
  
++import numpy as np
++
  from starter.config import PROJECT_ROOT, add_common_args, apply_common_overrides, get_device, resolve_config
  from starter.envs.container import ensure_in_leisaac_container
-@@ -65,8 +67,13 @@
+ from starter.envs.factory import make_env
++from starter.envs.timing import policy_action_hold_steps
+ from starter.envs.lift_cube import shutdown_sim_app
+ from starter.interfaces.model import SmallCNNPolicy
+ from starter.interfaces.observation import Observation
+@@ -65,8 +68,13 @@
      reason = ""
      success = False
      failure_class = "unknown"
@@ -322,26 +606,7 @@
          obs, reward, terminated, truncated, info = env.step(action)
          total += float(reward)
          length += 1
-@@ -102,6 +109,18 @@
-     )
- 
- 
-+def policy_action_hold_steps(env: Any, policy: PolicyModel) -> int:
-+    env_hz = float(env.action_spec.frequency_hz)
-+    policy_hz = float(getattr(policy, "action_spec", env.action_spec).frequency_hz)
-+    if not np.isfinite([env_hz, policy_hz]).all() or min(env_hz, policy_hz) <= 0:
-+        raise ValueError("Policy/environment frequency must be finite and positive")
-+    ratio = env_hz / policy_hz
-+    ticks = round(ratio)
-+    if ticks < 1 or not np.isclose(ratio, ticks, atol=1e-6, rtol=0):
-+        raise ValueError(f"Cannot hold {policy_hz} Hz policy at {env_hz} Hz environment ticks")
-+    return ticks
-+
-+
- def evaluate(cfg: dict[str, Any]) -> dict[str, Any]:
-     device = get_device(cfg.get("device"))
-     ckpt = cfg.get("checkpoint", {}).get("path")
-@@ -148,7 +167,9 @@
+@@ -148,7 +156,9 @@
          env_backend="lift_cube",
          config_path=cfg.get("_config_path"),
          checkpoint=checkpoint,
@@ -352,9 +617,251 @@
      )
      paths = write_eval_outputs(
          log_dir,
+--- a/src/starter/interfaces/model.py
++++ b/src/starter/interfaces/model.py
+@@ -48,15 +48,21 @@
+         hidden_dim: int = 64,
+         device: str = "cpu",
+         learning_rate: float = 1e-3,
++        feature_mode: str = "joint_command",
+     ) -> None:
+         super().__init__()
+         self.observation_spec = observation_spec
+         self.action_spec = action_spec
+         self.hidden_dim = hidden_dim
++        if feature_mode not in ("joint_command", "image_only"):
++            raise ValueError(f"Unknown feature mode: {feature_mode}")
++        if feature_mode == "joint_command" and (action_spec.dim != 6 or observation_spec.proprio_dim not in (18, 21)):
++            raise ValueError("joint_command expects the SO101 18/21-slot observation and six actions")
++        self.feature_mode = feature_mode
+         self.device_name = device
+         self.processor = IdentityProcessor(input_shape=observation_spec.image_shape)
+         self.encoder = ConvEncoder(out_dim=hidden_dim)
+-        fused = hidden_dim + observation_spec.proprio_dim
++        fused = hidden_dim + (12 if feature_mode == "joint_command" else observation_spec.proprio_dim)
+         self.body = nn.Sequential(nn.Linear(fused, hidden_dim), nn.ReLU())
+         self.actor_mean = nn.Linear(hidden_dim, action_spec.dim)
+         self.critic = nn.Linear(hidden_dim, 1)
+@@ -78,9 +84,16 @@
+         if image.max() > 1.5:
+             image = image / 255.0
+         vis = self.encoder(image)
+-        return vis
+-        # proprio = batch["proprio"].float()
+-        # return self.body(torch.cat([vis, proprio], dim=-1))
++        if self.feature_mode == "image_only":
++            return vis  # Preserve inference semantics of pre-fusion checkpoints.
++        proprio = batch["proprio"].float()
++        # SO101 exposes q; previous applied commands are maintained locally.
++        # Ignore compatibility padding even if a caller supplies nonzero values.
++        robot = torch.cat([proprio[..., :6], proprio[..., 12:18]], dim=-1)
++        low = torch.as_tensor(self.action_spec.low, device=robot.device).repeat(2)
++        high = torch.as_tensor(self.action_spec.high, device=robot.device).repeat(2)
++        robot = 2 * (robot - low) / (high - low) - 1
++        return self.body(torch.cat([vis, robot], dim=-1))
+ 
+     def forward(self, batch: Mapping[str, Any]) -> torch.Tensor:
+         feats = self.features(self._as_tensors(batch))
+@@ -185,15 +198,18 @@
+     def save(self, path: str) -> None:
+         path_obj = Path(path)
+         path_obj.parent.mkdir(parents=True, exist_ok=True)
+-        payload = {
++        torch.save(self.checkpoint_payload(), path_obj)
++
++    def checkpoint_payload(self) -> dict[str, Any]:
++        return {
+             "model_class": self.__class__.__name__,
+             "state_dict": self.state_dict(),
+             "observation_spec": self.observation_spec.to_dict(),
+             "action_spec": self.action_spec.to_dict(),
+             "hidden_dim": self.hidden_dim,
+             "device": self.device_name,
++            "feature_mode": self.feature_mode,
+         }
+-        torch.save(payload, path_obj)
+ 
+     @classmethod
+     def load(cls, path: str, **kwargs: Any) -> "SmallCNNPolicy":
+@@ -202,13 +218,18 @@
+             payload = torch.load(path, map_location=map_location, weights_only=False)
+         except TypeError:
+             payload = torch.load(path, map_location=map_location)
+-        device = kwargs.get("device", payload.get("device", "cpu"))
++        return cls.from_payload(payload, **kwargs)
++
++    @classmethod
++    def from_payload(cls, payload: dict[str, Any], **kwargs: Any) -> "SmallCNNPolicy":
++        device = kwargs.get("device", "cpu")
+         model = cls(
+             observation_spec=ObservationSpec.from_dict(payload["observation_spec"]),
+             action_spec=ActionSpec.from_dict(payload["action_spec"]),
+             hidden_dim=int(payload.get("hidden_dim", 64)),
+             device=device,
+             learning_rate=float(kwargs.get("learning_rate", 1e-3)),
++            feature_mode=payload.get("feature_mode", "image_only"),
+         )
+         model.load_state_dict(payload["state_dict"])
+         model.to(device)
+--- /dev/null
++++ b/src/starter/training/checkpoint.py
+@@ -0,0 +1,106 @@
++"""Trusted local training checkpoints at epoch / completed-rollout boundaries.
++
++Inference exports remain separate. No simulator snapshot or DataLoader worker
++state is claimed; resumable BC uses num_workers=0 and PPO starts seeded episodes.
++"""
++from __future__ import annotations
++
++import hashlib
++import json
++import os
++from pathlib import Path
++import random
++import tempfile
++
++import numpy as np
++import torch
++
++
++def capture_rng():
++    return {
++        "python": random.getstate(), "numpy": np.random.get_state(),
++        "torch": torch.get_rng_state(),
++        "cuda": torch.cuda.get_rng_state_all() if torch.cuda.is_initialized() else None,
++    }
++
++
++def restore_rng(state):
++    if state["cuda"] is not None and len(state["cuda"]) != torch.cuda.device_count():
++        raise ValueError("CUDA RNG device count differs from checkpoint")
++    random.setstate(state["python"])
++    np.random.set_state(state["numpy"])
++    torch.set_rng_state(state["torch"].cpu())
++    if state["cuda"] is not None:
++        torch.cuda.set_rng_state_all([value.cpu() for value in state["cuda"]])
++
++
++def training_identity(kind, config, payload=None):
++    """Freeze effective options and source; permit only budget/output changes.
++
++    BC hashes the already loaded canonical arrays once, not source videos again.
++    No private generators or persistent worker pools are used by these trainers.
++    """
++    options = json.loads(json.dumps(config, default=str))
++    for key in ("_config_path", "logging", "checkpoint", "device"):
++        options.pop(key, None)
++    section = "train" if kind == "bc" else "ppo"
++    for key in ("epochs", "num_updates", "log_every", "bc_checkpoint_path"):
++        options.get(section, {}).pop(key, None)
++    source = Path(__file__).resolve().parents[1]
++    code = {str(p.relative_to(source)): hashlib.sha256(p.read_bytes()).hexdigest()
++            for p in sorted(source.rglob("*.py"))}
++    data = {}
++    if payload is not None:
++        for name, array in sorted(payload.items()):
++            array = np.ascontiguousarray(array)
++            data[name] = {"shape": list(array.shape), "dtype": str(array.dtype),
++                          "sha256": hashlib.sha256(memoryview(array).cast("B")).hexdigest()}
++    return {"kind": kind, "options": options, "source": code, "data": data}
++
++
++def _atomic_bytes(path, write):
++    path = Path(path)
++    path.parent.mkdir(parents=True, exist_ok=True)
++    fd, temporary = tempfile.mkstemp(prefix=path.name + ".", dir=path.parent)
++    try:
++        with os.fdopen(fd, "wb") as stream:
++            write(stream)
++            stream.flush()
++            os.fsync(stream.fileno())
++        os.replace(temporary, path)
++    finally:
++        if os.path.exists(temporary):
++            os.unlink(temporary)
++
++
++def save_training(path, model, identity, progress):
++    payload = {"format": "liftcube-training-v1", "policy": model.checkpoint_payload(),
++               "optimizer": model.opt.state_dict(), "identity": identity,
++               "progress": progress, "rng": capture_rng()}
++    _atomic_bytes(path, lambda stream: torch.save(payload, stream))
++    digest = hashlib.sha256(Path(path).read_bytes()).hexdigest()
++    _atomic_bytes(str(path) + ".sha256", lambda stream: stream.write((digest + "\n").encode()))
++
++
++def load_training(path, model, identity):
++    path = Path(path)
++    digest = Path(str(path) + ".sha256").read_text().strip()
++    if hashlib.sha256(path.read_bytes()).hexdigest() != digest:
++        raise ValueError("Training checkpoint SHA256 mismatch")
++    # Local checkpoints contain Python/NumPy RNG objects: never load untrusted files.
++    saved = torch.load(path, map_location="cpu", weights_only=False)
++    if saved.get("format") != "liftcube-training-v1" or saved["identity"] != identity:
++        raise ValueError("Training identity differs; use weights-only initialization for a new task")
++    policy = saved["policy"]
++    for key in ("observation_spec", "action_spec", "hidden_dim", "feature_mode"):
++        if policy[key] != model.checkpoint_payload()[key]:
++            raise ValueError(f"Policy contract differs: {key}")
++    model.load_state_dict(policy["state_dict"], strict=True)
++    model.opt.load_state_dict(saved["optimizer"])
++    restore_rng(saved["rng"])
++    return saved["progress"]
++
++
++def training_path(config):
++    export = config.get("checkpoint", {}).get("path", "outputs/checkpoint.pt")
++    return config.get("checkpoint", {}).get("training_path", str(export) + ".training.pt")
+--- /dev/null
++++ b/src/starter/training/events.py
+@@ -0,0 +1,20 @@
++"""Training curves; independent of inference exports and resume checkpoints."""
++from pathlib import Path
++
++
++def open_writer(config):
++    if not config.get("logging", {}).get("tensorboard", True):
++        return None
++    try:
++        from torch.utils.tensorboard import SummaryWriter
++    except ImportError as exc:
++        raise RuntimeError("TensorBoard is required for training curves; install the logging extra in the approved environment") from exc
++    return SummaryWriter(log_dir=str(Path(config.get("logging", {}).get("dir", "outputs")) / "tensorboard"))
++
++
++def log_row(writer, stage, row, step):
++    if writer is not None:
++        for key, value in row.items():
++            if isinstance(value, (int, float)):
++                writer.add_scalar(f"{stage}/{key}", value, step)
++        writer.flush()
 --- a/src/starter/training/train_bc.py
 +++ b/src/starter/training/train_bc.py
-@@ -53,6 +53,7 @@
+@@ -11,6 +11,8 @@
+ from starter.data.hf_adapter import load_lerobot_dataset
+ from starter.data.loader import CanonicalDataset, episode_aware_split, make_dataloader
+ from starter.utils import build_policy, seed_all
++from starter.training.checkpoint import load_training, save_training, training_identity, training_path
++from starter.training.events import open_writer, log_row
+ 
+ 
+ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+@@ -27,11 +29,14 @@
+     )
+     parser.add_argument("--max-episodes", type=int, default=None)
+     parser.add_argument("--max-frames", type=int, default=None)
++    parser.add_argument("--resume", type=str, default=None, help="Trusted full training checkpoint, not an inference export.")
+     return parser.parse_args(argv)
+ 
+ 
+ def load_training_data(cfg: dict) -> tuple:
+     data_cfg = cfg.get("data", {})
++    if data_cfg.get("allow_action_clipping", False):
++        raise ValueError("Action clipping is diagnostic-only; BC requires verified unmodified labels")
+     path = data_cfg.get("path")
+     env_cfg = cfg.get("env", {})
+     if not path:
+@@ -53,6 +58,7 @@
          max_episodes=data_cfg.get("max_episodes"),
          max_frames=data_cfg.get("max_frames"),
          action_units=data_cfg.get("action_units"),
@@ -362,3 +869,125 @@
      )
  
  
+@@ -82,17 +88,37 @@
+     val_ds = CanonicalDataset(payload, obs_spec, action_spec, manifest, indices=val_idx, validate=False) if len(val_idx) else None
+     batch_size = int(cfg.get("data", {}).get("batch_size", 16))
+     workers = int(cfg.get("data", {}).get("num_workers", 0))
++    if workers != 0:
++        raise ValueError("Resumable BC currently requires data.num_workers=0")
+     train_loader = make_dataloader(train_ds, batch_size=batch_size, shuffle=True, num_workers=workers)
+     val_loader = make_dataloader(val_ds, batch_size=batch_size, shuffle=False, num_workers=0) if val_ds is not None and len(val_ds) else None
+ 
+     model = build_policy(cfg, obs_spec, action_spec, device)
+     trainer = BCTrainer(model, log_every=int(cfg.get("train", {}).get("log_every", 1)))
+-    history = trainer.fit(
++    identity = training_identity("bc", cfg, payload)
++    saved_path = training_path(cfg)
++    if not args.resume and Path(saved_path).exists():
++        raise FileExistsError(f"Existing training checkpoint: {saved_path}; use --resume or a new output path")
++    writer = open_writer(cfg)
++    progress = load_training(args.resume, model, identity) if args.resume else {"epoch": 0, "updates": 0, "history": []}
++    history = progress["history"]
++
++    def checkpoint_epoch(epoch, row):
++        history.append(row)
++        save_training(saved_path, model, identity, {"epoch": epoch, "updates": row["optimizer_steps"], "history": history})
++        log_row(writer, "bc", row, row["optimizer_steps"])
++
++    trainer.fit(
+         train_loader,
+         epochs=int(cfg.get("train", {}).get("epochs", 3)),
+         max_batches_per_epoch=cfg.get("train", {}).get("max_batches_per_epoch"),
+         val_loader=val_loader,
++        start_epoch=int(progress["epoch"]),
++        start_step=int(progress["updates"]),
++        on_epoch_end=checkpoint_epoch,
+     )
++    if writer is not None:
++        writer.close()
+     ckpt = cfg.get("checkpoint", {}).get("path", "outputs/bc/checkpoint.pt")
+     Path(ckpt).parent.mkdir(parents=True, exist_ok=True)
+     trainer.save(ckpt)
+--- a/src/starter/training/train_rl.py
++++ b/src/starter/training/train_rl.py
+@@ -14,6 +14,9 @@
+ from starter.interfaces.model import SmallCNNPolicy
+ from starter.rewards.lift_cube import shape_reward
+ from starter.utils import build_policy, seed_all
++from starter.envs.timing import decision_specs
++from starter.training.checkpoint import load_training, save_training, training_identity, training_path
++from starter.training.events import open_writer, log_row
+ 
+ 
+ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+@@ -24,6 +27,7 @@
+     parser.add_argument("--lr", type=float, default=None, dest="learning_rate")
+     parser.add_argument("--bc-checkpoint", type=str, default=None,
+                         help="Initialize RL policy from BC weights; overrides ppo.bc_checkpoint_path.")
++    parser.add_argument("--resume", type=str, default=None, help="Trusted full PPO training checkpoint.")
+     return parser.parse_args(argv)
+ 
+ 
+@@ -45,6 +49,8 @@
+             f"BC checkpoint {checkpoint} specs differ from the RL environment; "
+             "match camera, image size, proprio layout, action units and control frequency."
+         )
++    if loaded.feature_mode != model.feature_mode:
++        raise ValueError("BC feature mode differs; legacy image-only weights cannot silently become fused weights")
+     try:
+         model.load_state_dict(loaded.state_dict(), strict=True)
+     except RuntimeError as exc:
+@@ -70,9 +76,10 @@
+     seed_all(seed)
+     device = get_device(cfg.get("device"))
+     env = make_env(cfg)
+-    model = build_policy(cfg, env.observation_spec, env.action_spec, device)
++    obs_spec, action_spec = decision_specs(env, float(ppo_cfg.get("policy_hz", 30.0)))
++    model = build_policy(cfg, obs_spec, action_spec, device)
+     bc_checkpoint = ppo_cfg.get("bc_checkpoint_path")
+-    if bc_checkpoint:
++    if bc_checkpoint and not args.resume:
+         load_bc_checkpoint(model, str(bc_checkpoint), device)
+         print(f"[rl] initialized policy from BC checkpoint -> {bc_checkpoint}", flush=True)
+     algo = PPOAlgorithm(
+@@ -87,20 +94,38 @@
+         ppo_epochs=int(ppo_cfg.get("ppo_epochs", 2)),
+         minibatch_size=int(ppo_cfg.get("minibatch_size", 32)),
+         reward_shaper=shape_reward,
++        bootstrap_timeouts=bool(ppo_cfg.get("bootstrap_timeouts", True)),
+     )
+-    history = []
++    identity = training_identity("ppo", cfg)
++    saved_path = training_path(cfg)
++    if not args.resume and Path(saved_path).exists():
++        raise FileExistsError(f"Existing training checkpoint: {saved_path}; use --resume or a new output path")
++    writer = open_writer(cfg)
++    progress = load_training(args.resume, model, identity) if args.resume else {
++        "update": 0, "decision_steps": 0, "physics_ticks": 0, "history": []}
++    history = progress["history"]
+     num_updates = int(ppo_cfg.get("num_updates", 2))
+     rollout_steps = int(ppo_cfg.get("rollout_steps", 640))
+-    for update in range(num_updates):
++    if num_updates < progress["update"]:
++        raise ValueError("num_updates is a total budget, smaller than restored progress")
++    for update in range(progress["update"], num_updates):
+         buf, roll_metrics = algo.collect(env, rollout_steps, seed=seed + update)
+         stats = algo.update(buf, last_value=roll_metrics.get("last_value", 0.0))
+         row = {"update": update, **roll_metrics, **stats}
+         history.append(row)
++        progress.update(update=update + 1,
++                        decision_steps=progress["decision_steps"] + len(buf),
++                        physics_ticks=progress["physics_ticks"] + int(roll_metrics["physics_ticks"]))
++        row.update(decision_steps=progress["decision_steps"], total_physics_ticks=progress["physics_ticks"])
++        save_training(saved_path, model, identity, progress)
++        log_row(writer, "ppo", row, progress["decision_steps"])
+         print(
+             f"[rl] update={update} loss={stats.get('loss', float('nan')):.4f} "
+             f"return={roll_metrics.get('mean_return', 0):.3f} steps={len(buf)}"
+         )
+     env.close()
++    if writer is not None:
++        writer.close()
+     ckpt = cfg.get("checkpoint", {}).get("path", "outputs/rl/checkpoint.pt")
+     Path(ckpt).parent.mkdir(parents=True, exist_ok=True)
+     algo.save(ckpt)

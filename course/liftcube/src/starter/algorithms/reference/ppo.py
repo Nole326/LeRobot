@@ -11,6 +11,7 @@ from torch.nn.utils import clip_grad_norm_
 from starter.interfaces.model import SmallCNNPolicy
 from starter.interfaces.reward import RewardShaper
 from starter.rewards.lift_cube import shape_reward
+from starter.envs.timing import policy_action_hold_steps
 
 from ..rl import RolloutBuffer
 
@@ -22,15 +23,22 @@ def compute_gae(
     last_value: torch.Tensor,
     gamma: float,
     gae_lambda: float,
+    *,
+    next_values: torch.Tensor | None = None,
 ) -> tuple[torch.Tensor, torch.Tensor]:
-    """GAE-Lambda. `dones` is 1 at terminated or truncated boundaries."""
+    """Stop GAE at every episode boundary. next_values already masks termination.
+
+    Timeout transitions bootstrap from their pre-reset terminal observation.
+    The legacy path (without next_values) treats all boundaries as terminal.
+    """
     t_steps = rewards.shape[0]
     advantages = torch.zeros_like(rewards)
     gae = torch.zeros((), device=rewards.device)
     next_value = last_value
     for t in reversed(range(t_steps)):
         mask = 1.0 - dones[t]
-        delta = rewards[t] + gamma * next_value * mask - values[t]
+        bootstrap = next_value * mask if next_values is None else next_values[t]
+        delta = rewards[t] + gamma * bootstrap - values[t]
         gae = delta + gamma * gae_lambda * mask * gae
         advantages[t] = gae
         next_value = values[t]
@@ -53,6 +61,7 @@ class PPOAlgorithm:
         ppo_epochs: int = 2,
         minibatch_size: int = 32,
         reward_shaper: RewardShaper | None = None,
+        bootstrap_timeouts: bool = True,
     ) -> None:
         self.policy = policy
         self.reward_shaper = shape_reward if reward_shaper is None else reward_shaper
@@ -64,6 +73,7 @@ class PPOAlgorithm:
         self.max_grad_norm = max_grad_norm
         self.ppo_epochs = ppo_epochs
         self.minibatch_size = minibatch_size
+        self.bootstrap_timeouts = bootstrap_timeouts
         self.policy.opt = torch.optim.Adam(self.policy.parameters(), lr=learning_rate)
 
     def collect(self, env: Any, num_steps: int, seed: int | None = None) -> tuple[RolloutBuffer, dict[str, float]]:
@@ -73,18 +83,31 @@ class PPOAlgorithm:
         ep_returns: list[float] = []
         successes = 0
         episodes = 0
-        for _ in range(num_steps):
+        if num_steps < 1:
+            raise ValueError("num_steps must be positive")
+        hold_steps = policy_action_hold_steps(env, self.policy)
+        physics_ticks = 0
+        done = False
+        # Finish the last episode before updating/saving: no hidden in-flight
+        # simulator state is needed at the next update's seeded reset boundary.
+        while len(buf) < num_steps or not done:
             action, extra = self.policy.act_with_info(obs, deterministic=False)
-            next_obs, public_reward, terminated, truncated, step_info = env.step(action)
+            reward = 0.0
+            for _ in range(hold_steps):
+                next_obs, public_reward, terminated, truncated, step_info = env.step(action)
+                physics_ticks += 1
+                reward += self._shaped_reward(
+                    env, action=action, public_reward=float(public_reward),
+                    terminated=bool(terminated), truncated=bool(truncated), info=step_info,
+                )
+                if terminated or truncated:
+                    break
             done = bool(terminated or truncated)
-            reward = self._shaped_reward(
-                env,
-                action=action,
-                public_reward=float(public_reward),
-                terminated=bool(terminated),
-                truncated=bool(truncated),
-                info=step_info if isinstance(step_info, dict) else {},
-            )
+            next_value = 0.0
+            if not terminated and (not truncated or self.bootstrap_timeouts):
+                with torch.no_grad():
+                    tensors = self.policy._batch_from_obs_list([next_obs])
+                    next_value = float(self.policy.critic(self.policy.features(tensors)).item())
             buf.add(
                 obs=obs,
                 action_env=action,
@@ -94,22 +117,25 @@ class PPOAlgorithm:
                 reward=reward,
                 done=done,
                 truncated=bool(truncated),
+                next_value=next_value,
             )
             ep_return += reward
             obs = next_obs
             if done:
                 episodes += 1
                 ep_returns.append(ep_return)
-                successes += int(bool(step_info.get("success", terminated and not truncated)))
+                successes += int(bool(step_info.get("success", False)))
                 ep_return = 0.0
-                obs, info = env.reset()
+                if len(buf) < num_steps:
+                    obs, info = env.reset()
         last_value = 0.0
-        if len(buf) > 0:
+        if len(buf) > 0 and not done:
             with torch.no_grad():
                 _, extra = self.policy.act_with_info(obs, deterministic=True)
                 last_value = float(extra["value"].detach().cpu())
         metrics = {
             "rollout_steps": float(len(buf)),
+            "physics_ticks": float(physics_ticks),
             "episode_count": float(episodes),
             "mean_return": float(np.mean(ep_returns) if ep_returns else ep_return),
             "success_count": float(successes),
@@ -155,6 +181,7 @@ class PPOAlgorithm:
             values = tensors["value"]
             rewards = tensors["reward"]
             dones = tensors["done"]
+            next_values = tensors["next_value"]
         else:
             device = self.policy.device_name
             images = batch["image"]
@@ -167,10 +194,12 @@ class PPOAlgorithm:
             values = batch["value"].to(device)
             rewards = batch["reward"].to(device)
             dones = batch["done"].to(device)
+            next_values = batch["next_value"].to(device)
 
         last_v = torch.tensor(last_value, dtype=torch.float32, device=device)
-        advantages, returns = compute_gae(rewards, values, dones, last_v, self.gamma, self.gae_lambda)
-        advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)
+        advantages, returns = compute_gae(rewards, values, dones, last_v, self.gamma, self.gae_lambda,
+                                           next_values=next_values)
+        advantages = (advantages - advantages.mean()) / (advantages.std(unbiased=False) + 1e-8)
         n = rewards.shape[0]
         idx = np.arange(n)
         last_stats: dict[str, float] = {}

@@ -14,7 +14,8 @@ class LiftCubeImportTests(unittest.TestCase):
     def test_source_identity_and_unchanged_evaluation_config(self):
         manifest = json.loads((ROOT / "manifests/liftcube_source.json").read_text(encoding="utf-8"))
         records = manifest["files"]
-        self.assertEqual(len(records), 46)
+        self.assertGreaterEqual(len(records), 46)
+        self.assertEqual(sum(row["archive_path"] is not None for row in records), 45)
         self.assertEqual(len({row["path"] for row in records}), len(records))
         for row in records:
             with self.subTest(path=row["path"]):

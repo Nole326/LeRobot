@@ -12,6 +12,7 @@ import numpy as np
 from starter.config import PROJECT_ROOT, add_common_args, apply_common_overrides, get_device, resolve_config
 from starter.envs.container import ensure_in_leisaac_container
 from starter.envs.factory import make_env
+from starter.envs.timing import policy_action_hold_steps
 from starter.envs.lift_cube import shutdown_sim_app
 from starter.interfaces.model import SmallCNNPolicy
 from starter.interfaces.observation import Observation
@@ -107,18 +108,6 @@ def run_episode(
         truncated=bool(truncated),
         terminated=bool(terminated),
     )
-
-
-def policy_action_hold_steps(env: Any, policy: PolicyModel) -> int:
-    env_hz = float(env.action_spec.frequency_hz)
-    policy_hz = float(getattr(policy, "action_spec", env.action_spec).frequency_hz)
-    if not np.isfinite([env_hz, policy_hz]).all() or min(env_hz, policy_hz) <= 0:
-        raise ValueError("Policy/environment frequency must be finite and positive")
-    ratio = env_hz / policy_hz
-    ticks = round(ratio)
-    if ticks < 1 or not np.isclose(ratio, ticks, atol=1e-6, rtol=0):
-        raise ValueError(f"Cannot hold {policy_hz} Hz policy at {env_hz} Hz environment ticks")
-    return ticks
 
 
 def evaluate(cfg: dict[str, Any]) -> dict[str, Any]:

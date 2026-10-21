@@ -18,6 +18,10 @@ model:
   image_channels: 3
 
 ppo:
+  policy_hz: 30
+  # External time limits bootstrap from the pre-reset final observation.
+  # Set false only for an explicitly defined finite-horizon terminal objective.
+  bootstrap_timeouts: true
   # Optional BC checkpoint for PPO initialization; null trains from scratch.
   bc_checkpoint_path: null
   rollout_steps: 640

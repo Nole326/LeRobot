@@ -35,7 +35,7 @@ train:
 
 checkpoint:
   path: outputs/bc/checkpoint.pt
-  save_optimizer: false
+  # Inference export above; full epoch-boundary state is saved alongside it.
 
 logging:
   dir: outputs/bc
