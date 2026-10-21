@@ -44,6 +44,10 @@ Use the same demonstrations and evaluation protocol for ACT and SmolVLA. Their i
 
 ## 3. 代码改在哪里 / Where changes belong
 
+各层职责与ACT/VLA/RL的扩展位置统一见[架构说明](ARCHITECTURE.md)；RLinf是否适合当前任务见[接入评估](RLINF.md)。根说明提供[中文](../README.md)和[英文](../README.en.md)两个入口，其他技术文档暂保留双语。
+
+See [architecture](ARCHITECTURE.md) for layer ownership and ACT/VLA/RL extension points, and the [RLinf assessment](RLINF.md) for applicability. The root guide has [Chinese](../README.md) and [English](../README.en.md) editions; other technical guides remain bilingual.
+
 `third_party/` 是冻结的上游参考，不是日常实验草稿区。当前 `course/scripts/` 是独立诊断工具，`scripts/` 是仓库和计划检查，`tests/` 放回归测试，`configs/` 放可公开的计划模板。具体适配器通过验收后再接入训练入口，不先创建一堆空训练命令。私有机器配置、数据、权重和结果留在仓库外或忽略目录。
 
 `third_party/` is a frozen upstream reference, not a scratch area for experiments. `course/scripts/` holds standalone diagnostics, `scripts/` repository and plan checks, `tests/` regressions, and `configs/` public planning templates. Integrate adapters into a trainer after validation rather than creating empty training commands. Keep machine configuration, data, weights and results outside the repository or in ignored directories.
