@@ -18,6 +18,10 @@ Split the root README into linked Chinese and English editions, organize navigat
 
 Import the course LiftCube starter and configurations with standalone runtime instructions, original/current hashes and a reversible interface patch. Add SO101 padding, camera/timing checks, pre-reset terminal capture, render-only preparation and out-of-range data rejection; preserve the evaluation configuration and existing upstream snapshots. Images, datasets, weights and private deployment records remain external.
 
+补充LiftCube参考训练器的本体融合、BC→RL时序、存档恢复及PPO超时待办；注明4回合/640tick仅为起点配置，并更新导入清单说明。
+
+Document pending proprioceptive fusion, BC-to-RL timing, checkpoint recovery and PPO timeout handling in the LiftCube reference trainers. Clarify that four episodes/640 ticks are starter defaults and update the import inventory description.
+
 补充配套环境的交大云盘获取入口、跨平台SHA256核验与镜像导入步骤；同步开发起步、依赖和部署说明，区分LiftCube课程环境与历史上游快照。
 
 Add the matching image's SJTU cloud-drive link, cross-platform SHA256 checks and import steps; align the development, dependency and deployment guides while keeping the LiftCube runtime separate from historical upstream snapshots.

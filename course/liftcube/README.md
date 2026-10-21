@@ -4,6 +4,23 @@
 
 A starting point for picking up a tabletop cube, with an environment adapter, demonstration reader, BC, reference PPO and evaluation entry points. The complete multi-object task uses its separately released environment.
 
+## 当前状态 / Status
+
+环境与数据接口可用于开发；BC/PPO仍是参考实现，正式训练前需完成以下接入：
+
+The environment and data interfaces are available for development. BC/PPO remain reference implementations with the following work pending before formal training:
+
+| 环节 / Component | 待完成 / Pending work |
+| --- | --- |
+| 默认策略 / Default policy | SmallCNN当前只使用图像，本体融合尚未接入 / SmallCNN is image-only; proprioceptive fusion is not connected |
+| BC→RL | 30Hz演示与60Hz环境之间的训练时序适配；当前不能直接加载BC初始化RL / Training-time adaptation between 30Hz demonstrations and the 60Hz environment; direct BC initialization of RL is currently rejected |
+| 存档恢复 / Checkpoint recovery | 当前保存权重与接口配置；优化器、训练进度和完整RNG尚未保存 / Weights and interface specs are saved, but optimizer, training progress and complete RNG state are not |
+| PPO超时 / PPO timeouts | 当前将截断与终止一并处理，需明确任务时域及bootstrap规则 / Truncation and termination currently share a mask; task-horizon and bootstrap semantics need to be defined |
+
+演示动作映射也需先完成核对，数据要求见下方[起步说明](#起步--getting-started)。ACT/VLA接入后共用环境和评测接口。
+
+Verify demonstration action mapping before training; see [Getting started](#起步--getting-started) below. ACT/VLA integrations will share the environment and evaluation interfaces.
+
 ## 运行环境 / Runtime
 
 使用配套镜像 `isaac-lab:4.5.0-v2.1.1-leisaac-v0.1.2-src`：Isaac Sim 4.5.0、Isaac Lab v2.1.1、LeIsaac v0.1.2、Python 3.10.15、Torch 2.5.1+cu118。包元数据可能显示Isaac Lab 0.41.3、LeIsaac 0.1.0。仓库原有 `third_party/` 是另一组固定版本，不要混入这个环境的Python路径。
@@ -45,6 +62,10 @@ These checksums identify the current matching image. If the distributor replaces
 | 频率 / Frequency | 环境60Hz，30Hz策略每两tick更新 / 60Hz environment, 30Hz policies hold for two ticks |
 | 默认上限 / Default horizon | 640环境tick，约10.67秒 / 640 environment ticks, about 10.67 seconds |
 
+默认评测为4回合、每回合最多640环境tick。这是起点配置，不是最终课程评测协议；正式任务的回合数、成功判据和时间上限以课程发布为准。
+
+The default evaluation runs four episodes with at most 640 environment ticks each. These are starter defaults, not the final course protocol; use the course's published episode count, success criteria and time limit for formal evaluation.
+
 训练和推理均使用64×64输入。物体真值只供训练奖励或调试，不能进入策略。更换动作语义、频率或输入结构时，需重新核对数据和模型兼容性；关节动作不能直接当成受限末端动作。
 
 Use 64×64 inputs during both training and inference. Object ground truth is reserved for training rewards or debugging, never policy inputs. Changes to action semantics, frequency or observations require renewed data/model compatibility checks; joint targets are not constrained end-effector actions.
@@ -65,9 +86,9 @@ export PYTHONPATH="$PWD/src:/leisaac/source/leisaac${PYTHONPATH:+:$PYTHONPATH}"
 
 Offline reading requires PyArrow and PyAV; check existing packages and preserve bundled Torch/CUDA. [H2Ozone/lift_cube](https://huggingface.co/datasets/H2Ozone/lift_cube) is a candidate dataset, subject to unit, zero-point, limit and alignment checks. The v3 reader rejects out-of-range actions by default; `allow_action_clipping` is an explicit diagnostic option. Set the BC data path to the actual container mount.
 
-`training/train_bc.py`、`training/train_rl.py`为训练入口，`evaluation/evaluate.py`支持自定义策略加载。默认训练预算仅作示例；完整模型/优化器/RNG续训及最终任务兼容性仍需在正式训练前验收。
+`training/train_bc.py`、`training/train_rl.py`为参考训练入口，`evaluation/evaluate.py`通过`--policy-class package.module:ClassName`支持自定义策略加载；默认训练预算仅作示例。
 
-`training/train_bc.py` and `training/train_rl.py` provide training entry points; `evaluation/evaluate.py` supports custom policy loaders. Default budgets are examples. Full model/optimizer/RNG recovery and final-task compatibility still require acceptance before production training.
+`training/train_bc.py` and `training/train_rl.py` are reference training entry points. `evaluation/evaluate.py` supports custom loaders through `--policy-class package.module:ClassName`; default training budgets are examples.
 
 ## 来源与修改 / Provenance and changes
 
