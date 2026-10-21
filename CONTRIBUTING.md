@@ -50,9 +50,9 @@ For action, data, training or evaluation interface changes, update the [contract
 
 Automated checks validate source hashes, public utility Python syntax, local file links in generic Markdown and poster dimensions. They do not execute upstream code or verify external websites, and are not a complete security audit or GPU test.
 
-README 和新写的项目说明按中文一段、英文一段组织。上游原文不强行翻译。提交说明应包含目的、受影响接口、检查结果与尚未验证的部分。
+根README分为中文 `README.md` 和英文 `README.en.md`，顶部互链；修改目标、用法、范围与文档入口时同步两版。GitHub中这是普通文档链接，不需要网页脚本或额外部署。其他新写项目说明仍按中文一段、英文一段组织。上游原文不强行翻译。提交说明应包含目的、受影响接口、检查结果与尚未验证的部分。
 
-Use Chinese-then-English paragraphs in the README and new project documentation. Do not rewrite upstream documents solely for translation. Describe the purpose, affected interfaces, checks performed and remaining validation limits in each contribution.
+The root README has linked Chinese (`README.md`) and English (`README.en.md`) editions; synchronize goals, usage, scope and navigation. These are ordinary GitHub document links, requiring no scripts or deployment. Other new project documentation uses Chinese-then-English paragraphs. Do not rewrite upstream documents solely for translation. Describe purpose, affected interfaces, checks and remaining validation limits.
 
 禁止提交凭据、原始课程材料、服务器信息、私有配置、数据集、模型、运行日志及未获准的截图。忽略规则不能替代人工复核；不要在公开 issue 中粘贴这些内容。海报仅限已获准的脱敏版本。
 
