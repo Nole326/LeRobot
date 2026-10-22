@@ -50,9 +50,9 @@ Distinguish training targets, predictions and applied commands. Changes to camer
 
 ## 4. 分支与版本 / Branches and versions
 
-`feature/liftcube` 将共同起点 PR 到 `main`。后续从更新后的 `main` 各开短期功能分支，例如 `feature/liftcube-act`、`feature/liftcube-pi05`、`feature/liftcube-rl`。开发完成后通过PR合入；所有方法的源码最终在main共存，运行时由已实现的入口与配置选择。
+共同起点已合入 `main`。后续从最新 `main` 各开短期功能分支，例如 `feature/liftcube-act`、`feature/liftcube-pi05`、`feature/liftcube-rl`。开发完成后通过PR合入并删除已合并分支；所有方法的源码最终在main共存，运行时由已实现的入口与配置选择。
 
-Merge the shared foundation from `feature/liftcube` into `main` through a PR. Branch subsequent work from current main, for example `feature/liftcube-act`, `feature/liftcube-pi05` or `feature/liftcube-rl`. Merge completed work through PRs; implementations coexist on main and are selected through implemented entry points/configurations.
+The shared foundation is merged into `main`. Branch subsequent work from current main, for example `feature/liftcube-act`, `feature/liftcube-pi05` or `feature/liftcube-rl`. Merge completed work through PRs and delete merged branches; implementations coexist on main and are selected through implemented entry points/configurations.
 
 多个未合入模块确实需要一起联调时，才加临时 `dev/liftcube`。不按成员、seed或checkpoint永久维护分支。共同接口修复单独提交，其他分支同步；README、CHANGELOG与代码在同一PR更新。阶段发布使用CHANGELOG版本条目和不可覆盖的tag，而不是复制整套代码目录。
 

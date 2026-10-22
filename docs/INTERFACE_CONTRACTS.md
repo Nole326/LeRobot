@@ -1,5 +1,7 @@
 # 接口约定 / Interface contracts
 
+当前配套环境与候选演示的验收范围、结果和缺口见 [SO101 验收](SO101_ACCEPTANCE.md)。
+
 本页规定我们开发时要核验的边界，不代替正式环境规范。配置模板是设计检查表，不是已接入的生产接口；空值表示待确认。接口变更应有新的 schema 标识、转换测试和迁移说明，不能只改一个维度数字。
 
 This page defines development checks, not the formal environment specification. The configuration template is a design checklist, not an integrated production interface; empty values are unresolved. Interface changes need new schema identifiers, conversion tests and migration notes, not just a changed dimension.
