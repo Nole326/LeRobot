@@ -343,16 +343,18 @@
      return arr
 --- a/src/starter/envs/lift_cube.py
 +++ b/src/starter/envs/lift_cube.py
-@@ -1,4 +1,8 @@
+@@ -1,4 +1,10 @@
  """Adapter for LeIsaac LiftCube. No object GT in policy observations.
 +
 +Local course adaptation (2026-10-20): camera/readiness, SO101 padding,
 +actual control frequency, causal command history and pre-reset terminal capture.
++2026-10-22: reject missing feedback, require explicit alias units, and expose
++requested/sent/measured joint values separately for interface diagnostics.
 +Original archive retained unchanged.
  
  Created inside the course container as ``ManagerBasedRLEnv(LiftCubeEnvCfg)``.
  LeIsaac v0.1.2 registers this task as ``LeIsaac-SO101-LiftCube-v0``.
-@@ -16,7 +20,6 @@
+@@ -16,7 +22,6 @@
      clip_action,
      motor_to_radians,
      radians_to_motor,
@@ -360,25 +362,40 @@
  )
  from starter.interfaces.observation import Observation, ObservationSpec, pack_proprio, proprio_dim
  from starter.envs.lift_cube_privileged import (
-@@ -134,6 +137,8 @@
+@@ -133,17 +138,32 @@
+         n_envs: int = 1,
          device: str = "cuda:0",
          max_episode_steps: int = 640,
++        raw_joint_units: str | None = None,
      ) -> None:
 +        if n_envs != 1:
 +            raise ValueError("This scalar adapter supports n_envs=1 only.")
          self.camera = camera
          self.include_ee = include_ee_in_proprio
          self.device = device
-@@ -144,6 +149,8 @@
+         self.n_envs = n_envs
+         self.max_episode_steps = int(max_episode_steps)
+         self._owns_env = raw_env is None
++        if raw_joint_units not in (None, "radians", "motor"):
++            raise ValueError("raw_joint_units must be radians or motor")
++        if self._owns_env and raw_joint_units == "motor":
++            raise ValueError("The course Isaac environment emits joint_pos in radians")
++        self.raw_joint_units = raw_joint_units
+         self._vector_env = None
          self._app = None
          self._raw = raw_env if raw_env is not None else self._make_raw_env()
          self._unwrapped = self._unwrap(self._raw)
-+        if self._owns_env:
-+            control_hz = 1.0 / float(self._unwrapped.step_dt)
++        step_dt = getattr(self._unwrapped, "step_dt", None)
++        if step_dt is not None:
++            if not np.isfinite(step_dt) or float(step_dt) <= 0:
++                raise ValueError("Environment step_dt must be finite and positive")
++            control_hz = 1.0 / float(step_dt)
++        if not np.isfinite(control_hz) or control_hz <= 0:
++            raise ValueError("Environment frequency must be finite and positive")
          self.action_spec = ActionSpec(frequency_hz=control_hz)
          self.observation_spec = ObservationSpec(
              image_shape=(image_height, image_width, 3),
-@@ -160,6 +167,8 @@
+@@ -160,6 +180,8 @@
          self._episode_id = -1
          self._step_count = 0
          self._last_action = np.zeros(self.action_spec.dim, dtype=np.float32)
@@ -387,7 +404,7 @@
  
      def _make_raw_env(self) -> Any:
          from starter.envs.container import isaac_runtime_ready
-@@ -181,7 +190,14 @@
+@@ -181,7 +203,14 @@
              env_cfg.actions.gripper_action.preserve_order = True
              dt = float(env_cfg.sim.dt) * int(env_cfg.decimation)
              env_cfg.episode_length_s = float(self.max_episode_steps) * dt
@@ -403,7 +420,7 @@
          except IsaacUnavailableError:
              raise
          except Exception as exc:
-@@ -206,6 +222,8 @@
+@@ -206,6 +235,8 @@
          self._episode_id += 1
          self._step_count = 0
          self._last_action = np.zeros(self.action_spec.dim, dtype=np.float32)
@@ -412,7 +429,7 @@
          kwargs: dict[str, Any] = {}
          if seed is not None:
              kwargs["seed"] = seed
-@@ -214,6 +232,10 @@
+@@ -214,25 +245,55 @@
          except TypeError:
              result = self._raw.reset()
          obs_raw, info_raw = self._split_reset(result)
@@ -423,9 +440,14 @@
          obs = self._convert_obs(obs_raw)
          info = self._public_info(success=False, reason="", reward=0.0)
          return obs, info
-@@ -221,18 +243,33 @@
+ 
      def step(self, action: np.ndarray) -> tuple[Observation, float, bool, bool, dict[str, Any]]:
-         action = clip_action(np.asarray(action, dtype=np.float32), self.action_spec)
+-        action = clip_action(np.asarray(action, dtype=np.float32), self.action_spec)
++        requested = np.asarray(action, dtype=np.float32)
++        if requested.shape not in ((6,), (1, 6)):
++            raise ValueError(f"One SO101 command requires six ordered targets, got {requested.shape}")
++        requested = requested.reshape(6).copy()
++        action = clip_action(requested, self.action_spec)
          isaac_action = self._to_isaac_action(action)
 -        result = self._raw.step(isaac_action)
 +        self._terminal_obs = None
@@ -449,6 +471,13 @@
 -        self._last_action = action
          self._step_count += 1
          info = self._public_info(success=success, reason=reason, reward=used_reward)
++        info["command"] = {
++            "requested_motor": requested.tolist(),
++            "applied_motor": action.tolist(),
++            "applied_radians": motor_to_radians(action).tolist(),
++            "clipped": (requested != action).tolist(),
++            "measured_motor": obs.proprio[:6].tolist(),
++        }
          return obs, used_reward, terminated_b, truncated_b, info
 +
 +    def _capture_terminal(self) -> None:
@@ -460,13 +489,22 @@
  
      def close(self) -> None:
          for obj in (self._raw, self._vector_env, self._unwrapped):
-@@ -263,17 +300,13 @@
+@@ -262,18 +323,20 @@
+     def _convert_obs(self, obs_raw: Any) -> Observation:
          policy = self._policy_dict(obs_raw)
          image = self._extract_image(policy)
-         joint_pos = self._extract_vec(policy, ("joint_pos", "observation.state"), default=6)
+-        joint_pos = self._extract_vec(policy, ("joint_pos", "observation.state"), default=6)
 -        joint_vel = self._extract_vec(policy, ("joint_vel",), default=6)
 -        echoed = self._extract_vec(policy, ("actions", "last_action"), default=6, required=False)
-         if "joint_pos" in policy or "observation.state" in policy:
+-        if "joint_pos" in policy or "observation.state" in policy:
++        key = "joint_pos" if "joint_pos" in policy else "observation.state"
++        joint_pos = self._extract_vec(policy, (key,), default=6)
++        units = self.raw_joint_units
++        if units is None:
++            if key != "joint_pos":
++                raise ValueError("observation.state units are ambiguous; declare raw_joint_units")
++            units = "radians"  # Known Isaac joint_pos contract, not a generic dataset inference.
++        if units == "radians":
              joint_pos = radians_to_motor(joint_pos)
 -        if "joint_vel" in policy:
 -            joint_vel = radians_velocity_to_motor(joint_vel)
@@ -483,7 +521,7 @@
          proprio = pack_proprio(joint_pos, joint_vel, last_action, ee, include_ee=self.include_ee)
          return Observation(
              image=image,
-@@ -296,7 +329,7 @@
+@@ -296,7 +359,7 @@
          return policy
  
      def _extract_image(self, policy: dict[str, Any]) -> np.ndarray:
@@ -492,7 +530,7 @@
          raw = None
          for key in candidates:
              if key in policy:
-@@ -307,8 +340,7 @@
+@@ -307,14 +370,19 @@
                  raw = policy[nested]
                  break
          if raw is None:
@@ -502,7 +540,41 @@
          img = self._to_numpy(raw)
          img = np.asarray(img)
          if img.ndim == 4:
-@@ -370,6 +402,8 @@
++            if img.shape[0] != 1:
++                raise ValueError("The scalar adapter requires one camera frame, not a batch")
+             img = img[0]
+-        if img.ndim == 3 and img.shape[0] in (1, 3) and img.shape[-1] not in (1, 3):
++        if img.ndim == 3 and img.shape[0] in (3, 4) and img.shape[-1] not in (3, 4):
+             img = np.transpose(img, (1, 2, 0))
++        if img.ndim != 3 or img.shape[-1] not in (3, 4) or 0 in img.shape:
++            raise ValueError(f"Expected one RGB/RGBA camera frame, got {img.shape}")
++        if not np.isfinite(img).all() or img.min() < 0 or img.max() > 255:
++            raise ValueError("Camera pixels must be finite and inside [0,255]")
+         if img.dtype != np.uint8:
+             if img.max() <= 1.01:
+                 img = np.clip(img, 0, 1) * 255.0
+@@ -341,15 +409,13 @@
+     ) -> np.ndarray | None:
+         for key in keys:
+             if key in policy:
+-                arr = np.asarray(self._to_numpy(policy[key]), dtype=np.float32).reshape(-1)
+-                if arr.size >= default:
+-                    return arr[:default]
+-                out = np.zeros(default, dtype=np.float32)
+-                out[: arr.size] = arr
+-                return out
++                arr = np.asarray(self._to_numpy(policy[key]), dtype=np.float32)
++                if arr.shape not in ((default,), (1, default)) or not np.isfinite(arr).all():
++                    raise ValueError(f"{key} requires exactly {default} finite joint positions")
++                return arr.reshape(default).copy()
+         if not required:
+             return None
+-        return np.zeros(default, dtype=np.float32)
++        raise ValueError(f"Required joint feedback is missing: {keys}")
+ 
+     def _extract_ee(self, policy: dict[str, Any]) -> np.ndarray:
+         if "ee_frame_state" in policy:
+@@ -370,6 +436,8 @@
  
      def get_privileged_state(self) -> LiftCubePrivilegedState:
          """LiftCube cube, base, and jaw state for reward code. Not a policy observation."""
@@ -619,7 +691,34 @@
          log_dir,
 --- a/src/starter/interfaces/model.py
 +++ b/src/starter/interfaces/model.py
-@@ -48,15 +48,21 @@
+@@ -16,6 +16,17 @@
+ from .vision import IdentityProcessor
+ 
+ _NORM_EPS = 1e-6
++
++
++class _GridAveragePool(nn.AdaptiveAvgPool2d):
++    """Use deterministic ordinary pooling when adaptive bins form a uniform grid."""
++
++    def forward(self, x: torch.Tensor) -> torch.Tensor:
++        height, width = x.shape[-2:]
++        rows, columns = self.output_size
++        if height % rows == 0 and width % columns == 0:
++            return F.avg_pool2d(x, kernel_size=(height // rows, width // columns))
++        return super().forward(x)
+ 
+ 
+ class ConvEncoder(nn.Module):
+@@ -28,7 +39,7 @@
+             nn.ReLU(),
+             nn.Conv2d(32, 32, kernel_size=3, stride=2, padding=1),
+             nn.ReLU(),
+-            nn.AdaptiveAvgPool2d((4, 4)),
++            _GridAveragePool((4, 4)),
+             nn.Flatten(),
+             nn.Linear(32 * 4 * 4, out_dim),
+             nn.ReLU(),
+@@ -48,15 +59,21 @@
          hidden_dim: int = 64,
          device: str = "cpu",
          learning_rate: float = 1e-3,
@@ -642,7 +741,7 @@
          self.body = nn.Sequential(nn.Linear(fused, hidden_dim), nn.ReLU())
          self.actor_mean = nn.Linear(hidden_dim, action_spec.dim)
          self.critic = nn.Linear(hidden_dim, 1)
-@@ -78,9 +84,16 @@
+@@ -78,9 +95,16 @@
          if image.max() > 1.5:
              image = image / 255.0
          vis = self.encoder(image)
@@ -662,7 +761,7 @@
  
      def forward(self, batch: Mapping[str, Any]) -> torch.Tensor:
          feats = self.features(self._as_tensors(batch))
-@@ -185,15 +198,18 @@
+@@ -185,15 +209,18 @@
      def save(self, path: str) -> None:
          path_obj = Path(path)
          path_obj.parent.mkdir(parents=True, exist_ok=True)
@@ -683,7 +782,7 @@
  
      @classmethod
      def load(cls, path: str, **kwargs: Any) -> "SmallCNNPolicy":
-@@ -202,13 +218,18 @@
+@@ -202,13 +229,18 @@
              payload = torch.load(path, map_location=map_location, weights_only=False)
          except TypeError:
              payload = torch.load(path, map_location=map_location)

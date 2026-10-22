@@ -4,6 +4,20 @@
 
 Start initial development from `v0.1.1-baseline`; subsequent collaborative work should normally branch from the latest `main` to include merged changes. Prefer standalone adapters over modifying frozen upstream source. Changes to algorithms, rewards, observations, controllers and evaluation protocols need explicit records and validation.
 
+## 智能体协作 / Working with agents
+
+将 [AGENTS.md](AGENTS.md) 作为智能体的仓库入口，交接时给出任务范围、适用授权和验收条件。每个 PR 复核其中的目录、接口边界、命令和开发约定；相关变化与代码同 PR 更新，无影响则说明原因。详细规范只保留一处，其余文档链接过去；运行进度与私有部署记录不写入该文件。
+
+Use [AGENTS.md](AGENTS.md) as the repository entry point for agents, supplying task scope, applicable authority and acceptance criteria. Review its layout, contract boundaries, commands and conventions in each PR; update affected guidance alongside code or explain why no change is needed. Keep detailed rules in one place and link to them; runtime progress and private deployment records do not belong there.
+
+[AGENTS.md](AGENTS.md)负责任务分流与共同规则，[LiftCube](course/liftcube/AGENTS.md)和[独立诊断工具](course/scripts/AGENTS.md)的子级文件负责各自入口、运行前提与验收。它们是智能体指令，使用单份中文，不重复面向读者的双语介绍。[PR 模板](.github/pull_request_template.md)包含文档同步、验证范围和公开内容复核项；开发者或智能体复核根目录及受影响子级文件，无需为无关改动机械更新。
+
+这些指令面向所有使用者，不包含个人服务器、机构名称、设备绑定、账号或个人运维规则；使用者的平台专属配置留在仓库外。
+
+The [root guide](AGENTS.md) routes tasks and defines shared rules; nested guides for [LiftCube](course/liftcube/AGENTS.md) and [standalone diagnostics](course/scripts/AGENTS.md) define entry points, prerequisites and acceptance. These are agent instructions maintained in Chinese, not duplicate bilingual introductions. The [PR template](.github/pull_request_template.md) covers documentation, validation scope and publication checks. Review the root and applicable nested guides; unrelated edits do not require artificial instruction changes.
+
+These instructions apply to any user and exclude personal infrastructure, institutional identifiers, device bindings, accounts and individual operations policies. Keep platform-specific user configuration outside the repository.
+
 ## LiftCube并行开发 / Parallel LiftCube development
 
 `feature/liftcube`用于导入公共起点，合入main后结束。ACT、SmolVLA、OpenVLA-OFT、π₀.₅和RL等工作从最新main分别创建短期功能分支，例如`feature/liftcube-act`、`feature/liftcube-smolvla`、`feature/liftcube-openvla-oft`、`feature/liftcube-pi05`、`feature/liftcube-rl`，通过PR将可复用实现合入main。这里只约定命名，不预先建立空分支。
@@ -56,7 +70,11 @@ The root README has linked Chinese (`README.md`) and English (`README.en.md`) ed
 
 禁止提交凭据、原始课程材料、服务器信息、私有配置、数据集、模型、运行日志及未获准的截图。忽略规则不能替代人工复核；不要在公开 issue 中粘贴这些内容。海报仅限已获准的脱敏版本。
 
+公开提交前确认Git作者/提交者的姓名与邮箱，避免系统默认身份携带本机账号或设备名；不希望公开邮箱时，使用经本人确认的GitHub no-reply地址。正文、文件内容和Git元数据分别检查，修改工作区文件不会移除历史元数据。
+
 Do not commit credentials, original course materials, server details, private configuration, datasets, models, runtime logs or unapproved screenshots. Ignore rules do not replace manual review; do not paste such content into public issues. Only the approved redacted poster is public.
+
+Before publishing, confirm author/committer names and emails rather than relying on system defaults that may expose local accounts or device names. Use a personally confirmed GitHub no-reply address when email privacy is needed. Review content, messages and Git metadata separately; editing working files does not remove historical metadata.
 
 上游及资产的许可证、版权和引用必须保留。不要重写基准历史或强制覆盖基准标签；升级依赖应作为独立、可审查的变更。
 

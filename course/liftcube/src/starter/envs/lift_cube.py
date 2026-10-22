@@ -2,6 +2,8 @@
 
 Local course adaptation (2026-10-20): camera/readiness, SO101 padding,
 actual control frequency, causal command history and pre-reset terminal capture.
+2026-10-22: reject missing feedback, require explicit alias units, and expose
+requested/sent/measured joint values separately for interface diagnostics.
 Original archive retained unchanged.
 
 Created inside the course container as ``ManagerBasedRLEnv(LiftCubeEnvCfg)``.
@@ -136,6 +138,7 @@ class LiftCubeEnvAdapter:
         n_envs: int = 1,
         device: str = "cuda:0",
         max_episode_steps: int = 640,
+        raw_joint_units: str | None = None,
     ) -> None:
         if n_envs != 1:
             raise ValueError("This scalar adapter supports n_envs=1 only.")
@@ -145,12 +148,22 @@ class LiftCubeEnvAdapter:
         self.n_envs = n_envs
         self.max_episode_steps = int(max_episode_steps)
         self._owns_env = raw_env is None
+        if raw_joint_units not in (None, "radians", "motor"):
+            raise ValueError("raw_joint_units must be radians or motor")
+        if self._owns_env and raw_joint_units == "motor":
+            raise ValueError("The course Isaac environment emits joint_pos in radians")
+        self.raw_joint_units = raw_joint_units
         self._vector_env = None
         self._app = None
         self._raw = raw_env if raw_env is not None else self._make_raw_env()
         self._unwrapped = self._unwrap(self._raw)
-        if self._owns_env:
-            control_hz = 1.0 / float(self._unwrapped.step_dt)
+        step_dt = getattr(self._unwrapped, "step_dt", None)
+        if step_dt is not None:
+            if not np.isfinite(step_dt) or float(step_dt) <= 0:
+                raise ValueError("Environment step_dt must be finite and positive")
+            control_hz = 1.0 / float(step_dt)
+        if not np.isfinite(control_hz) or control_hz <= 0:
+            raise ValueError("Environment frequency must be finite and positive")
         self.action_spec = ActionSpec(frequency_hz=control_hz)
         self.observation_spec = ObservationSpec(
             image_shape=(image_height, image_width, 3),
@@ -241,7 +254,11 @@ class LiftCubeEnvAdapter:
         return obs, info
 
     def step(self, action: np.ndarray) -> tuple[Observation, float, bool, bool, dict[str, Any]]:
-        action = clip_action(np.asarray(action, dtype=np.float32), self.action_spec)
+        requested = np.asarray(action, dtype=np.float32)
+        if requested.shape not in ((6,), (1, 6)):
+            raise ValueError(f"One SO101 command requires six ordered targets, got {requested.shape}")
+        requested = requested.reshape(6).copy()
+        action = clip_action(requested, self.action_spec)
         isaac_action = self._to_isaac_action(action)
         self._terminal_obs = None
         self._terminal_privileged = None
@@ -262,6 +279,13 @@ class LiftCubeEnvAdapter:
         reason = self._infer_reason(success, terminated_b, truncated_b, info_raw)
         self._step_count += 1
         info = self._public_info(success=success, reason=reason, reward=used_reward)
+        info["command"] = {
+            "requested_motor": requested.tolist(),
+            "applied_motor": action.tolist(),
+            "applied_radians": motor_to_radians(action).tolist(),
+            "clipped": (requested != action).tolist(),
+            "measured_motor": obs.proprio[:6].tolist(),
+        }
         return obs, used_reward, terminated_b, truncated_b, info
 
     def _capture_terminal(self) -> None:
@@ -299,8 +323,14 @@ class LiftCubeEnvAdapter:
     def _convert_obs(self, obs_raw: Any) -> Observation:
         policy = self._policy_dict(obs_raw)
         image = self._extract_image(policy)
-        joint_pos = self._extract_vec(policy, ("joint_pos", "observation.state"), default=6)
-        if "joint_pos" in policy or "observation.state" in policy:
+        key = "joint_pos" if "joint_pos" in policy else "observation.state"
+        joint_pos = self._extract_vec(policy, (key,), default=6)
+        units = self.raw_joint_units
+        if units is None:
+            if key != "joint_pos":
+                raise ValueError("observation.state units are ambiguous; declare raw_joint_units")
+            units = "radians"  # Known Isaac joint_pos contract, not a generic dataset inference.
+        if units == "radians":
             joint_pos = radians_to_motor(joint_pos)
         last_action = self._last_action
         # Match the TA-confirmed SO101 data/real-robot contract. Simulator-only
@@ -344,9 +374,15 @@ class LiftCubeEnvAdapter:
         img = self._to_numpy(raw)
         img = np.asarray(img)
         if img.ndim == 4:
+            if img.shape[0] != 1:
+                raise ValueError("The scalar adapter requires one camera frame, not a batch")
             img = img[0]
-        if img.ndim == 3 and img.shape[0] in (1, 3) and img.shape[-1] not in (1, 3):
+        if img.ndim == 3 and img.shape[0] in (3, 4) and img.shape[-1] not in (3, 4):
             img = np.transpose(img, (1, 2, 0))
+        if img.ndim != 3 or img.shape[-1] not in (3, 4) or 0 in img.shape:
+            raise ValueError(f"Expected one RGB/RGBA camera frame, got {img.shape}")
+        if not np.isfinite(img).all() or img.min() < 0 or img.max() > 255:
+            raise ValueError("Camera pixels must be finite and inside [0,255]")
         if img.dtype != np.uint8:
             if img.max() <= 1.01:
                 img = np.clip(img, 0, 1) * 255.0
@@ -373,15 +409,13 @@ class LiftCubeEnvAdapter:
     ) -> np.ndarray | None:
         for key in keys:
             if key in policy:
-                arr = np.asarray(self._to_numpy(policy[key]), dtype=np.float32).reshape(-1)
-                if arr.size >= default:
-                    return arr[:default]
-                out = np.zeros(default, dtype=np.float32)
-                out[: arr.size] = arr
-                return out
+                arr = np.asarray(self._to_numpy(policy[key]), dtype=np.float32)
+                if arr.shape not in ((default,), (1, default)) or not np.isfinite(arr).all():
+                    raise ValueError(f"{key} requires exactly {default} finite joint positions")
+                return arr.reshape(default).copy()
         if not required:
             return None
-        return np.zeros(default, dtype=np.float32)
+        raise ValueError(f"Required joint feedback is missing: {keys}")
 
     def _extract_ee(self, policy: dict[str, Any]) -> np.ndarray:
         if "ee_frame_state" in policy:

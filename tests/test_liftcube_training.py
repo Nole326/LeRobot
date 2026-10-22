@@ -17,7 +17,7 @@ if AVAILABLE:
     from starter.data.loader import CanonicalDataset, make_dataloader
     from starter.envs.timing import decision_specs, policy_action_hold_steps
     from starter.interfaces.action import ActionSpec
-    from starter.interfaces.model import SmallCNNPolicy
+    from starter.interfaces.model import SmallCNNPolicy, _GridAveragePool
     from starter.interfaces.observation import Observation, ObservationSpec
     from starter.training.checkpoint import capture_rng, load_training, save_training
     from starter.utils import seed_all
@@ -78,6 +78,17 @@ class LiftCubeTrainingTests(unittest.TestCase):
             payload.pop("feature_mode")
             restored = SmallCNNPolicy.from_payload(payload)
             self.assertTrue(torch.equal(legacy(batch), restored(batch)))
+
+    def test_uniform_pool_preserves_adaptive_values_and_gradients(self):
+        for shape in [(8, 8), (12, 12), (11, 9)]:
+            a = torch.randn(2, 3, *shape, dtype=torch.float64, requires_grad=True)
+            b = a.detach().clone().requires_grad_()
+            actual = _GridAveragePool((4, 4))(a)
+            expected = torch.nn.functional.adaptive_avg_pool2d(b, (4, 4))
+            torch.testing.assert_close(actual, expected)
+            actual.square().sum().backward()
+            expected.square().sum().backward()
+            torch.testing.assert_close(a.grad, b.grad)
 
     def test_timeout_bootstrap_does_not_leak_across_reset(self):
         adv, _ = compute_gae(torch.tensor([1., 100.]), torch.zeros(2), torch.ones(2),

@@ -18,6 +18,17 @@ from .vision import IdentityProcessor
 _NORM_EPS = 1e-6
 
 
+class _GridAveragePool(nn.AdaptiveAvgPool2d):
+    """Use deterministic ordinary pooling when adaptive bins form a uniform grid."""
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        height, width = x.shape[-2:]
+        rows, columns = self.output_size
+        if height % rows == 0 and width % columns == 0:
+            return F.avg_pool2d(x, kernel_size=(height // rows, width // columns))
+        return super().forward(x)
+
+
 class ConvEncoder(nn.Module):
     def __init__(self, out_dim: int = 64) -> None:
         super().__init__()
@@ -28,7 +39,7 @@ class ConvEncoder(nn.Module):
             nn.ReLU(),
             nn.Conv2d(32, 32, kernel_size=3, stride=2, padding=1),
             nn.ReLU(),
-            nn.AdaptiveAvgPool2d((4, 4)),
+            _GridAveragePool((4, 4)),
             nn.Flatten(),
             nn.Linear(32 * 4 * 4, out_dim),
             nn.ReLU(),

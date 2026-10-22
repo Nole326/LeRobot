@@ -6,6 +6,8 @@ BC/PPO入口用于开发训练管道；ACT和VLA接入后沿用同一观测、�
 
 SmallCNN融合front RGB、6维关节位置和6维上一执行命令；兼容布局中的速度、末端位置不进入网络。关节与上一命令按既有电机范围缩放，不用物体真值。旧image-only权重加载时保留原前向路径，不能静默当作融合模型初始化。
 
+64×64输入经卷积得到8×8特征，4×4均值池化使用等价的普通2×2池化，避免配套PyTorch的adaptive pooling反向算子在严格CUDA确定性模式下报错；不增加权重或改变存档键。其他可整除网格同理，非整除尺寸保留自适应实现，须单独核对设备确定性支持。保存CUDA RNG不等于启用了确定性算子；严格恢复对照还需固定相关CUDA/cuDNN设置与环境版本。
+
 PPO默认`ppo.policy_hz: 30`，在60Hz环境中保持每个目标两tick。物理dt、USD、执行器、成功条件及评测YAML不变。奖励在实际执行的各tick计算后求和，gamma/lambda按**决策步**定义；终止时立即结束保持，不多执行一次动作。`rollout_steps`是最少决策数，采集到该数量后继续到当前回合结束再更新，另记录真实物理tick数。
 
 `ppo.bootstrap_timeouts: true`将外部超时从reset前终态bootstrap，GAE在所有回合边界断开；真正terminated不bootstrap，二者同时出现时terminated优先。若采用明确的有限时域终止目标，可在独立实验配置中设为false；这不改变环境的终止判据。不能把超时当作成功。
