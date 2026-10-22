@@ -8,6 +8,8 @@ This page defines development checks, not the formal environment specification. 
 
 The current [LiftCube starter](../course/liftcube/README.md) uses front 64×64 RGB and six absolute motor targets, with zero-filled SO101 velocity/EE slots. Its environment runs at 60Hz; the evaluation adapter holds 30Hz policy targets for two ticks. This remains separate from the unresolved constrained end-effector task interface below.
 
+当前先验收SO101和配套环境的接口，不以训练LiftCube策略为前提。已知Isaac `joint_pos`按弧度读取；外部`observation.state`不猜单位，必须在适配器显式声明`raw_joint_units="motor"`或`"radians"`。缺失、维度错误或非有限的关节反馈必须报错，不能补零冒充实测零位。速度/EE的已声明兼容补零与“关节位置丢失”是两种情况。真机SDK、标定、单位、曝光时间和命令确认仍按课程正式接口验收，不由这个参数替代硬件适配。
+
 ## 1. 观测 / Observations
 
 策略输入显式列出图像键、本体字段顺序、形状、单位、归一化、时间戳和任务条件。图像必须对应动作前的观测，记录曝光/采样时刻与策略读取时刻。物体和目标信息来自许可的视觉或任务条件通道，不能把仿真真值改名为本体字段后传入网络。训练 reward、诊断信息与网络输入分开；critic 输入也须独立确认许可。
@@ -23,6 +25,8 @@ The plan inspector currently permits six registered SO-101 joint fields. This is
 区分四层：模型归一化输出 → 数据集动作语义 → 执行器命令 → 实际机器人运动。记录每一层的转换、坐标系、分量顺序、单位和边界。`joint_contract.py` 转换的是关节弧度与标定归一化坐标，后者不是角度；六关节目标也不是六维末端位姿。
 
 Separate four layers: normalized model output → dataset action semantics → actuator command → measured robot motion. Record conversions, frames, component order, units and bounds at each layer. `joint_contract.py` converts joint radians and calibration-normalized coordinates, not physical degrees; six joint targets are not a six-dimensional end-effector pose.
+
+现有适配器在`step`返回的`info.command`中分开给出`requested_motor`、`applied_motor`、`applied_radians`、`clipped`和动作后的`measured_motor`。这里applied表示安全处理后**发送给仿真驱动的目标**，不表示实际关节已经到达；`proprio[12:18]`记录上一发送目标，不拿它替代关节反馈。图像与本体的真实采样时间、通信确认及传感器延迟仍需独立核对，不能从nominal FPS推导为严格同步。
 
 ACT/VLA 的动作 chunk 要明确预测长度、每次实际执行步数及重规划方式。reset、人工接管、终止或任务条件变化后清空不匹配的缓存。限幅发生在哪层要写清；不能多乘一次尺度，也不能用限幅掩盖坐标或单位错误。末端动作不可达时明确报告，不能无说明地偷偷换轴或放宽姿态约束。
 

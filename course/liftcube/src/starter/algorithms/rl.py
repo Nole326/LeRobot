@@ -23,6 +23,7 @@ class RolloutBuffer:
     rewards: list[float] = field(default_factory=list)
     dones: list[float] = field(default_factory=list)  # terminated or truncated
     truncated: list[float] = field(default_factory=list)
+    next_values: list[float] = field(default_factory=list)
 
     def add(
         self,
@@ -34,6 +35,7 @@ class RolloutBuffer:
         reward: float,
         done: bool,
         truncated: bool,
+        next_value: float,
     ) -> None:
         self.images.append(np.asarray(obs.image))
         self.proprio.append(np.asarray(obs.proprio, dtype=np.float32))
@@ -44,6 +46,7 @@ class RolloutBuffer:
         self.rewards.append(float(reward))
         self.dones.append(float(done))
         self.truncated.append(float(truncated))
+        self.next_values.append(float(next_value))
 
     def __len__(self) -> int:
         return len(self.rewards)
@@ -61,6 +64,7 @@ class RolloutBuffer:
             "reward": torch.tensor(self.rewards, dtype=torch.float32, device=device),
             "done": torch.tensor(self.dones, dtype=torch.float32, device=device),
             "truncated": torch.tensor(self.truncated, dtype=torch.float32, device=device),
+            "next_value": torch.tensor(self.next_values, dtype=torch.float32, device=device),
         }
 
     def clear(self) -> None:

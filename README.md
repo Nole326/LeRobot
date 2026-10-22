@@ -114,6 +114,7 @@ VLA 强化学习实现参考 [RLinf](docs/RLINF.md)，目前尚未接入本项�
 - [部署与复现边界](docs/REPRODUCIBILITY.md)
 - [源码导入清单](docs/IMPORT_MANIFEST.md)
 - [修改与版本管理](CONTRIBUTING.md)
+- [智能体开发规范](AGENTS.md)
 - [海报与图像说明](assets/README.md)
 - [第三方许可与版权](THIRD_PARTY_NOTICES.md)
 

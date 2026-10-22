@@ -18,6 +18,17 @@ from .vision import IdentityProcessor
 _NORM_EPS = 1e-6
 
 
+class _GridAveragePool(nn.AdaptiveAvgPool2d):
+    """Use deterministic ordinary pooling when adaptive bins form a uniform grid."""
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        height, width = x.shape[-2:]
+        rows, columns = self.output_size
+        if height % rows == 0 and width % columns == 0:
+            return F.avg_pool2d(x, kernel_size=(height // rows, width // columns))
+        return super().forward(x)
+
+
 class ConvEncoder(nn.Module):
     def __init__(self, out_dim: int = 64) -> None:
         super().__init__()
@@ -28,7 +39,7 @@ class ConvEncoder(nn.Module):
             nn.ReLU(),
             nn.Conv2d(32, 32, kernel_size=3, stride=2, padding=1),
             nn.ReLU(),
-            nn.AdaptiveAvgPool2d((4, 4)),
+            _GridAveragePool((4, 4)),
             nn.Flatten(),
             nn.Linear(32 * 4 * 4, out_dim),
             nn.ReLU(),
@@ -48,15 +59,21 @@ class SmallCNNPolicy(nn.Module):
         hidden_dim: int = 64,
         device: str = "cpu",
         learning_rate: float = 1e-3,
+        feature_mode: str = "joint_command",
     ) -> None:
         super().__init__()
         self.observation_spec = observation_spec
         self.action_spec = action_spec
         self.hidden_dim = hidden_dim
+        if feature_mode not in ("joint_command", "image_only"):
+            raise ValueError(f"Unknown feature mode: {feature_mode}")
+        if feature_mode == "joint_command" and (action_spec.dim != 6 or observation_spec.proprio_dim not in (18, 21)):
+            raise ValueError("joint_command expects the SO101 18/21-slot observation and six actions")
+        self.feature_mode = feature_mode
         self.device_name = device
         self.processor = IdentityProcessor(input_shape=observation_spec.image_shape)
         self.encoder = ConvEncoder(out_dim=hidden_dim)
-        fused = hidden_dim + observation_spec.proprio_dim
+        fused = hidden_dim + (12 if feature_mode == "joint_command" else observation_spec.proprio_dim)
         self.body = nn.Sequential(nn.Linear(fused, hidden_dim), nn.ReLU())
         self.actor_mean = nn.Linear(hidden_dim, action_spec.dim)
         self.critic = nn.Linear(hidden_dim, 1)
@@ -78,9 +95,16 @@ class SmallCNNPolicy(nn.Module):
         if image.max() > 1.5:
             image = image / 255.0
         vis = self.encoder(image)
-        return vis
-        # proprio = batch["proprio"].float()
-        # return self.body(torch.cat([vis, proprio], dim=-1))
+        if self.feature_mode == "image_only":
+            return vis  # Preserve inference semantics of pre-fusion checkpoints.
+        proprio = batch["proprio"].float()
+        # SO101 exposes q; previous applied commands are maintained locally.
+        # Ignore compatibility padding even if a caller supplies nonzero values.
+        robot = torch.cat([proprio[..., :6], proprio[..., 12:18]], dim=-1)
+        low = torch.as_tensor(self.action_spec.low, device=robot.device).repeat(2)
+        high = torch.as_tensor(self.action_spec.high, device=robot.device).repeat(2)
+        robot = 2 * (robot - low) / (high - low) - 1
+        return self.body(torch.cat([vis, robot], dim=-1))
 
     def forward(self, batch: Mapping[str, Any]) -> torch.Tensor:
         feats = self.features(self._as_tensors(batch))
@@ -185,15 +209,18 @@ class SmallCNNPolicy(nn.Module):
     def save(self, path: str) -> None:
         path_obj = Path(path)
         path_obj.parent.mkdir(parents=True, exist_ok=True)
-        payload = {
+        torch.save(self.checkpoint_payload(), path_obj)
+
+    def checkpoint_payload(self) -> dict[str, Any]:
+        return {
             "model_class": self.__class__.__name__,
             "state_dict": self.state_dict(),
             "observation_spec": self.observation_spec.to_dict(),
             "action_spec": self.action_spec.to_dict(),
             "hidden_dim": self.hidden_dim,
             "device": self.device_name,
+            "feature_mode": self.feature_mode,
         }
-        torch.save(payload, path_obj)
 
     @classmethod
     def load(cls, path: str, **kwargs: Any) -> "SmallCNNPolicy":
@@ -202,13 +229,18 @@ class SmallCNNPolicy(nn.Module):
             payload = torch.load(path, map_location=map_location, weights_only=False)
         except TypeError:
             payload = torch.load(path, map_location=map_location)
-        device = kwargs.get("device", payload.get("device", "cpu"))
+        return cls.from_payload(payload, **kwargs)
+
+    @classmethod
+    def from_payload(cls, payload: dict[str, Any], **kwargs: Any) -> "SmallCNNPolicy":
+        device = kwargs.get("device", "cpu")
         model = cls(
             observation_spec=ObservationSpec.from_dict(payload["observation_spec"]),
             action_spec=ActionSpec.from_dict(payload["action_spec"]),
             hidden_dim=int(payload.get("hidden_dim", 64)),
             device=device,
             learning_rate=float(kwargs.get("learning_rate", 1e-3)),
+            feature_mode=payload.get("feature_mode", "image_only"),
         )
         model.load_state_dict(payload["state_dict"])
         model.to(device)

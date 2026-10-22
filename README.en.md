@@ -114,6 +114,7 @@ See the [import inventory](docs/IMPORT_MANIFEST.md) for source provenance and in
 - [Deployment and reproducibility](docs/REPRODUCIBILITY.md)
 - [Source import inventory](docs/IMPORT_MANIFEST.md)
 - [Contributing and version management](CONTRIBUTING.md)
+- [Agent development guide](AGENTS.md)
 - [Poster and image notes](assets/README.md)
 - [Third-party notices](THIRD_PARTY_NOTICES.md)
 

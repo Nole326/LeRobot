@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+新增分层智能体开发指令：根目录负责项目导航与共同约定，LiftCube和PickOrange诊断目录提供运行前提、命令与验收。补充ACT/VLA接入、数据验收、新任务扩展、故障定位与交接流程。明确接口、来源清单和文档的同步要求；新增PR复核模板，公开指令不依赖个人部署或特定agent插件。
+
+Add scoped agent instructions: repository navigation and shared conventions at the root, with prerequisites, commands and validation for LiftCube and PickOrange diagnostics. Cover ACT/VLA integration, data acceptance, task extensions, troubleshooting and handoff. Define contract, provenance and documentation updates, and add a PR checklist. Public instructions remain independent of personal deployments and agent plugins.
+
+SO101适配器拒绝缺失/异常关节反馈与非有限图像，外部state别名需显式声明单位；读取实际环境周期，并在诊断信息中分开记录请求目标、发送目标和动作后实测位置。新增5项CPU接口检查；不改变物理、关节限位或成功判据。
+
+Reject missing/malformed SO101 feedback and non-finite images; require explicit units for external state aliases. Read the environment clock and report requested, sent and measured joint values separately. Add five CPU interface checks without changing physics, limits or success criteria.
+
+修正LiftCube SmallCNN在均匀网格上使用普通平均池化，避免64×64输入的严格CUDA确定性反向报错；保留权重结构，并补充与自适应池化的数值/梯度等价检查。非整除网格保留原实现。
+
+Use ordinary average pooling for uniform LiftCube SmallCNN grids, avoiding the strict deterministic CUDA backward error for 64×64 inputs while preserving checkpoint keys. Add value/gradient equivalence checks; non-uniform grids retain adaptive pooling.
+
+接入LiftCube的RGB＋关节/命令融合、30Hz训练动作保持、分离超时bootstrap/GAE和完整BC/PPO边界存档恢复；新增TensorBoard曲线入口及合成CPU检查。补充ACT/VLA任务迁移与专家演示采集路线。演示动作标定及真实设备路径仍待验收，原评测配置和物理保持不变。
+
+Connect LiftCube RGB/proprioceptive fusion, 30Hz training action holding, separate timeout bootstrap/GAE masks and complete BC/PPO boundary checkpoints. Add TensorBoard logging, synthetic CPU checks and task-transfer/data-collection guidance. Demonstration calibration and device-level validation remain pending; evaluation defaults and physics are unchanged.
+
 精简中英文README的重复提醒与内部过程说明，保留任务状态、使用入口和关键接口限制，详细内容链接到开发文档。
 
 Trim repeated caveats and internal process notes from both READMEs, retaining task status, entry points and key interface limits with links to development documentation.
