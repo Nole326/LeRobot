@@ -16,8 +16,8 @@
   },
   {
     "path": "course/liftcube/AGENTS.md",
-    "bytes": 9414,
-    "sha256": "4da41104764aea17c92ae2a8e4ec0ab584f8523707d362c96dd3fae2de41795e"
+    "bytes": 11882,
+    "sha256": "01a6b93f36768ad593c5876e7ead1d178abd8b03badde6b1bd567feb11de8364"
   },
   {
     "path": "course/liftcube/README.md",
@@ -276,8 +276,8 @@
   },
   {
     "path": "course/scripts/AGENTS.md",
-    "bytes": 6165,
-    "sha256": "e7c0685bc20ce471ea0ddfabff51a59ca2476656253b0e89bf2ffe9a8c493546"
+    "bytes": 6981,
+    "sha256": "16f01ce18f02cc49e7d4cd4cc07258af59575f9d7ad9c490ca9e73ce9c7b453a"
   },
   {
     "path": "course/scripts/analyze_ee_motion.py",
