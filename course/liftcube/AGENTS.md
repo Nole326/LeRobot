@@ -6,13 +6,25 @@
 
 | 任务 | 必读文档与代码 |
 | --- | --- |
-| 环境、镜像、首次运行 | [README](README.md)；`envs/lift_cube.py`、`factory.py`、`render_ready.py`、`timing.py`，`configs/lift_cube.yaml` |
-| 数据与BC | [TRAINING](TRAINING.md)；`data/hf_adapter.py`、`schema.py`、`validator.py`、`loader.py`，`training/train_bc.py`，`configs/bc_lift_cube.yaml` |
-| PPO、存档恢复 | [TRAINING](TRAINING.md)；`training/train_rl.py`、`checkpoint.py`，`algorithms/reference/ppo.py`、`rewards/lift_cube.py`，`configs/rl_lift_cube.yaml` |
-| 策略与评测 | `interfaces/policy.py`、`model.py`，`utils.py::build_policy`，`evaluation/evaluate.py`，`configs/eval_lift_cube.yaml` |
+| 环境、镜像、首次运行 | [README](README.md)；`envs/lift_cube.py`、`envs/factory.py`、`envs/render_ready.py`、`envs/timing.py`，`configs/lift_cube.yaml` |
+| 数据与BC | [TRAINING](TRAINING.md)；`data/hf_adapter.py`、`data/schema.py`、`data/validator.py`、`data/loader.py`，`training/train_bc.py`，`configs/bc_lift_cube.yaml` |
+| PPO、存档恢复 | [TRAINING](TRAINING.md)；`training/train_rl.py`、`training/checkpoint.py`，`algorithms/reference/ppo.py`、`rewards/lift_cube.py`，`configs/rl_lift_cube.yaml` |
+| 策略与评测 | `interfaces/policy.py`、`interfaces/model.py`，`utils.py::build_policy`，`evaluation/evaluate.py`，`configs/eval_lift_cube.yaml` |
 | ACT/VLA或任务迁移 | [架构](../../docs/ARCHITECTURE.md)、[迁移路线](../../docs/LIFTCUBE_TRANSFER.md)、[契约](../../docs/INTERFACE_CONTRACTS.md)及上面的策略/环境边界 |
 
-## 2. 运行前提
+## 2. 常见开发任务怎么推进
+
+开发时按下面的顺序推进；每一步只运行其所需检查：
+
+- **修环境或动作接口**：沿 `envs/factory.py → LiftCubeEnvAdapter.reset/step → Observation/ActionSpec` 追踪数据；先用 `tests/test_so101_adapter.py` 的替身环境覆盖单位、形状与边界，再补真实环境短测。
+- **接入演示数据**：沿 `data/hf_adapter.py → schema/validator → loader → training/train_bc.py` 检查字段、episode划分和标签单位；先验证一小批真实样本，再做获准的小批拟合。合成单测不替代真实数据映射验收。
+- **新增 ACT/VLA**：在实际接入时新增 `starter/models/` 包装，核对 `interfaces/policy.py` 中 `act/forward/update/save/load` 及调用者。推理先接 `evaluation.evaluate.load_policy` 的 `--policy-class`；训练再接 `utils.build_policy`、数据预处理和对应算法。现有BC/PPO依赖SmallCNN的具体实现，不能仅满足协议或替换模型名就宣称可训练；后端依赖保持可选。
+- **处理动作chunk**：`act()`向执行层返回当前一个六维目标，预测chunk可在包装内缓存；规格中的策略频率须与 `envs/timing.py` 一致。现有 `PolicyModel` 和评测循环没有通用策略reset回调，接入有状态模型时须补充并测试回合开始、结束、任务切换时的缓存清空，不能跨回合沿用旧动作。
+- **新增完整抓放任务**：扩展 `envs/`、`envs/factory.py` 和独立任务配置，复用公共数据/策略边界；接入实际任务的观测与评分，保留LiftCube配置和回归检查。旧权重仅在规格兼容时初始化新实验，不能当作同任务resume。
+
+新模型的最小交付包含：可加载的策略、真实输入/动作映射、独立配置、相关测试、保存加载说明及依赖/权重获取方式。先验证前向与保存加载，再验证获准的少步闭环；只有完成优化和恢复检查后才标为支持训练。
+
+## 3. 运行前提
 
 - 镜像 `isaac-lab:4.5.0-v2.1.1-leisaac-v0.1.2-src`，归档SHA与image ID见README。内部Python 3.10.15、Torch 2.5.1+cu118；包元数据与源码标签可能不同，核对真实来源，不为标签升级。
 - 使用配套运行环境，示例约定仓库挂载 `/repo`，演示 `/data/lift_cube`，输出到当前使用者可写位置。保留镜像内 `/isaaclab`、`/leisaac`；缓存与数据分开。按使用者的平台核对设备映射、RAM、磁盘和GPU资源。
@@ -20,7 +32,7 @@
 - 使用镜像已有解释器，先核对NumPy/Torch/PyYAML、TensorBoard；数据读取另需PyArrow/PyAV。缺包不授权重装模拟器或Torch/CUDA。
 - 配置 `device: cpu`可能只控制策略，`env.sim_device: cuda:0`仍消耗仿真GPU；不得标成纯CPU操作。
 
-## 3. 最小闭环入口
+## 4. 最小闭环入口
 
 仿真/GPU任务已获准且前提齐全后，在容器内运行；不需要为已授权的这一检查重复询问：
 
@@ -35,7 +47,7 @@ export PYTHONPATH="$PWD/src:/leisaac/source/leisaac${PYTHONPATH:+:$PYTHONPATH}"
 
 先从源码核对CLI再执行。部分入口在解析 `--help` 前调用自动容器逻辑，不能在宿主用它探测。训练/恢复命令见 [TRAINING](TRAINING.md)，默认小预算也不构成开训授权。评测入口是 `starter.evaluation.evaluate`，默认配置 `configs/eval_lift_cube.yaml`；`--checkpoint`读推理导出，`--policy-class package.module:ClassName`要求实际可导入且实现约定的加载器，不提供自动模型适配。
 
-## 4. 接口修正时守住的语义
+## 5. 接口修正时守住的语义
 
 - 环境ID `LeIsaac-SO101-LiftCube-v0`。学生图像为单front、uint8 HWC 64×64×3；相机原分辨率与模型resize分开。新模型更换输入须显式更新数据/模型规格，不直接改正式评分口径。
 - 本体q[6]、dq补零[6]、上一发送命令[6]、可选EE补零[3]，总维18或21。SmallCNN只融合图像、q和上一命令；补零不是实际可测状态。
@@ -46,7 +58,7 @@ export PYTHONPATH="$PWD/src:/leisaac/source/leisaac${PYTHONPATH:+:$PYTHONPATH}"
 - 当前默认评测4回合/640环境tick只是起点。训练奖励、原生success和正式评分分开；不改USD、限位、执行器、reset或判据来制造成功。
 - 渲染准备不额外推进物理/策略动作。真实终态在自动reset前捕获，物体真值不流入策略观测或metadata。
 
-## 5. 数据、模型、恢复
+## 6. 数据、模型、恢复
 
 - 仓库无演示/训练权重。`H2Ozone/lift_cube`只是候选数据；先核对来源版本、关节顺序/标定/零位、动作范围、同步与成功证据，不因同名通过验收。
 - `data/hf_adapter.py`读取本地LeRobot v2.1/v3，不下载。BC需真实 `meta/info.json`、兼容图像/状态/动作与episode级划分。文件末尾的终止标记不等于任务成功标签。
@@ -57,7 +69,7 @@ export PYTHONPATH="$PWD/src:/leisaac/source/leisaac${PYTHONPATH:+:$PYTHONPATH}"
 - epochs/updates是总目标，不是追加量。新任务、结构或数据身份另开实验，权重初始化不伪装resume。只加载可信本地存档，SHA不等于来源认证。
 - 新输出位置与旧实验隔离，保留日志/存档。TensorBoard用真实事件，优化更新、决策步与物理tick分别记录。
 
-## 6. 改动后的最小验证
+## 7. 改动后的最小验证
 
 命令在仓库根目录、具备相应依赖的环境执行；这些软件单测不要求模拟器或特定服务器，缺少可选依赖的跳过须说明：
 
