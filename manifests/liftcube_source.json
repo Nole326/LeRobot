@@ -135,8 +135,8 @@
       "path": "course/liftcube/src/starter/data/validator.py",
       "archive_path": "lerobot-rl-stu/startcode-lerobot/src/starter/data/validator.py",
       "original_sha256": "acd1656c3d8332a5eee9b7b1a604489be6d7fc12dbbb052e758db95f4c1c552a",
-      "sha256": "acd1656c3d8332a5eee9b7b1a604489be6d7fc12dbbb052e758db95f4c1c552a",
-      "modified": false
+      "sha256": "5f5b0bf423b46761f548c856462ed379d4bf5457ea2c989d717c642ed2dcaed7",
+      "modified": true
     },
     {
       "path": "course/liftcube/src/starter/envs/__init__.py",

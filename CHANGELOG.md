@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+补齐演示批量校验：拒绝空数据、非有限本体、错误图像类型和不对齐/非法逐帧元数据；保留未知成功标记和原动作标签。新增CPU回归与原生请求/执行限幅配对诊断说明；不改变物理、公共执行接口或训练配置。
+
+Validate canonical demonstration metadata, empty inputs, image dtype and finite proprioception without changing action labels. Add CPU regressions and document native-request versus execution-clipping diagnostics; physics, public control and training configurations remain unchanged.
+
 补充SO101公共接口的真实16tick验收范围与候选演示准入结论；区分已验证的命令/反馈/图像边界与尚待确认的数据标定、成功证据和真机时序。共同起点已合并，后续使用从最新main创建的短期分支。
 
 Document the 16-tick SO101 runtime interface check and candidate-demonstration acceptance limits. Separate verified command/feedback/image boundaries from unresolved data calibration, success evidence and hardware timing. Continue development on short-lived branches from current main.
