@@ -341,6 +341,75 @@
      if arr.shape[-1] != 3:
          raise HFAdapterError(f"image channels {arr.shape}")
      return arr
+--- a/src/starter/data/validator.py
++++ b/src/starter/data/validator.py
+@@ -16,6 +16,25 @@
+     pass
+ 
+ 
++def _validate_metadata(payload: dict, shape: tuple[int, ...]) -> None:
++    for name in ("timestamp", "episode_id", "step_id", "terminated", "truncated", "success"):
++        if name == "success" and (name not in payload or payload[name] is None):
++            continue
++        value = np.asarray(payload[name])
++        if value.shape != shape:
++            raise DatasetValidationError(f"{name} shape {value.shape} != {shape}")
++        if value.dtype.kind not in "biuf" or not np.all(np.isfinite(value)):
++            raise DatasetValidationError(f"{name} must be finite numeric values")
++        if name == "timestamp" and np.any(value < 0):
++            raise DatasetValidationError("timestamp must be nonnegative")
++        if name in ("episode_id", "step_id") and (value.dtype.kind not in "iu" or np.any(value < 0)):
++            raise DatasetValidationError(f"{name} must be nonnegative integers")
++        if name in ("terminated", "truncated", "success"):
++            allowed = (-1, 0, 1) if name == "success" else (0, 1)
++            if not np.all(np.isin(value, allowed)):
++                raise DatasetValidationError(f"invalid {name} flag")
++
++
+ def validate_step(
+     step: EpisodeStep,
+     observation_spec: ObservationSpec,
+@@ -23,6 +42,7 @@
+     *,
+     check_action_range: bool = True,
+ ) -> None:
++    _validate_metadata(vars(step), ())
+     img = np.asarray(step.observation_image)
+     if img.shape != observation_spec.image_shape:
+         raise DatasetValidationError(f"image shape {img.shape} != {observation_spec.image_shape}")
+@@ -41,8 +61,6 @@
+     if check_action_range:
+         if np.any(action < action_spec.low - 1e-3) or np.any(action > action_spec.high + 1e-3):
+             raise DatasetValidationError(f"action {action} outside [{action_spec.low}, {action_spec.high}]")
+-    if step.success is not None and step.success not in (True, False, 0, 1):
+-        raise DatasetValidationError(f"invalid success flag {step.success}")
+ 
+ 
+ def validate_dataset(
+@@ -70,7 +88,14 @@
+     missing = [k for k in required if k not in payload]
+     if missing:
+         raise DatasetValidationError(f"missing fields: {missing}")
++    if payload["action"].ndim != 2:
++        raise DatasetValidationError("action must have shape (steps, joints)")
+     n = int(payload["action"].shape[0])
++    if n == 0:
++        raise DatasetValidationError("dataset is empty")
++    _validate_metadata(payload, (n,))
++    if payload["image"].ndim != 4 or payload["image"].dtype != np.uint8:
++        raise DatasetValidationError("image must be uint8 with shape (steps, height, width, channels)")
+     if payload["image"].shape[0] != n:
+         raise DatasetValidationError("image/action length mismatch")
+     if tuple(payload["image"].shape[1:]) != observation_spec.image_shape:
+@@ -81,6 +106,8 @@
+         raise DatasetValidationError(
+             f"proprio shape {payload['proprio'].shape} != {(n, observation_spec.proprio_dim)}"
+         )
++    if not np.all(np.isfinite(payload["proprio"])):
++        raise DatasetValidationError("proprio has non-finite values")
+     if payload["action"].shape != (n, action_spec.dim):
+         raise DatasetValidationError(f"action shape {payload['action'].shape} != {(n, action_spec.dim)}")
+     if not np.all(np.isfinite(payload["action"])):
 --- a/src/starter/envs/lift_cube.py
 +++ b/src/starter/envs/lift_cube.py
 @@ -1,4 +1,10 @@

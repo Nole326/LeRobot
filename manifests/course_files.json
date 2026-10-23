@@ -16,8 +16,8 @@
   },
   {
     "path": "course/liftcube/AGENTS.md",
-    "bytes": 11882,
-    "sha256": "01a6b93f36768ad593c5876e7ead1d178abd8b03badde6b1bd567feb11de8364"
+    "bytes": 12162,
+    "sha256": "2ce326de520051c33265c38f95a228fdc1bbf888251ba1e5ca8dc36e1d306bdb"
   },
   {
     "path": "course/liftcube/README.md",
@@ -51,8 +51,8 @@
   },
   {
     "path": "course/liftcube/patches/team-interface.patch",
-    "bytes": 49912,
-    "sha256": "98f7486970e7bcf85df951a3008edf3cc77ea2ec35a02ad1356fe9752e2adab7"
+    "bytes": 53313,
+    "sha256": "82122eb4ade60e551a68da21a09e9614fded835b60674d1e1f675a37a9418e8f"
   },
   {
     "path": "course/liftcube/pyproject.toml",
@@ -116,8 +116,8 @@
   },
   {
     "path": "course/liftcube/src/starter/data/validator.py",
-    "bytes": 3848,
-    "sha256": "acd1656c3d8332a5eee9b7b1a604489be6d7fc12dbbb052e758db95f4c1c552a"
+    "bytes": 5400,
+    "sha256": "5f5b0bf423b46761f548c856462ed379d4bf5457ea2c989d717c642ed2dcaed7"
   },
   {
     "path": "course/liftcube/src/starter/envs/__init__.py",

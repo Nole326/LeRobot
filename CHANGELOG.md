@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+补齐演示批量校验：拒绝空数据、非有限本体、错误图像类型和不对齐/非法逐帧元数据；保留未知成功标记和原动作标签。新增CPU回归与原生请求/执行限幅配对诊断说明；不改变物理、公共执行接口或训练配置。
+
+Validate canonical demonstration metadata, empty inputs, image dtype and finite proprioception without changing action labels. Add CPU regressions and document native-request versus execution-clipping diagnostics; physics, public control and training configurations remain unchanged.
+
+补充SO101公共接口的真实16tick验收范围与候选演示准入结论；区分已验证的命令/反馈/图像边界与尚待确认的数据标定、成功证据和真机时序。共同起点已合并，后续使用从最新main创建的短期分支。
+
+Document the 16-tick SO101 runtime interface check and candidate-demonstration acceptance limits. Separate verified command/feedback/image boundaries from unresolved data calibration, success evidence and hardware timing. Continue development on short-lived branches from current main.
+
 新增分层智能体开发指令：根目录负责项目导航与共同约定，LiftCube和PickOrange诊断目录提供运行前提、命令与验收。补充ACT/VLA接入、数据验收、新任务扩展、故障定位与交接流程。明确接口、来源清单和文档的同步要求；新增PR复核模板，公开指令不依赖个人部署或特定agent插件。
 
 Add scoped agent instructions: repository navigation and shared conventions at the root, with prerequisites, commands and validation for LiftCube and PickOrange diagnostics. Cover ACT/VLA integration, data acceptance, task extensions, troubleshooting and handoff. Define contract, provenance and documentation updates, and add a PR checklist. Public instructions remain independent of personal deployments and agent plugins.

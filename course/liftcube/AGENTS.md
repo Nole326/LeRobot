@@ -89,11 +89,13 @@ export PYTHONPATH="$PWD/src:/leisaac/source/leisaac${PYTHONPATH:+:$PYTHONPATH}"
 
 ```bash
 python -m unittest discover -s tests -p test_so101_adapter.py -v
+python -m unittest discover -s tests -p test_dataset_validation.py -v
 python -m unittest discover -s tests -p test_liftcube_training.py -v
 python -m unittest discover -s tests -p test_liftcube_import.py -v
 ```
 
 - 观测/单位/命令映射优先SO101测试，使用替身环境，不等于Isaac验证。
+- 数据字段/逐帧元数据变更运行dataset validation测试；未知success保留未知，执行限幅诊断不修改训练标签。配对重放边界见[验收说明](../../docs/SO101_ACCEPTANCE.md)。
 - 模型/BC/PPO/恢复选训练测试，覆盖合成数据、动作保持、GAE、下一更新恢复；说明依赖缺失导致的跳过。
 - 导入/补丁/配置选导入测试；仅改说明不触发模型GPU回归。
 - 实际环境路径变化再补授权下reset/step/RGB/终态最小集成检查，复用未受影响证据。
