@@ -3,6 +3,8 @@ import importlib.util
 from pathlib import Path
 import sys
 import unittest
+from unittest.mock import patch
+from types import SimpleNamespace
 
 AVAILABLE = all(importlib.util.find_spec(name) is not None for name in ('numpy', 'torch'))
 if AVAILABLE:
@@ -14,6 +16,25 @@ if AVAILABLE:
 
 @unittest.skipUnless(AVAILABLE, 'Requires the course NumPy/Torch environment')
 class SO101AdapterTests(unittest.TestCase):
+    def test_owned_environment_disables_implicit_demo_recorder(self):
+        raw = self.raw()
+        cfg = SimpleNamespace(recorders=object(), scene=SimpleNamespace(num_envs=4),
+            sim=SimpleNamespace(device='cpu', dt=1/60), decimation=1,
+            actions=SimpleNamespace(arm_action=SimpleNamespace(), gripper_action=SimpleNamespace()),
+            use_teleop_device=lambda device: None)
+        class Manager:
+            def __new__(cls, **kwargs):
+                self.assertIs(kwargs['cfg'], cfg)
+                return raw
+        with patch('starter.envs.container.isaac_runtime_ready', return_value=True), \
+             patch('starter.envs.lift_cube._launch_sim_app'), \
+             patch('starter.envs.lift_cube._import_lift_cube', return_value=(lambda: cfg, Manager)):
+            env = LiftCubeEnvAdapter(device='cuda:0')
+        self.assertIsNone(cfg.recorders)
+        self.assertEqual(cfg.scene.num_envs, 1)
+        self.assertEqual(cfg.episode_length_s, 640/60)
+        self.assertEqual(env.action_spec.frequency_hz, 60)
+
     def raw(self):
         class Raw:
             device = 'cpu'

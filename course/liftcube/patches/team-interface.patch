@@ -410,6 +410,45 @@
      if payload["action"].shape != (n, action_spec.dim):
          raise DatasetValidationError(f"action shape {payload['action'].shape} != {(n, action_spec.dim)}")
      if not np.all(np.isfinite(payload["action"])):
+--- a/src/starter/envs/factory.py
++++ b/src/starter/envs/factory.py
+@@ -15,6 +15,15 @@
+ 
+ def make_env(cfg: dict[str, Any]):
+     env_cfg = cfg.get("env", cfg)
++    mode = env_cfg.get("control_mode", "joint")
++    if mode not in ("joint", "planar_ee_dev"):
++        raise ValueError("control_mode must be joint or planar_ee_dev; official course EE API is not bundled")
++    controller = None
++    if mode == "planar_ee_dev":
++        from .planar_ee import PlanarEEController
++        if not env_cfg.get("planar_ee_config"):
++            raise ValueError("planar_ee_dev requires an independently calibrated planar_ee_config JSON")
++        controller = PlanarEEController.from_file(env_cfg["planar_ee_config"])
+     if not isaac_runtime_ready():
+         raise IsaacUnavailableError(describe_install())
+     image_height = int(env_cfg.get("image_height", 64))
+@@ -24,7 +33,7 @@
+     camera = str(env_cfg.get("camera", "front"))
+     hz = float(env_cfg.get("control_hz", 30.0))
+     sim_device = str(env_cfg.get("sim_device", "cuda:0"))
+-    return LiftCubeEnvAdapter(
++    env = LiftCubeEnvAdapter(
+         camera=camera,
+         image_height=image_height,
+         image_width=image_width,
+@@ -34,3 +43,11 @@
+         device=sim_device,
+         max_episode_steps=max_steps,
+     )
++    if controller is None:
++        return env
++    from .planar_ee import PlanarEEEnv
++    try:
++        return PlanarEEEnv(env, controller)
++    except Exception:
++        env.close()
++        raise
 --- a/src/starter/envs/lift_cube.py
 +++ b/src/starter/envs/lift_cube.py
 @@ -1,4 +1,10 @@
@@ -473,7 +512,19 @@
  
      def _make_raw_env(self) -> Any:
          from starter.envs.container import isaac_runtime_ready
-@@ -181,7 +203,14 @@
+@@ -170,6 +192,11 @@
+             self._app = _launch_sim_app(self.device)
+             env_cls, manager_cls = _import_lift_cube()
+             env_cfg = env_cls()
++            # LeIsaac enables a demonstration recorder by default. It appends
++            # full-resolution RGB on the GPU with growing torch.cat buffers.
++            # This adapter uses explicit external recording, like upstream
++            # policy_inference.py; physics, sensors and scoring stay unchanged.
++            env_cfg.recorders = None
+             env_cfg.scene.num_envs = self.n_envs
+             env_cfg.sim.device = self.device if str(self.device).startswith("cuda") else "cuda:0"
+             # so101leader is absolute joint position. keyboard is a relative delta and
+@@ -181,7 +208,14 @@
              env_cfg.actions.gripper_action.preserve_order = True
              dt = float(env_cfg.sim.dt) * int(env_cfg.decimation)
              env_cfg.episode_length_s = float(self.max_episode_steps) * dt
@@ -489,7 +540,7 @@
          except IsaacUnavailableError:
              raise
          except Exception as exc:
-@@ -206,6 +235,8 @@
+@@ -206,6 +240,8 @@
          self._episode_id += 1
          self._step_count = 0
          self._last_action = np.zeros(self.action_spec.dim, dtype=np.float32)
@@ -498,7 +549,7 @@
          kwargs: dict[str, Any] = {}
          if seed is not None:
              kwargs["seed"] = seed
-@@ -214,25 +245,55 @@
+@@ -214,25 +250,55 @@
          except TypeError:
              result = self._raw.reset()
          obs_raw, info_raw = self._split_reset(result)
@@ -558,7 +609,7 @@
  
      def close(self) -> None:
          for obj in (self._raw, self._vector_env, self._unwrapped):
-@@ -262,18 +323,20 @@
+@@ -262,18 +328,20 @@
      def _convert_obs(self, obs_raw: Any) -> Observation:
          policy = self._policy_dict(obs_raw)
          image = self._extract_image(policy)
@@ -590,7 +641,7 @@
          proprio = pack_proprio(joint_pos, joint_vel, last_action, ee, include_ee=self.include_ee)
          return Observation(
              image=image,
-@@ -296,7 +359,7 @@
+@@ -296,7 +364,7 @@
          return policy
  
      def _extract_image(self, policy: dict[str, Any]) -> np.ndarray:
@@ -599,7 +650,7 @@
          raw = None
          for key in candidates:
              if key in policy:
-@@ -307,14 +370,19 @@
+@@ -307,14 +375,19 @@
                  raw = policy[nested]
                  break
          if raw is None:
@@ -622,7 +673,7 @@
          if img.dtype != np.uint8:
              if img.max() <= 1.01:
                  img = np.clip(img, 0, 1) * 255.0
-@@ -341,15 +409,13 @@
+@@ -341,15 +414,13 @@
      ) -> np.ndarray | None:
          for key in keys:
              if key in policy:
@@ -643,7 +694,7 @@
  
      def _extract_ee(self, policy: dict[str, Any]) -> np.ndarray:
          if "ee_frame_state" in policy:
-@@ -370,6 +436,8 @@
+@@ -370,6 +441,8 @@
  
      def get_privileged_state(self) -> LiftCubePrivilegedState:
          """LiftCube cube, base, and jaw state for reward code. Not a policy observation."""

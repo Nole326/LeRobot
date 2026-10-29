@@ -1,5 +1,15 @@
 # 训练前验证 / Training validation
 
+## 当前LiftCube与历史诊断 / Current LiftCube and legacy diagnostics
+
+当前LiftCube训练入口及存档契约见[训练指南](../course/liftcube/TRAINING.md)，演示是否准入见[SO101验收](SO101_ACCEPTANCE.md)。参考BC/PPO覆盖合成CPU流程/恢复检查，环境交互另有实际短测；这些证据不等于公开演示已可训练或学得策略已完成任务。
+
+For current LiftCube, follow the training guide and SO101 data-acceptance notes. Synthetic trainer/recovery tests and live environment-interface checks have different scopes; neither establishes accepted demonstration data or a successful learned policy.
+
+[视觉规则基准](SCRIPTED_LIFTCUBE.md)不经过训练入口，无需执行下文ACT优化诊断；[末端开发层](PLANAR_EE_DEVELOPMENT.md)的三维控制和物理精度单独验收。以下20帧/双RGB工具属于较早的独立诊断，不是当前LiftCube训练命令。
+
+The rule baseline bypasses training; its grasp results are not BC/PPO results. Validate planar-control accuracy separately. The dual-RGB, 20-frame tools below are legacy standalone diagnostics, not the current LiftCube trainer.
+
 `course/scripts/training_contracts.py` 提供独立的末帧缓冲和随机数状态工具，不修改上游环境、奖励或策略实现。验证入口为 `validate_training_readiness.py`。
 
 `course/scripts/training_contracts.py` provides independent final-observation and RNG-state utilities without modifying upstream environments, rewards or policies. The validation entry point is `validate_training_readiness.py`.
@@ -34,6 +44,6 @@ The final-observation utility requires the simulator to capture real images and 
 
 Recovery checks use CPU, one training process and zero DataLoader workers; the private environment stream is a placeholder generator. CUDA RNG, worker prefetch, simulator state, RL replay and online ACT caches need separate validation. The utilities are not yet integrated into a production training entry point and do not establish seamless recovery of formal training.
 
-开训还需要动作控制验收、成功演示及按episode划分的数据集、训练奖励、统一成功判定和端到端策略闭环。上游PickOrange接口检查不能代替课程正式接口验收。
+正式训练前需验收观测/动作、任务成功定义及接口闭环。BC需要通过质量验收的演示和episode级划分，但不要求训练奖励；在线RL另需明确奖励和交互协议，不必先取得演示，若采用BC初始化则须同时满足数据前提。上游PickOrange接口检查不能代替课程正式接口验收。
 
-Training also requires validated action control, successful demonstrations with episode-level splits, a training reward, consistent success criteria and an end-to-end policy loop. Checks on upstream PickOrange do not substitute for acceptance of the formal task interface.
+Validate observations/actions, task success definitions and the execution loop before training. BC needs accepted demonstrations and episode-level splits, not a training reward. Online RL additionally needs a reward and interaction protocol, but no demonstrations unless initialized from BC. PickOrange interface checks do not substitute for formal task acceptance.

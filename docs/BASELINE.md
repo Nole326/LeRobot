@@ -1,8 +1,12 @@
-# 初始基准 / Initial baseline
+# 版本与基准 / Versions and baselines
 
-当前开发基准：`v0.1.1-baseline`。它固定项目源码、工具与文档，供后续开发和复现使用，不包含训练完成的策略。最初的 `v0.1.0-baseline` 保留用于历史对照，两个标签均不移动或覆盖。
+本仓库区分历史源码快照与任务策略基准：
 
-Current development baseline: `v0.1.1-baseline`. It pins the project sources, tools and documentation for development and reproduction; it does not include a trained policy. The original `v0.1.0-baseline` remains available for historical comparison. Neither tag should be moved or overwritten.
+- `v0.1.0-baseline`、`v0.1.1-baseline`固定初始上游源码、工具和文档，不包含后续LiftCube规则脚本或训练权重。两个标签均不移动或覆盖。
+- LiftCube视觉规则开发基准从提交[48824f2](https://github.com/Nole326/LeRobot/commit/48824f2f7791b63ec88502c6a44dee1f8d7ada5f)开始；配置、标定来源和各组结果见[规则指南](SCRIPTED_LIFTCUBE.md)。它不是课程正式多物体或真机验收版本。
+- 日常开发从最新`main`创建分支；复现实验时固定实际使用的commit及外部文件身份，不因沿用“基准”名称而混用不同版本。
+
+The initial `v0.1.0-baseline` and `v0.1.1-baseline` tags pin source/tools/documentation and remain immutable. The LiftCube rule-policy development reference starts at commit 48824f2; see its [guide](SCRIPTED_LIFTCUBE.md) for calibration and results. It is not an accepted formal multi-object or hardware version. Branch new work from current main, and pin the actual commit and external inputs for reproduction.
 
 ## 获取固定版本 / Retrieve the pinned baseline
 
@@ -13,11 +17,11 @@ python scripts/check_project.py
 git rev-parse HEAD
 ```
 
-标签克隆处于 detached HEAD，适合检查或复现。开始开发时使用 `git switch -c feature/your-change` 创建分支。上述检查只需 Git 与 Python 3.11+ 标准库；不安装依赖、不联网下载资产、不使用 GPU。
+上述命令用于历史快照，标签克隆处于detached HEAD，不含后续LiftCube开发。需要规则基准时，正常克隆后执行`git switch --detach 48824f2f7791b63ec88502c6a44dee1f8d7ada5f`；该固定提交同样不附标定、镜像、演示或权重。检查只需Git与Python 3.11+标准库，不使用GPU。
 
-A tag checkout has a detached HEAD, suitable for inspection or reproduction. Create a development branch with `git switch -c feature/your-change`. These checks require only Git and the Python 3.11+ standard library; they do not install dependencies, download assets or use a GPU.
+The commands above retrieve the historical source snapshot. For the rule reference, use an ordinary clone and check out commit 48824f2 with `git switch --detach`; obtain calibrated external inputs separately. The source checks require only Git and Python 3.11+, not a GPU. Start ongoing development from current main rather than an old tag.
 
-## 固定内容 / Frozen contents
+## v0.1.1固定内容 / Contents frozen in v0.1.1
 
 - LeRobot v0.4.2、LeIsaac 0.4.0、IsaacLab v2.3.0 的固定源码及原始许可。
 
@@ -31,7 +35,7 @@ A tag checkout has a detached HEAD, suitable for inspection or reproduction. Cre
 
   Bilingual documentation, a vector-text poster and 4K PNG featuring the official SO-101 photograph, plus GPU-free repository checks and typography regression tests.
 
-本版沿用 `v0.1.0-baseline` 的上游源码及版本，仅完善文档、海报和检查项。版本摘要见 [CHANGELOG](../CHANGELOG.md)。仓库检查不替代模拟器或训练验证。
+`v0.1.1-baseline`沿用`v0.1.0-baseline`的上游源码及版本，仅完善文档、海报和检查项。后续LiftCube及接口改动见[CHANGELOG](../CHANGELOG.md)。仓库检查不替代模拟器或训练验证。
 
 This version retains the upstream sources and versions from `v0.1.0-baseline`, with improvements to documentation, artwork and checks. See the [changelog](../CHANGELOG.md) for a summary. Repository checks do not replace simulation or training validation.
 

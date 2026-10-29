@@ -22,7 +22,10 @@
 | 任务 | 修改位置与必读入口 |
 | --- | --- |
 | 仓库检查、文档、来源清单 | `scripts/`、`tests/`、`manifests/`；[来源说明](docs/IMPORT_MANIFEST.md) |
+| 固定版本与基准复现 | [版本说明](docs/BASELINE.md)区分初始源码tag与规则策略基准；新开发从最新main，复现固定commit与外部标定身份，不混用旧tag功能 |
 | SO101 接口、LiftCube 数据/训练/评测 | `course/liftcube/src/starter/`；[LiftCube AGENTS](course/liftcube/AGENTS.md) |
+| LiftCube视觉规则基线 | `starter/scripted_liftcube.py`、`scripted_geometry.py`、`joint_chain.py`与`starter.scripts.evaluate_scripted`；[标定及验收](docs/SCRIPTED_LIFTCUBE.md)，实际相机标定辅助须显式启用，不得以合成标定启动仿真 |
+| 自研受限末端开发接口 | `starter/envs/planar_ee.py`、`envs/factory.py`、`tests/test_planar_ee.py`及[开发契约](docs/PLANAR_EE_DEVELOPMENT.md)；三维绝对XY/夹爪，非课程正式IK；旧关节策略不得自动接入 |
 | PickOrange 与独立诊断 | `course/scripts/`；[诊断工具 AGENTS](course/scripts/AGENTS.md)、[部署边界](docs/REPRODUCIBILITY.md) |
 | ACT、SmolVLA、OpenVLA-OFT、π₀.₅、GR00T 接入 | 对应任务的策略包装；[架构](docs/ARCHITECTURE.md)、[接口契约](docs/INTERFACE_CONTRACTS.md)、该任务的子级 AGENTS |
 | 正式多物体任务或真机 | 先确认实际提供的环境、SDK、标定与评分包；[接口契约](docs/INTERFACE_CONTRACTS.md) |

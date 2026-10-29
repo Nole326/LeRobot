@@ -2,6 +2,61 @@
 
 ## Unreleased
 
+同步首页双语导航、开发/训练入口、架构与依赖、接口/标定边界及来源说明。区分历史v0.1.x源码快照与LiftCube规则开发基准，明确64像素是参考默认值、规则推理无需演示或训练、自研末端层不继承六关节训练验收。运行控制、配置和历史成绩不变。
+
+Synchronize README navigation, development/training routes, architecture, dependencies, calibration contracts and provenance. Distinguish initial v0.1.x snapshots from the LiftCube rule reference, clarify default image sizing and dataset-free rule inference, and keep planar-control acceptance separate from joint training. Runtime behavior, configurations and historical results are unchanged.
+
+整理LiftCube视觉规则脚本作为开发基准，补充正式标定/坐标与控制SDK的分层适配方法。记录冻结定位调度变体45/100的开发结果及其输入/验证范围，与旧协议和未验收的自研末端执行层区分；不更改运行控制或既有成绩。
+
+Prepare the LiftCube visual rule script as a development reference, with a calibration/frame and control-SDK migration guide. Document the frozen scheduling variant's 45/100 result and evidence scope separately from older protocols and the unaccepted planar EE controller, without changing runtime control or historical results.
+
+新增显式可选`planar_ee_dev`：绝对桌面XY米＋夹爪motor，固定参考高度/接近轴、允许绕轴转动，带原范围/限步/跟踪与失败保持；保留六关节默认，拒绝旧抓取脚本误接。自研接口不标作课程正式IK，补充标定来源边界和软件检查。
+
+Add opt-in `planar_ee_dev` absolute table-XY/jaw control with fixed height/approach-axis references, free axial rotation, bounded commands and latched fault holds. Preserve joint defaults and reject accidental use by the old grasp runner. Document its non-official status, calibration provenance and software checks.
+
+记录闭合几何的独立对照：动态中点候选4/10，现有定位调度方案6/10；候选推移和实测运动指标未改善，不并入运行代码，现有控制与默认保持。
+
+Document the independent closure-geometry comparison: 4/10 for the dynamic-midpoint candidate versus 6/10 for existing localization scheduling. Reject the candidate; runtime code and defaults remain unchanged.
+
+新增可选`plan_while_opening`：在原开爪期间积累视觉定位，保留完整开爪轨迹、实测到位等待和旧默认。原辅助几何方案扩展后累计13/30成功；新选项十场景配对仍为5/10，共同成功回合中位耗时9.40→9.33仿真秒，无精度改善证据。新增配置/回退测试和完整输入命令等价检查。
+
+Add optional `plan_while_opening` localization without changing jaw-opening commands, measured-state dwell or defaults. The assisted baseline now has 13/30 successes. The option retains 5/10 on paired scenes, with common-success median time of 9.40→9.33 simulation seconds and no demonstrated accuracy gain. Add configuration/fallback tests and full-input command-equivalence checks.
+
+规则入口新增可选固定CAD抓取姿态选择及“低速离桌→转动抬升”，中间阶段按实测FK高度切换、不冒充成功。实际相机外参读取需显式开关并逐reset记录，与固定标定分组；保留原动作/物理/评分边界，不与旧输入/场景集作单因素比较。
+
+Add opt-in CAD grasp selection and slow-clearance/transport staging with a measured-FK height gate, not a success shortcut. Explicitly opt into and record actual camera/base calibration per reset, separately from fixed-calibration results. Preserve motor/physics/scoring bounds; different inputs/scene sets are not a single-factor comparison.
+
+规则入口支持独立标定的128/256像素单front输入，默认64不变；按尺寸缩放检测面积/像素阈值并校验配置与标定一致性。运行清单分别记录实际策略类及基类源码身份，避免诊断子类与默认实现混淆。
+
+Allow explicitly calibrated 128/256-square front RGB in the rule runner, retaining the 64 default. Scale detection thresholds, validate shape agreement, and record actual-policy-class and base-code identities separately. Document the randomized-camera pose-cache pitfall and keep calibration-assisted variants distinct.
+
+规则基线增加可选夹爪位置反馈闭合：限制目标领先量，在停滞代理出现后保持夹持目标；不读取接触/物体真值，不改执行器、原保护或成功条件。新增接触代理、空抓闭合及reset回归；说明课程规则基线、完整末端动作接口和RL主方法的边界。
+
+Add optional jaw-position feedback closure with bounded command lead and a stall proxy, retaining the grasp target through lifting. No contact/object truth, actuator or scoring changes. Cover blocked/empty closure and reset; clarify the rule-baseline, full-task action-interface and required RL-method boundaries.
+
+修正规则标定预检的朝向回算，阶段预检显式指定朝向。接入固定SO101关节链FK/IK及CPU导出工具，使已有成功控制方案可通过公共入口运行；保留URDF/Placo可选后端，新增来源/限位与朝向回归检查。
+
+Fix calibration round trips to use each reference orientation and explicitly preflight phase orientations. Add fixed SO101 joint-chain FK/IK and a CPU exporter for the public runner, retaining optional URDF/Placo support and adding provenance/limit/orientation regressions.
+规则基线支持独立的抬升朝向和可选有界稳态补偿；同一LiftCube开发场景三组TCP候选中两组通过原生抓取判定。保留失败，公开控制逻辑在完整记录输入上的命令/阶段逐项一致；不将开发选参结果当作泛化成功率或完整Placo入口验收。
+
+Add separate lift orientation and optional bounded steady-bias correction. Two of three TCP variants pass native grasp scoring in one development scene; retain the failure and verify published commands/phases against complete recorded inputs. This is neither a generalization benchmark nor full Placo-runner acceptance.
+
+规则策略保留原始关节反馈，不再将接触/求解器造成的微小反馈越界误判为非法动作；发送目标仍按原范围检查，跟踪保护不变。增加边界反馈回归测试。
+
+Keep raw joint feedback instead of validating contact/solver overshoot as an outgoing action. Sent targets retain the original bounds and tracking guard; add a boundary-feedback regression test.
+
+关闭LiftCube适配器中默认开启的原生演示记录器，避免GPU图像历史拼接导致显存增长，保留显式轨迹/RGB记录。规则策略改为从上一发送目标推进参考轨迹，实测反馈仍用于到位与滞后保护；增加针对性测试。不改物理和评分。
+
+Disable the implicit LiftCube demonstration recorder to avoid growing GPU image concatenations while retaining explicit trajectory/RGB logging. Advance the rule-policy reference from the last sent target, retaining measured-state arrival and lag checks. Add targeted tests without changing physics or scoring.
+
+修正规则策略的朝向突变：位置与朝向同步渐变，关节限速保留IK方向，阶段切换同时检查朝向；新增针对性回归测试。保持原物理、关节限位与成功判据。
+
+Interpolate position and orientation together in the rule policy, preserve the IK joint direction under slew limiting, and require orientation arrival before stage transitions. Add targeted regression tests without changing physics, joint limits or success criteria.
+
+新增单front RGB＋实际关节位置的LiftCube规则策略、标定检查与独立评测入口。保存阶段、请求/反馈和原生终态；附合成CPU测试。真实标定、IK后端及抓取仍待验收，不改变物理、演示标签或训练配置。
+
+Add a front-RGB/joint-feedback LiftCube rule policy, calibration checks and an evaluation entry point with stage, command, feedback and terminal-image logging. Synthetic CPU coverage is included; matching calibration, real IK and physical grasp validation remain pending. Physics, demonstration labels and training configurations are unchanged.
+
 补齐演示批量校验：拒绝空数据、非有限本体、错误图像类型和不对齐/非法逐帧元数据；保留未知成功标记和原动作标签。新增CPU回归与原生请求/执行限幅配对诊断说明；不改变物理、公共执行接口或训练配置。
 
 Validate canonical demonstration metadata, empty inputs, image dtype and finite proprioception without changing action labels. Add CPU regressions and document native-request versus execution-clipping diagnostics; physics, public control and training configurations remain unchanged.

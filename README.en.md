@@ -30,10 +30,13 @@ Start with PickOrange to learn the data/control pipeline, establish training and
 ## Current scope
 
 - **Development environment:** SO-101 LiftCube, with environment adapters, demonstration loading, BC, reference PPO and evaluation entry points. See the [LiftCube guide](course/liftcube/README.md) for the matching image and runtime.
-- **Planned models:** ACT, SmolVLA, OpenVLA-OFT, π₀.₅ and GR00T. Model adapters, demonstration action mapping and training recovery remain in development.
+- **Planned models:** ACT, SmolVLA, OpenVLA-OFT, π₀.₅ and GR00T. Their LiftCube adapters remain in development; candidate demonstration data must be validated before training.
+- **Rule baseline:** [LiftCube visual grasping script](docs/SCRIPTED_LIFTCUBE.md), combining RGB localization and inverse kinematics as a development reference for later calibration and task integration. Simulated grasps have succeeded; cross-scene robustness still needs improvement and independent calibration is required.
 - **Target task:** extend cube grasping/lifting to visual multi-object pick-and-place, evaluate using course-provided environments and scoring, then deploy on hardware.
 
 Current LiftCube uses a single front RGB stream and six-joint control; see the [interface guide](course/liftcube/README.md#接口--interface) for inputs, actions and timing. Policies use images and permitted proprioception; object/target ground truth is reserved for training rewards or offline analysis.
+
+An optional [planar EE development interface](docs/PLANAR_EE_DEVELOPMENT.md) provides XY control at a fixed reference height and approach axis; physical height tracking is not yet accepted. It is a self-developed execution layer, not the official course IK; existing joint policies are not directly compatible.
 
 ## Quick start
 
@@ -46,6 +49,8 @@ python scripts/check_project.py
 ```
 
 This check starts neither simulation nor training. To run LiftCube, obtain the matching image from the [runtime guide](course/liftcube/README.md#运行环境--runtime) and execute task commands inside the container.
+
+The rule baseline needs no demonstrations or trained weights, but does require matching robot/camera calibration. Start with the offline calibration checks in the [rule-runner guide](docs/SCRIPTED_LIFTCUBE.md). Prepare data and interfaces separately for BC/PPO using the [training guide](course/liftcube/TRAINING.md).
 
 See [baseline notes](docs/BASELINE.md) and the [changelog](CHANGELOG.md) for versions. For development, branch from current `main` and follow the [contribution guide](CONTRIBUTING.md).
 
@@ -106,6 +111,8 @@ See the [import inventory](docs/IMPORT_MANIFEST.md) for source provenance and in
 
 - [Development and stage acceptance](docs/GETTING_STARTED.md)
 - [LiftCube source, image and runtime](course/liftcube/README.md)
+- [Visual rule reference, calibration and migration](docs/SCRIPTED_LIFTCUBE.md)
+- [Planar EE development interface and limitations](docs/PLANAR_EE_DEVELOPMENT.md)
 - [Architecture, extension points and collaboration](docs/ARCHITECTURE.md)
 - [RLinf benefits and integration boundaries](docs/RLINF.md)
 - [Observation, action, data and recovery contracts](docs/INTERFACE_CONTRACTS.md)
