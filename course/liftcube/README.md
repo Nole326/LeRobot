@@ -13,6 +13,8 @@ Environment and BC/PPO training foundations are connected. Demonstration calibra
 | 环节 / Component | 当前实现 / Implementation |
 | --- | --- |
 | 默认策略 / Default policy | RGB＋关节位置＋上一执行命令，屏蔽兼容补零字段 / RGB, joint positions and previous commands; compatibility padding is ignored |
+| 规则基线 / Rule baseline | [视觉定位＋IK状态机](../../docs/SCRIPTED_LIFTCUBE.md)；实际标定辅助定位调度变体45/100，成功中位9.38仿真秒；旧几何原版13/30、固定标定1/10分组 / Assisted scheduling variant: 45/100, median successful time9.38 simulation seconds; earlier 13/30 and fixed-calibration 1/10 protocols kept separate |
+| 受限末端开发接口 / Planar EE development | 可选[绝对XY＋夹爪执行层](../../docs/PLANAR_EE_DEVELOPMENT.md)，固定高度/接近轴参考；不是课程正式IK接口，也未将已有关节抓取策略迁入 / Opt-in absolute XY + jaw layer with fixed height/approach-axis references; not the official IK API or a port of the joint grasp policy |
 | BC→RL | 30Hz策略在60Hz环境中保持两tick；严格匹配模型与数据规格 / 30Hz decisions hold for two 60Hz ticks; model/data contracts are checked |
 | 存档恢复 / Checkpoint recovery | BC按epoch、PPO按完整回合/更新边界保存模型、Adam、进度与RNG；合成CPU恢复通过 / Model, Adam, progress and RNG at epoch/completed-rollout boundaries; synthetic CPU recovery checked |
 | PPO超时 / PPO timeouts | 外部截断从reset前终态bootstrap，GAE在回合边界断开；有限时域可显式配置 / External timeouts bootstrap from pre-reset observations; GAE stops at episode boundaries; finite-horizon mode is explicit |

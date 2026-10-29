@@ -163,14 +163,14 @@
       "path": "course/liftcube/src/starter/envs/factory.py",
       "archive_path": "lerobot-rl-stu/startcode-lerobot/src/starter/envs/factory.py",
       "original_sha256": "a2818e65c2fee3165826c083eb3b06163015fcd967ecfb5199fcd008af3dcd9e",
-      "sha256": "a2818e65c2fee3165826c083eb3b06163015fcd967ecfb5199fcd008af3dcd9e",
-      "modified": false
+      "sha256": "3a67c1b62dfca1ce73a9e441571e2b46ba321d0a95293a6b89e8bd4968e4ceba",
+      "modified": true
     },
     {
       "path": "course/liftcube/src/starter/envs/lift_cube.py",
       "archive_path": "lerobot-rl-stu/startcode-lerobot/src/starter/envs/lift_cube.py",
       "original_sha256": "b6452ec0dc8bc7a32a476ba09ed736153d2f999e1ca17ead7be59bc0f6fba47b",
-      "sha256": "c160029c1fe656f8685dd39a72a7619f318bd799199f68d868b63995326c8aec",
+      "sha256": "bfa4a17873d74e7f0e80bcce6efb4d955fd913d06387028f5e5cf50da1dabc83",
       "modified": true
     },
     {

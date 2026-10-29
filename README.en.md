@@ -31,9 +31,12 @@ Start with PickOrange to learn the data/control pipeline, establish training and
 
 - **Development environment:** SO-101 LiftCube, with environment adapters, demonstration loading, BC, reference PPO and evaluation entry points. See the [LiftCube guide](course/liftcube/README.md) for the matching image and runtime.
 - **Planned models:** ACT, SmolVLA, OpenVLA-OFT, π₀.₅ and GR00T. Model adapters, demonstration action mapping and training recovery remain in development.
+- **Rule baseline:** [LiftCube visual grasping script](docs/SCRIPTED_LIFTCUBE.md), combining RGB localization and inverse kinematics as a development reference for later calibration and task integration. Simulated grasps have succeeded; cross-scene robustness still needs improvement and independent calibration is required.
 - **Target task:** extend cube grasping/lifting to visual multi-object pick-and-place, evaluate using course-provided environments and scoring, then deploy on hardware.
 
 Current LiftCube uses a single front RGB stream and six-joint control; see the [interface guide](course/liftcube/README.md#接口--interface) for inputs, actions and timing. Policies use images and permitted proprioception; object/target ground truth is reserved for training rewards or offline analysis.
+
+An optional [planar EE development interface](docs/PLANAR_EE_DEVELOPMENT.md) provides XY control at a fixed reference height and approach axis; physical height tracking is not yet accepted. It is a self-developed execution layer, not the official course IK; existing joint policies are not directly compatible.
 
 ## Quick start
 

@@ -10,6 +10,10 @@ This page defines development checks, not the formal environment specification. 
 
 The current [LiftCube starter](../course/liftcube/README.md) uses front 64×64 RGB and six absolute motor targets, with zero-filled SO101 velocity/EE slots. Its environment runs at 60Hz; the evaluation adapter holds 30Hz policy targets for two ticks. This remains separate from the unresolved constrained end-effector task interface below.
 
+另有显式可选的[自研受限末端开发接口](PLANAR_EE_DEVELOPMENT.md)：绝对桌面XY米＋夹爪motor，固定参考高度/接近轴、允许绕轴转动；不是课程正式IK或完整抓放接入，不改变六关节默认和旧成绩。
+
+An opt-in [planar EE development controller](PLANAR_EE_DEVELOPMENT.md) accepts absolute table XY in metres plus a jaw motor target, with fixed reference height/approach axis and free axial rotation. It is not the official course IK or a complete pick-and-place integration; joint defaults and previous scores remain unchanged.
+
 当前先验收SO101和配套环境的接口，不以训练LiftCube策略为前提。已知Isaac `joint_pos`按弧度读取；外部`observation.state`不猜单位，必须在适配器显式声明`raw_joint_units="motor"`或`"radians"`。缺失、维度错误或非有限的关节反馈必须报错，不能补零冒充实测零位。速度/EE的已声明兼容补零与“关节位置丢失”是两种情况。真机SDK、标定、单位、曝光时间和命令确认仍按课程正式接口验收，不由这个参数替代硬件适配。
 
 ## 1. 观测 / Observations

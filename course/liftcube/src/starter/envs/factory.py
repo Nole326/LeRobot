@@ -15,6 +15,15 @@ def isaac_available() -> bool:
 
 def make_env(cfg: dict[str, Any]):
     env_cfg = cfg.get("env", cfg)
+    mode = env_cfg.get("control_mode", "joint")
+    if mode not in ("joint", "planar_ee_dev"):
+        raise ValueError("control_mode must be joint or planar_ee_dev; official course EE API is not bundled")
+    controller = None
+    if mode == "planar_ee_dev":
+        from .planar_ee import PlanarEEController
+        if not env_cfg.get("planar_ee_config"):
+            raise ValueError("planar_ee_dev requires an independently calibrated planar_ee_config JSON")
+        controller = PlanarEEController.from_file(env_cfg["planar_ee_config"])
     if not isaac_runtime_ready():
         raise IsaacUnavailableError(describe_install())
     image_height = int(env_cfg.get("image_height", 64))
@@ -24,7 +33,7 @@ def make_env(cfg: dict[str, Any]):
     camera = str(env_cfg.get("camera", "front"))
     hz = float(env_cfg.get("control_hz", 30.0))
     sim_device = str(env_cfg.get("sim_device", "cuda:0"))
-    return LiftCubeEnvAdapter(
+    env = LiftCubeEnvAdapter(
         camera=camera,
         image_height=image_height,
         image_width=image_width,
@@ -34,3 +43,11 @@ def make_env(cfg: dict[str, Any]):
         device=sim_device,
         max_episode_steps=max_steps,
     )
+    if controller is None:
+        return env
+    from .planar_ee import PlanarEEEnv
+    try:
+        return PlanarEEEnv(env, controller)
+    except Exception:
+        env.close()
+        raise

@@ -1,0 +1,18 @@
+{
+  "scope": "Fixed SO101 CAD example only; not a complete camera/TCP calibration or a hardware safety certificate",
+  "asset_sha256": "64a877c3b82cdc4a48ab8a1f321a2dd3ef7c55d4b10bce222b58c530d978ae58",
+  "cube_edge_m": 0.03,
+  "assumptions": "Jaw sweep 0..30 motor, nominal table clearance 3mm, fixed-finger margin 1mm, worst-case square half-span sqrt(2)*15mm",
+  "presets": [
+    {
+      "tilt": 0,
+      "rotation": [[0.0, 1.0, 0.0], [-1.0, 0.0, 0.0], [0.0, 0.0, 1.0]],
+      "tcp_offset_m": [0.014313203817066213, 0.0, -0.09418297175674825]
+    },
+    {
+      "tilt": -20,
+      "rotation": [[0.0, 0.9999999999999999, 0.0], [-0.9396926207859083, 0.0, 0.34202014332566866], [0.34202014332566866, 0.0, 0.9396926207859083]],
+      "tcp_offset_m": [0.01641233131780547, 0.0, -0.10175016794197413]
+    }
+  ]
+}

@@ -31,9 +31,12 @@
 
 - **开发环境**：SO-101 LiftCube，提供环境适配、演示读取、BC、参考 PPO 和评测入口。配套镜像与运行方法见 [LiftCube 指南](course/liftcube/README.md)。
 - **模型计划**：ACT、SmolVLA、OpenVLA-OFT、π₀.₅ 与 GR00T；模型适配、演示动作映射和训练恢复仍在完善。
+- **规则基线**：[LiftCube视觉抓取脚本](docs/SCRIPTED_LIFTCUBE.md)，使用RGB定位与逆运动学，作为后续标定和任务适配的开发基准；已有仿真抓取成功，跨场景稳定性仍待改进，需要独立标定。
 - **目标任务**：从方块抓取与抬升扩展到视觉多物体抓放，按课程发布的环境和评分规则评测，再进行真机部署。
 
 当前 LiftCube 使用单路 front RGB 与六关节控制，具体输入、动作和时序见[接口说明](course/liftcube/README.md#接口--interface)。策略仅使用图像与许可本体状态，物体和目标真值用于训练奖励或离线分析。
+
+另提供可选的[受限末端开发接口](docs/PLANAR_EE_DEVELOPMENT.md)，用于固定参考高度和接近轴下的XY控制，物理定高精度尚未验收；它是自研执行层，不是课程正式IK，旧关节策略不能直接套用。
 
 ## 快速开始
 

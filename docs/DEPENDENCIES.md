@@ -6,6 +6,8 @@ LiftCube uses the separately distributed `isaac-lab:4.5.0-v2.1.1-leisaac-v0.1.2-
 
 ## Complete source snapshots
 
+The visual rule baseline supports two optional kinematics backends: NumPy/SciPy with a verified fixed SO101 joint-chain JSON, or LeRobot `RobotKinematics` with Placo and a matching URDF. The chain exporter additionally requires the image's USD Python API, but never starts SimulationApp. Both backends require independently validated calibration; see [the rule-baseline guide](SCRIPTED_LIFTCUBE.md).
+
 | Project | Fixed official source | Included |
 | --- | --- | --- |
 | LeRobot | https://github.com/huggingface/lerobot/tree/58f70b6bd370864139a3795ac3497a9eae8c42d5 | Entire tracked tree: policies, training, data, hardware, tests, docs, package metadata |

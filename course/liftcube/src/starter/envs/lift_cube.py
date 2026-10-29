@@ -192,6 +192,11 @@ class LiftCubeEnvAdapter:
             self._app = _launch_sim_app(self.device)
             env_cls, manager_cls = _import_lift_cube()
             env_cfg = env_cls()
+            # LeIsaac enables a demonstration recorder by default. It appends
+            # full-resolution RGB on the GPU with growing torch.cat buffers.
+            # This adapter uses explicit external recording, like upstream
+            # policy_inference.py; physics, sensors and scoring stay unchanged.
+            env_cfg.recorders = None
             env_cfg.scene.num_envs = self.n_envs
             env_cfg.sim.device = self.device if str(self.device).startswith("cuda") else "cuda:0"
             # so101leader is absolute joint position. keyboard is a relative delta and
