@@ -44,6 +44,6 @@ The final-observation utility requires the simulator to capture real images and 
 
 Recovery checks use CPU, one training process and zero DataLoader workers; the private environment stream is a placeholder generator. CUDA RNG, worker prefetch, simulator state, RL replay and online ACT caches need separate validation. The utilities are not yet integrated into a production training entry point and do not establish seamless recovery of formal training.
 
-正式训练都需要动作/观测、奖励与成功定义及端到端闭环验收。BC另外需要已确认成功性的演示和episode级划分；纯在线RL不必先取得演示，若采用BC初始化则须同时满足数据前提。上游PickOrange接口检查不能代替课程正式接口验收。
+正式训练前需验收观测/动作、任务成功定义及接口闭环。BC需要通过质量验收的演示和episode级划分，但不要求训练奖励；在线RL另需明确奖励和交互协议，不必先取得演示，若采用BC初始化则须同时满足数据前提。上游PickOrange接口检查不能代替课程正式接口验收。
 
-Training needs validated observations/actions, rewards, success criteria and an end-to-end policy loop. BC additionally requires accepted demonstrations and episode-level splits; online RL need not use demonstrations unless initialized from BC. PickOrange interface checks do not substitute for formal task acceptance.
+Validate observations/actions, task success definitions and the execution loop before training. BC needs accepted demonstrations and episode-level splits, not a training reward. Online RL additionally needs a reward and interaction protocol, but no demonstrations unless initialized from BC. PickOrange interface checks do not substitute for formal task acceptance.
