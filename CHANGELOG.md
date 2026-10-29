@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+同步首页双语导航、开发/训练入口、架构与依赖、接口/标定边界及来源说明。区分历史v0.1.x源码快照与LiftCube规则开发基准，明确64像素是参考默认值、规则推理无需演示或训练、自研末端层不继承六关节训练验收。运行控制、配置和历史成绩不变。
+
+Synchronize README navigation, development/training routes, architecture, dependencies, calibration contracts and provenance. Distinguish initial v0.1.x snapshots from the LiftCube rule reference, clarify default image sizing and dataset-free rule inference, and keep planar-control acceptance separate from joint training. Runtime behavior, configurations and historical results are unchanged.
+
 整理LiftCube视觉规则脚本作为开发基准，补充正式标定/坐标与控制SDK的分层适配方法。记录冻结定位调度变体45/100的开发结果及其输入/验证范围，与旧协议和未验收的自研末端执行层区分；不更改运行控制或既有成绩。
 
 Prepare the LiftCube visual rule script as a development reference, with a calibration/frame and control-SDK migration guide. Document the frozen scheduling variant's 45/100 result and evidence scope separately from older protocols and the unaccepted planar EE controller, without changing runtime control or historical results.

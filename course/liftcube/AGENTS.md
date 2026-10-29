@@ -19,6 +19,7 @@
 开发时按下面的顺序推进；每一步只运行其所需检查：
 
 - **修环境或动作接口**：沿 `envs/factory.py → LiftCubeEnvAdapter.reset/step → Observation/ActionSpec` 追踪数据；先用 `tests/test_so101_adapter.py` 的替身环境覆盖单位、形状与边界，再补真实环境短测。
+- **运行规则基准**：走`starter.scripts.evaluate_scripted`，先按规则指南检查外部标定；不需要演示、训练权重或`build_policy()`。不要为此运行BC/ACT优化验证。正式标定迁移只修改读取/坐标边界，控制SDK改变时再处理执行层，复用未变验证。
 - **接入演示数据**：沿 `data/hf_adapter.py → schema/validator → loader → training/train_bc.py` 检查字段、episode划分和标签单位；先验证一小批真实样本，再做获准的小批拟合。合成单测不替代真实数据映射验收。
 - **新增 ACT/VLA**：在实际接入时新增 `starter/models/` 包装，核对 `interfaces/policy.py` 中 `act/forward/update/save/load` 及调用者。推理先接 `evaluation.evaluate.load_policy` 的 `--policy-class`；训练再接 `utils.build_policy`、数据预处理和对应算法。现有BC/PPO依赖SmallCNN的具体实现，不能仅满足协议或替换模型名就宣称可训练；后端依赖保持可选。
 - **处理动作chunk**：`act()`向执行层返回当前一个六维目标，预测chunk可在包装内缓存；规格中的策略频率须与 `envs/timing.py` 一致。现有 `PolicyModel` 和评测循环没有通用策略reset回调，接入有状态模型时须补充并测试回合开始、结束、任务切换时的缓存清空，不能跨回合沿用旧动作。
@@ -65,7 +66,7 @@ export PYTHONPATH="$PWD/src:/leisaac/source/leisaac${PYTHONPATH:+:$PYTHONPATH}"
 
 ## 5. 接口修正时守住的语义
 
-- 环境ID `LeIsaac-SO101-LiftCube-v0`。学生图像为单front、uint8 HWC 64×64×3；相机原分辨率与模型resize分开。新模型更换输入须显式更新数据/模型规格，不直接改正式评分口径。
+- 环境ID `LeIsaac-SO101-LiftCube-v0`。单front、uint8 HWC，参考配置默认64×64×3；规则可选128/256需按下文同步标定。相机原分辨率与模型resize分开。新模型更换输入须显式更新数据/模型规格，不直接改正式评分口径。
 - 本体q[6]、dq补零[6]、上一发送命令[6]、可选EE补零[3]，总维18或21。SmallCNN只融合图像、q和上一命令；补零不是实际可测状态。
 - 关节顺序在 `interfaces/action.py::JOINT_NAMES`；六维绝对电机目标，arm[-100,100]、gripper[0,100]，逐关节映射弧度。不是增量、物理角度或末端动作。
 - 外部raw环境的 `observation.state`别名用 `raw_joint_units`声明单位；必要q/图像无效就拒绝，不补造反馈或重复换算。
@@ -90,6 +91,7 @@ export PYTHONPATH="$PWD/src:/leisaac/source/leisaac${PYTHONPATH:+:$PYTHONPATH}"
 - `data/hf_adapter.py`读取本地LeRobot v2.1/v3，不下载。BC需真实 `meta/info.json`、兼容图像/状态/动作与episode级划分。文件末尾的终止标记不等于任务成功标签。
 - 超限先留原值诊断；`allow_action_clipping`仅诊断，正式BC拒绝启用。禁止放宽范围、裁剪标签或用下一帧q替代请求动作来通过检查。
 - `build_policy()`固定SmallCNN。ACT/VLA包装须真实处理图像、tokenizer/统计、本体、动作语义与执行长度，不能只加模型名或随机权重就称完成基线。
+- 当前BC/PPO验收是默认六关节路径；三维`planar_ee_dev`不自动继承其数据、权重或恢复验收，不能只更改模式就宣称支持末端训练。
 - `checkpoint.pt`是推理导出；`checkpoint.pt.training.pt`及SHA是完整续训。BC→PPO只复制规格匹配权重，新建优化器；同任务resume恢复原模型/Adam/计数/数据身份/RNG。
 - BC完整epoch保存、当前 `num_workers=0`；PPO在完整采集回合/更新边界保存。不承诺任意中途仿真接续。加入私有RNG、异步worker、外部VLA缓存前扩展恢复合同。
 - epochs/updates是总目标，不是追加量。新任务、结构或数据身份另开实验，权重初始化不伪装resume。只加载可信本地存档，SHA不等于来源认证。
@@ -106,6 +108,7 @@ python -m unittest discover -s tests -p test_liftcube_training.py -v
 python -m unittest discover -s tests -p test_liftcube_import.py -v
 python -m unittest discover -s tests -p test_scripted_liftcube.py -v
 python -m unittest discover -s tests -p test_joint_chain.py -v
+python -m unittest discover -s tests -p test_planar_ee.py -v
 ```
 
 - 观测/单位/命令映射优先SO101测试，使用替身环境，不等于Isaac验证。

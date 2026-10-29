@@ -16,18 +16,18 @@
   },
   {
     "path": "course/liftcube/AGENTS.md",
-    "bytes": 16612,
-    "sha256": "6c8b36b30bb066bb84bde9673aab2357b80755d545f921a22f9277801a3549a5"
+    "bytes": 17203,
+    "sha256": "3582241a0d2fb27f7511622d7b414938e5adfbda5a2dd5d55cdeb27525660fc0"
   },
   {
     "path": "course/liftcube/README.md",
-    "bytes": 10186,
-    "sha256": "3125ad9b649d996dea83b5032440a584a6d686f5a31e092b0878dbd0ed52c442"
+    "bytes": 11486,
+    "sha256": "fcbc35248fe24211f4ce251b508af8ede492531aa88a6e1b3a626cac1053ee94"
   },
   {
     "path": "course/liftcube/TRAINING.md",
-    "bytes": 5198,
-    "sha256": "aa4af7eee890dcbca50dfc5f45ef2608f694371c9cacf2553ab7933214a8a282"
+    "bytes": 5917,
+    "sha256": "8852a516eea3a913259cfe49b4b559f00e5cd23f771a9b4f6313b99c634afb11"
   },
   {
     "path": "course/liftcube/configs/bc_lift_cube.yaml",

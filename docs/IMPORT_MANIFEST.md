@@ -18,7 +18,7 @@ The sole upstream text change is third_party/lerobot/.gitattributes: seven LFS r
 
 Simulator binaries, CUDA, package distributions and separately licensed scene assets use official distribution channels. Asset URLs/checksums are supplied. Pretrained policies and complete datasets are not fabricated or arbitrarily selected.
 
-Course PDFs, requirement summaries, reports, validation records, screenshots, server inventories/addresses/IDs/reservations and credentials are excluded under the owner's publication scope. Future formal task/evaluation packages must follow their own access rules.
+Course PDFs, requirement summaries, private reports/full validation records, screenshots, server inventories/addresses/IDs/reservations and credentials are excluded under the owner's publication scope. Task guides may contain approved aggregate development results with their protocol and limitations, not raw run artifacts or deployment details. Future formal task/evaluation packages must follow their own access rules.
 
 The owner-approved exception is the redacted bilingual project poster and its generic project introduction. This does not authorize publishing the original poster with contact details or other private course materials.
 
@@ -28,7 +28,7 @@ Import validation covers source integrity and Python syntax, not fresh GPU deplo
 
 ## LiftCube starter import
 
-The independent `course/liftcube/` package contains 45 original source/configuration files plus one new render-preparation module. Its archive SHA, original/current file hashes and modified-file flags are in [liftcube_source.json](../manifests/liftcube_source.json). The [patch](../course/liftcube/patches/team-interface.patch) records all code changes. The original evaluation YAML is unchanged. A repository test checks hashes and reconstructs original source by reversing the patch in a temporary directory.
+The independent `course/liftcube/` package starts from 45 original source/configuration files. [liftcube_source.json](../manifests/liftcube_source.json) records their archive paths, original/current hashes and modified flags, plus explicitly identified adaptation modules with no original archive entry. The [patch](../course/liftcube/patches/team-interface.patch) reconstructs that managed source set when reversed; it is not an inventory of every later team extension. All public package files, including rule/geometry policies, calibration and planar-control extensions, are covered by [course_files.json](../manifests/course_files.json). New team files are not attributed to the original archive. The original evaluation YAML is unchanged, and repository tests verify source hashes and reverse-patch reconstruction.
 
 This package uses Isaac Sim 4.5.0 / Isaac Lab v2.1.1 / LeIsaac v0.1.2 from the matching image, independently of the newer `third_party/` snapshots. Code, configurations and generic usage instructions are included; simulator archives, datasets, weights, original course instructions and private records are excluded. See the [LiftCube guide](../course/liftcube/README.md).
 

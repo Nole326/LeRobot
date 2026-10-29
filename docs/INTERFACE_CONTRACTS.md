@@ -6,9 +6,9 @@
 
 This page defines development checks, not the formal environment specification. The configuration template is a design checklist, not an integrated production interface; empty values are unresolved. Interface changes need new schema identifiers, conversion tests and migration notes, not just a changed dimension.
 
-当前 [LiftCube起点](../course/liftcube/README.md)使用front 64×64及六关节绝对电机目标；SO101速度/末端兼容字段补零。实际环境60Hz，30Hz策略由评测适配保持两tick。它与本文待确认的受限末端任务接口分开，不直接换算维度后混用。
+当前[LiftCube起点](../course/liftcube/README.md)默认使用front 64×64及六关节绝对电机目标；规则策略可独立配置128/256并匹配标定。SO101速度/末端兼容字段补零。实际环境60Hz，30Hz策略由评测适配保持两tick。它与本文待确认的受限末端任务接口分开，不直接换算维度后混用。
 
-The current [LiftCube starter](../course/liftcube/README.md) uses front 64×64 RGB and six absolute motor targets, with zero-filled SO101 velocity/EE slots. Its environment runs at 60Hz; the evaluation adapter holds 30Hz policy targets for two ticks. This remains separate from the unresolved constrained end-effector task interface below.
+The [LiftCube starter](../course/liftcube/README.md) defaults to front 64×64 RGB and six absolute motor targets; the rule runner can select calibrated 128/256 inputs. SO101 velocity/EE slots are zero-filled. The 60Hz environment holds 30Hz targets for two ticks. Keep this separate from the unresolved formal end-effector interface.
 
 另有显式可选的[自研受限末端开发接口](PLANAR_EE_DEVELOPMENT.md)：绝对桌面XY米＋夹爪motor，固定参考高度/接近轴、允许绕轴转动；不是课程正式IK或完整抓放接入，不改变六关节默认和旧成绩。
 
@@ -25,6 +25,10 @@ List image keys, ordered proprioceptive fields, shapes, units, normalization, ti
 当前计划检查器只允许六个已登记 SO-101 关节字段；这是保守的开发白名单，不是宣布正式任务只有六维本体。增加末端或其他字段时，应先验证来源再扩展白名单。字段名称检查无法证明内容没有真值泄漏，还需要运行时来源检查。
 
 The plan inspector currently permits six registered SO-101 joint fields. This is a conservative development whitelist, not a claim that the formal task has only six proprioceptive dimensions. Validate provenance before adding end-effector or other fields. Name checks cannot prove the absence of truth leakage; runtime provenance inspection is also required.
+
+相机内外参属于明确列出的辅助输入：记录来源、相机/机器人坐标、单位、有效图像尺寸和更新时刻。固定外部标定与逐reset读取仿真真实相机位姿是不同输入协议，后者不能隐藏成“只有RGB/q”。当前起点未附完整正式相机标定文件/SDK；课程正式入口发布后按[迁移说明](SCRIPTED_LIFTCUBE.md#正式标定发布后如何适配--adapting-official-calibration)接入，不用物体真值补齐标定。
+
+Declare calibration as an auxiliary input, including source, frames, units, image size and update timing. Fixed files and per-reset simulator-pose reads are different protocols; the latter is not RGB/q-only inference. The starter does not bundle a complete formal camera-calibration SDK. Adapt its published interface when available, without deriving policy calibration from hidden object poses.
 
 ## 2. 动作 / Actions
 

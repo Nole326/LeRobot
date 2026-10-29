@@ -6,15 +6,15 @@ A starting point for picking up a tabletop cube, with an environment adapter, de
 
 ## 当前状态 / Status
 
-环境与BC/PPO训练基础已接入；正式训练前仍需完成演示动作标定与实际设备路径验收。训练和恢复用法见[训练指南](TRAINING.md)，任务迁移与采集方案见[开发路线](../../docs/LIFTCUBE_TRANSFER.md)。
+六关节环境交互与BC/PPO参考训练基础已接入，规则脚本可独立于训练使用。候选演示尚未通过正式BC准入，ACT/VLA的LiftCube适配仍在开发。训练和恢复用法见[训练指南](TRAINING.md)，任务迁移与采集方案见[开发路线](../../docs/LIFTCUBE_TRANSFER.md)。
 
-Environment and BC/PPO training foundations are connected. Demonstration calibration and device-level validation remain prerequisites for formal training. See the [training guide](TRAINING.md) and [task-transfer and collection plan](../../docs/LIFTCUBE_TRANSFER.md).
+Joint-environment interaction and BC/PPO reference foundations are connected; the rule runner is independent of training. Candidate demonstrations are not yet accepted for formal BC, and LiftCube ACT/VLA integration remains in development. See the [training guide](TRAINING.md) and [task-transfer and collection plan](../../docs/LIFTCUBE_TRANSFER.md).
 
 | 环节 / Component | 当前实现 / Implementation |
 | --- | --- |
-| 默认策略 / Default policy | RGB＋关节位置＋上一执行命令，屏蔽兼容补零字段 / RGB, joint positions and previous commands; compatibility padding is ignored |
-| 规则基线 / Rule baseline | [视觉定位＋IK状态机](../../docs/SCRIPTED_LIFTCUBE.md)；实际标定辅助定位调度变体45/100，成功中位9.38仿真秒；旧几何原版13/30、固定标定1/10分组 / Assisted scheduling variant: 45/100, median successful time9.38 simulation seconds; earlier 13/30 and fixed-calibration 1/10 protocols kept separate |
-| 受限末端开发接口 / Planar EE development | 可选[绝对XY＋夹爪执行层](../../docs/PLANAR_EE_DEVELOPMENT.md)，固定高度/接近轴参考；不是课程正式IK接口，也未将已有关节抓取策略迁入 / Opt-in absolute XY + jaw layer with fixed height/approach-axis references; not the official IK API or a port of the joint grasp policy |
+| 参考SmallCNN / Reference SmallCNN | RGB＋关节位置＋上一执行命令，屏蔽兼容补零字段 / RGB, joint positions and previous commands; compatibility padding is ignored |
+| 规则基线 / Rule baseline | [视觉定位＋IK状态机](../../docs/SCRIPTED_LIFTCUBE.md)；实际标定辅助定位调度变体45/100，成功中位9.38仿真秒；旧几何原版13/30、固定标定1/10分组 / Assisted scheduling variant: 45/100, median successful time 9.38 simulation seconds; earlier 13/30 and fixed-calibration 1/10 protocols kept separate |
+| 受限末端开发接口 / Planar EE development | 可选[绝对XY＋夹爪执行层](../../docs/PLANAR_EE_DEVELOPMENT.md)，固定高度/接近轴参考，物理定高未验收；不是正式IK或已有关节抓取策略的移植 / Opt-in absolute XY + jaw layer; physical height tracking unaccepted, not official IK or a port of the joint grasp policy |
 | BC→RL | 30Hz策略在60Hz环境中保持两tick；严格匹配模型与数据规格 / 30Hz decisions hold for two 60Hz ticks; model/data contracts are checked |
 | 存档恢复 / Checkpoint recovery | BC按epoch、PPO按完整回合/更新边界保存模型、Adam、进度与RNG；合成CPU恢复通过 / Model, Adam, progress and RNG at epoch/completed-rollout boundaries; synthetic CPU recovery checked |
 | PPO超时 / PPO timeouts | 外部截断从reset前终态bootstrap，GAE在回合边界断开；有限时域可显式配置 / External timeouts bootstrap from pre-reset observations; GAE stops at episode boundaries; finite-horizon mode is explicit |
@@ -57,9 +57,9 @@ These checksums identify the current matching image. If the distributor replaces
 
 | 内容 / Field | 当前约定 / Contract |
 | --- | --- |
-| 图像 / Image | front RGB, uint8 HWC, 64×64×3 |
+| 图像 / Image | 单front RGB、uint8 HWC；参考模型默认64×64，规则入口可显式设128/256并匹配标定 / One front stream; 64×64 by default, optionally 128/256 square for the calibrated rule runner |
 | 本体 / Proprioception | 6关节位置 / joint positions; 6速度补零 / zero velocity slots; 6上一执行命令 / previous applied commands; 可选3维末端位置补零 / optional 3 zero EE slots |
-| 动作 / Action | 6维绝对电机目标 / absolute motor targets; arm −100…100, gripper 0…100 |
+| 默认动作 / Default action | 6维绝对电机目标 / absolute motor targets; arm −100…100, gripper 0…100；三维末端开发模式单列 / planar development mode has a separate contract |
 | 转换 / Conversion | 按关节限位映射到弧度 / per-joint mapping to radians |
 | 频率 / Frequency | 环境60Hz，30Hz策略每两tick更新 / 60Hz environment, 30Hz policies hold for two ticks |
 | 默认上限 / Default horizon | 640环境tick，约10.67秒 / 640 environment ticks, about 10.67 seconds |
@@ -68,15 +68,15 @@ These checksums identify the current matching image. If the distributor replaces
 
 The default evaluation runs four episodes with at most 640 environment ticks each. These are starter defaults, not the final course protocol; use the course's published episode count, success criteria and time limit for formal evaluation.
 
-训练和推理均使用64×64输入。物体真值只供训练奖励或调试，不能进入策略。更换动作语义、频率或输入结构时，需重新核对数据和模型兼容性；关节动作不能直接当成受限末端动作。
+参考BC/PPO配置在训练和推理中均默认使用64×64；这不是对所有encoder的强制尺寸。规则128/256输入须同步环境resize、`image_shape`和内参K，不能只改图像尺寸。其他模型更改输入需另验数据/权重兼容性。物体真值只供许可奖励或独立评分/诊断，不能进入策略；关节动作不能直接当成受限末端动作。
 
-Use 64×64 inputs during both training and inference. Object ground truth is reserved for training rewards or debugging, never policy inputs. Changes to action semantics, frequency or observations require renewed data/model compatibility checks; joint targets are not constrained end-effector actions.
+Reference BC/PPO uses 64×64 by default, not a universal encoder requirement. Rule inputs at 128/256 must match resizing, calibration shape and intrinsics. Other model/input changes require data/checkpoint compatibility checks. Ground truth stays in permitted rewards or independent scoring/diagnostics, never policy inputs; joint targets are not EE actions.
 
 ## 起步 / Getting started
 
-先创建符合所在平台规范的GPU容器，将本仓库挂载到 `/repo`，演示目录单独挂载到 `/data/lift_cube`。保留镜像内的 `/isaaclab`、`/leisaac`，缓存不要写入数据集目录。共享服务器在已批准的容器内执行以下命令，避免使用自动Docker启动路径。
+先准备符合所在平台规范的GPU容器，将本仓库挂载到`/repo`；需要读取演示时再将数据单独挂载到`/data/lift_cube`。规则推理不需要演示或训练权重，但需要完整外部标定。保留镜像内的`/isaaclab`、`/leisaac`，缓存不要写入数据集目录。共享服务器在已批准的容器内执行以下命令，避免使用自动Docker启动路径。
 
-Create a GPU container following your platform's rules, mount this repository at `/repo` and demonstrations separately at `/data/lift_cube`. Preserve the image's `/isaaclab` and `/leisaac` directories and keep caches outside datasets. On shared servers, run these commands inside an approved container rather than using automatic Docker startup.
+Use a platform-approved GPU container with this repository mounted at `/repo`; mount `/data/lift_cube` separately only when reading demonstrations. Rule inference needs calibration, not demonstrations or trained weights. Preserve `/isaaclab` and `/leisaac`, keep caches outside datasets, and avoid automatic Docker startup on shared servers.
 
 ```bash
 cd /repo/course/liftcube
@@ -91,6 +91,10 @@ Offline reading requires PyArrow and PyAV; check existing packages and preserve 
 `training/train_bc.py`、`training/train_rl.py`为参考训练入口，`evaluation/evaluate.py`通过`--policy-class package.module:ClassName`支持自定义策略加载；默认训练预算仅作示例。
 
 `training/train_bc.py` and `training/train_rl.py` are reference training entry points. `evaluation/evaluate.py` supports custom loaders through `--policy-class package.module:ClassName`; default training budgets are examples.
+
+规则策略使用独立`starter.scripts.evaluate_scripted`入口，先按[规则指南](../../docs/SCRIPTED_LIFTCUBE.md)完成`--check`；它会构造状态机，不通过需要模型权重加载器的通用`--policy-class`路径。[末端开发层](../../docs/PLANAR_EE_DEVELOPMENT.md)另需三维策略，不能直接复用这份六关节抓取策略。
+
+The rule policy has its own `starter.scripts.evaluate_scripted` CLI and offline calibration check; it does not use the learned checkpoint loader. The separate planar layer needs a three-component policy, not this joint-output grasp runner.
 
 ## 来源与修改 / Provenance and changes
 

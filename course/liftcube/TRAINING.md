@@ -2,6 +2,10 @@
 
 BC/PPO入口用于开发训练管道；ACT和VLA接入后沿用同一观测、动作与评测约定。正式训练前仍需验收数据动作映射及实际设备路径。
 
+本指南及现有训练验收针对默认六关节`joint`路径。视觉规则基准使用[独立推理入口](../../docs/SCRIPTED_LIFTCUBE.md)，无需先训练或读取演示；它的抓取成绩不代表训练管道已经取得相同性能。`planar_ee_dev`是另一个三维动作契约，尚不是已验收的BC/PPO训练路径，不能只改`control_mode`后复用六关节标签或权重。
+
+This guide and current training evidence cover the default six-joint path. The visual rule runner is independent of training and demonstration loading. Its scores do not establish learned-policy performance. The experimental three-component planar mode requires separate data/model/control validation before training.
+
 ## 输入与控制周期
 
 SmallCNN融合front RGB、6维关节位置和6维上一执行命令；兼容布局中的速度、末端位置不进入网络。关节与上一命令按既有电机范围缩放，不用物体真值。旧image-only权重加载时保留原前向路径，不能静默当作融合模型初始化。

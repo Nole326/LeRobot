@@ -23,6 +23,9 @@ Paths below are relative to `course/liftcube/src/starter/`. These are existing m
 | 契约 / Contracts | `interfaces/observation.py`, `action.py`, `policy.py` | 图像、本体、动作语义与策略协议 / Images, proprioception, action semantics and policy protocol |
 | 模型 / Model | `interfaces/model.py`, `utils.py::build_policy` | 当前小型CNN及显式构造 / Current small CNN and explicit construction |
 | 环境 / Environment | `envs/factory.py`, `lift_cube.py`, `render_ready.py` | 配套环境、限位转换、时序、reset前终态与初始渲染 / Runtime, mapping, timing, terminal capture and initial rendering |
+| 视觉规则 / Visual rule policy | `scripted_liftcube.py`, `scripted_geometry.py` | RGB定位、抓取状态机及可选几何预设，不经过学习模型构造器 / RGB localization, grasp stages and optional geometric presets; bypasses the learned-model builder |
+| 标定与运动学 / Calibration, kinematics | `camera_calibration.py`, `joint_chain.py`, `scripts/export_joint_chain.py` | 外参来源边界、固定机器人FK/IK与来源核验 / Extrinsic provenance, fixed-robot FK/IK and source validation |
+| 末端开发层 / Planar EE development | `envs/planar_ee.py` | 可选三维末端请求到关节执行，独立于旧抓取脚本；物理定高待验 / Opt-in EE-to-joint execution, separate from the grasp runner; physical height tracking remains unaccepted |
 | 数据 / Data | `data/hf_adapter.py`, `schema.py`, `validator.py`, `loader.py` | 数据格式、单位、校验及按回合划分 / Formats, units, validation and episode-level splits |
 | 算法 / Algorithms | `algorithms/bc.py`, `rl.py`, `reference/ppo.py` | 损失、更新与参考算法 / Losses, updates and reference algorithms |
 | 训练 / Training | `training/train_bc.py`, `train_rl.py` | 解析配置并组合上述模块 / Parse configuration and compose modules |
@@ -32,6 +35,10 @@ Paths below are relative to `course/liftcube/src/starter/`. These are existing m
 `PolicyModel` 已有协议，但 `build_policy()` 当前仍固定构造 `SmallCNNPolicy`，不支持仅改配置就切换 ACT/VLA。加入首个真实模型时再增加最小的显式选择，并补相应接口检查；现在不预建注册器、空模型类或假训练命令。
 
 `PolicyModel` defines a protocol, but `build_policy()` currently constructs `SmallCNNPolicy` unconditionally. ACT/VLA cannot be selected merely by changing configuration. Add a minimal explicit selector with the first working adapter and check its contracts; do not prebuild registries, empty model classes or nonfunctional training commands.
+
+规则入口`starter.scripts.evaluate_scripted`自行构造规则策略，随后复用共同`run_episode`和六关节环境；它不经`build_policy()`，也没有训练步骤。自研`planar_ee_dev`则从工厂显式选择，要求匹配的三维策略，旧抓取入口会拒绝误接。接入位置和限制分别见[规则指南](SCRIPTED_LIFTCUBE.md)与[末端开发契约](PLANAR_EE_DEVELOPMENT.md)。
+
+The rule CLI constructs a rule policy directly, then reuses `run_episode` and the joint environment without training. The factory's explicit `planar_ee_dev` mode instead requires a compatible three-component policy; the old grasp runner rejects it. Follow the separate rule and EE guides rather than treating them as interchangeable entry points.
 
 ## 3. 新功能放在哪里 / Extension points
 

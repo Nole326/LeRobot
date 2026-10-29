@@ -14,6 +14,14 @@ Read this page, then the [interface contracts](INTERFACE_CONTRACTS.md), [depende
 
 For current LiftCube work, start with the [task guide](../course/liftcube/README.md): obtain the matching image, verify its SHA and run a short check inside the container. PickOrange and historical upstream snapshots remain references; keep the two dependency paths separate.
 
+按目标选择入口，避免把所有训练前提都套到规则推理上：
+
+| 目标 / Goal | 入口与前提 / Entry and prerequisites |
+| --- | --- |
+| 视觉规则抓取 / Rule grasping | [规则指南](SCRIPTED_LIFTCUBE.md)；匹配标定与运动学，先`--check`再获准闭环，无需演示或权重 / Calibrated kinematics, offline check then authorized rollout; no dataset/weights |
+| 三维末端开发 / Planar EE development | [开发契约](PLANAR_EE_DEVELOPMENT.md)；独立标定、有效初始姿态及匹配策略，物理精度未验收 / Separate calibration, valid starting pose and compatible policy; tracking not accepted |
+| BC/PPO / Learning | [训练指南](../course/liftcube/TRAINING.md)；当前为六关节SmallCNN参考路径，BC先完成演示准入 / Six-joint SmallCNN reference path; BC requires accepted demonstrations |
+
 先在本地运行以下检查。第一条应成功；第二条对未填写的模板应返回退出码 3，并逐项列出缺失字段。
 
 Run these local checks first. The first should pass; the second should return exit code 3 for the unfilled template, listing the unresolved fields.

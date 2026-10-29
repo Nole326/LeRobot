@@ -26,11 +26,12 @@ Simulation and BC application dependencies may conflict in NumPy/packaging versi
 
 1. Confirm container permissions, resources, device mappings, mounts and cache rules.
 2. Verify actual runtime and module paths; obtain assets with checksum validation.
-3. Test CUDA, synthetic ACT updates, dataset read/write and unit conversions without real robot motion.
-4. Verify reset/step, camera updates, episode boundaries, final observations, action replay and data conversion.
-5. Validate the actual task's controller/units, observation/scoring constraints and synchronized training/RNG checkpoints before training.
+3. Verify reset/step, camera updates, unit conversions, timing, episode boundaries and final observations.
+4. For [rule inference](SCRIPTED_LIFTCUBE.md), check independent robot/camera calibration before a short authorized rollout, then freeze the scene set. Demonstrations and ACT optimization are not prerequisites.
+5. For learning, separately validate the selected trainer, device, data processing and synchronized checkpoints/RNG; follow the [current LiftCube guide](../course/liftcube/TRAINING.md) rather than automatically running legacy ACT diagnostics. Replay/data acceptance is required when demonstrations are used.
+6. Accept the actual task's action SDK, observation restrictions and native scoring before formal evaluation or hardware deployment.
 
-The EE-control and rollout scripts include diagnostic experiments, not approved replacements for an externally specified controller. Private validation results are deliberately not published.
+The rule runner dispatches six joint targets. The separate [planar EE development layer](PLANAR_EE_DEVELOPMENT.md) is not an approved replacement for an externally specified controller, and its physical height tracking is not yet accepted. Publishable aggregate development results appear in task guides; raw trajectories, device logs and deployment-specific records stay outside Git. Reproduce results with matching code, calibration and scenario identities, not by combining percentages from different protocols.
 
 ## Fixture recovery
 

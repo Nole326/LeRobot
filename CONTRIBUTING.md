@@ -1,8 +1,8 @@
 # 修改与验证 / Contributing and validation
 
-首次开发可从当前基准标签 `v0.1.1-baseline` 创建功能分支；后续协作通常从最新 `main` 分支开始，避免遗漏已合入的改动。优先新增独立适配器，避免直接修改已冻结的上游源码；算法、奖励、观测、控制器和评估口径的变化需要分别记录和验证。
+新开发从最新`main`创建短期功能分支；`v0.1.x-baseline`只用于复现初始源码快照，不包含后续LiftCube功能。用户指定现有分支时沿用该分支。优先新增独立适配器，避免直接修改已冻结的上游源码；算法、奖励、观测、控制器和评估口径的变化需要分别记录和验证。
 
-Start initial development from `v0.1.1-baseline`; subsequent collaborative work should normally branch from the latest `main` to include merged changes. Prefer standalone adapters over modifying frozen upstream source. Changes to algorithms, rewards, observations, controllers and evaluation protocols need explicit records and validation.
+Branch new work from current `main`; use `v0.1.x-baseline` only to reproduce the initial source snapshot, which predates LiftCube development. Keep an existing branch when explicitly requested. Prefer standalone adapters over modifying frozen upstream source. Changes to algorithms, rewards, observations, controllers and evaluation protocols need explicit records and validation.
 
 ## 智能体协作 / Working with agents
 
