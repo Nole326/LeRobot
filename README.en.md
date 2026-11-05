@@ -30,18 +30,16 @@ The current stage covers LiftCube and PickOrange as separate policy, data and ev
 ## Current scope
 
 - **LiftCube:** environment adapters, demonstration loading, BC, reference PPO, a visual rule policy and shared evaluation. See the [LiftCube guide](course/liftcube/README.md) for the matching image and runtime.
-- **PickOrange:** pinned task sources, a separate dual-view GR00T service/native-assisted evaluation source port, trajectory audits and ACT bridge diagnostics. The new source port awaits runtime acceptance; see the [PickOrange guide](course/pickorange/README.md).
-- **VLA interfaces:** [Single-front wrappers for SmolVLA, PI05, GR00T N1.5 and OpenVLA-OFT](docs/VLA_INTERFACES.md) live in the LiftCube package, with CPU checks and backend-specific acceptance still in progress. ACT/VLA training integration and PickOrange task adapters remain separate work.
-- **Rule baseline:** [LiftCube visual grasping script](docs/SCRIPTED_LIFTCUBE.md), combining RGB localization and inverse kinematics as a development reference for later calibration and task integration. Simulated grasps have succeeded; cross-scene robustness still needs improvement and independent calibration is required.
+- **PickOrange:** pinned environment, dual-view GR00T/SmolVLA/PI05 services, shared evaluation and trajectory audits. The new SmolVLA entry has CPU checks; rollout validation is pending. See the [runner guide](course/pickorange/README.md).
+- **VLA interfaces:** the [two-task interface guide](docs/VLA_INTERFACES.md) links all four model families: single-front wrappers for LiftCube and dual-view services for PickOrange. OFT still requires matching trained heads, projections and statistics.
+- **Rules and teachers:** the [two-task script guide](docs/SCRIPTED_POLICIES.md) links LiftCube visual/state policies, the official PickOrange state teacher and upstream references. A PickOrange visual rule policy is still missing; privileged teachers are separate from visual baselines.
 - **Later scope:** the formal multi-object task, cross-object generalization and hardware deployment. The unreleased environment is not a prerequisite for current development.
 
 See the [task and adaptation matrix](docs/TASKS.md) for runtimes, expert scripts, demonstrations and checkpoint/validation status across the four VLA families. A shared SO-101 robot does not make the interfaces interchangeable; keep configurations, checkpoints, statistics and scores separate.
 
-Obtain weights/demonstrations from [resources](docs/RESOURCES.md), then follow the [task execution guide](docs/TRAIN_AND_EVALUATE.md) for teachers, training and evaluation. The LiftCube privileged teacher is a new development candidate; PickOrange's assisted gripper control uses object truth and is not a non-privileged visual baseline.
+See the [PickOrange validation summary](docs/PICKORANGE_VALIDATION.md) for model results, paired Residual SAC evaluation and memory requirements. Inference and evaluation code is available; experimental RL trainers and learned artifacts have not been released.
 
-Current LiftCube uses a single front RGB stream and six-joint control; see the [interface guide](course/liftcube/README.md#接口--interface) for inputs, actions and timing. Policies use images and permitted proprioception; object/target ground truth is reserved for training rewards or offline analysis.
-
-An optional [planar EE development interface](docs/PLANAR_EE_DEVELOPMENT.md) provides XY control at a fixed reference height and approach axis; physical height tracking is not yet accepted. It is a self-developed execution layer, not the official course IK; existing joint policies are not directly compatible.
+Obtain weights and demonstrations from [resources](docs/RESOURCES.md), then follow the [training and evaluation guide](docs/TRAIN_AND_EVALUATE.md). PickOrange's native-assisted evaluation uses object truth for gripper control and is reported separately from non-privileged visual baselines.
 
 ## Quick start
 
@@ -78,7 +76,7 @@ LiftCube integration lives in `course/liftcube/src/starter/`. PickOrange executi
 │   ├── configs/              # Current task configurations
 │   └── patches/              # Reversible changes to the course starter
 ├── course/scripts/           # PickOrange environment, replay and ACT-bridge diagnostics
-├── course/pickorange/        # Separate assisted GR00T service, evaluation and audit
+├── course/pickorange/        # Dual-view VLA services, evaluation and trajectory audits
 ├── configs/                  # Public experiment-plan templates
 ├── scripts/                  # Repository, provenance and plan checks
 ├── tests/                    # First-party regression tests
@@ -93,7 +91,7 @@ See [architecture](docs/ARCHITECTURE.md) for layer ownership and model integrati
 ## Development path
 
 1. Freeze each task's runtime, observations, actions and success criteria, then complete its entry points.
-2. Prioritize LiftCube rule/data acceptance and ACT/compact-VLA comparisons, while completing PickOrange adapters and full-episode evaluation.
+2. Retain LiftCube rule/data and ACT/compact-VLA tracks, while focusing current work on PickOrange VLA baselines, attributable RL comparisons and model-capability validation.
 3. Use accepted data and models for fine-tuning, RL and relevant ablations, recording complete episodes and failures.
 4. Resume cross-object transfer, generalization and hardware alignment after the formal multi-object environment is released.
 
@@ -119,6 +117,7 @@ See the [import inventory](docs/IMPORT_MANIFEST.md) for source provenance and in
 
 - [Development and stage acceptance](docs/GETTING_STARTED.md)
 - [LiftCube/PickOrange resources and adaptation status](docs/TASKS.md)
+- [PickOrange model validation, paired RL and memory reference](docs/PICKORANGE_VALIDATION.md)
 - [Model weights and demonstration downloads](docs/RESOURCES.md)
 - [Task-specific teacher collection, training and evaluation](docs/TRAIN_AND_EVALUATE.md)
 - [LiftCube source, image and runtime](course/liftcube/README.md)

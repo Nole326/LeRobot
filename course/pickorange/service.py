@@ -3,7 +3,6 @@ import argparse
 import json
 from pathlib import Path
 import random
-import subprocess
 import sys
 import time
 import traceback
@@ -11,15 +10,11 @@ import traceback
 import numpy as np
 
 from common import (BACKEND_REVISION, DEFAULT_PROTOCOL, load_protocol, predict_groot,
-                    publish, rng_state, save_arrays, sha256)
+                    publish, rng_state, save_arrays, sha256, verify_backend)
 
 
 def load_policy(model, backend_root, device):
-    actual = subprocess.check_output(['git', '-C', str(backend_root), 'rev-parse', 'HEAD'], text=True).strip()
-    if actual != BACKEND_REVISION:
-        raise ValueError('GR00T backend revision mismatch')
-    if subprocess.check_output(['git', '-C', str(backend_root), 'status', '--porcelain', '--untracked-files=no'], text=True).strip():
-        raise ValueError('Use an unmodified pinned GR00T backend')
+    verify_backend(backend_root, BACKEND_REVISION)
     sys.path.insert(0, str(backend_root))
     sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'liftcube/src'))
     from gr00t.experiment.data_config import load_data_config
@@ -51,7 +46,8 @@ def verify_model(model):
     return expected
 
 
-def main(argv=None):
+def main(argv=None, *, model_loader=load_policy, model_verifier=verify_model,
+         predict=predict_groot, model_revision=None):
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--protocol', type=Path, default=DEFAULT_PROTOCOL)
     p.add_argument('--model', type=Path, required=True)
@@ -62,6 +58,9 @@ def main(argv=None):
     p.add_argument('--run-service', action='store_true')
     a = p.parse_args(argv)
     cfg = load_protocol(a.protocol)
+    from common import MODEL_REVISION
+    if cfg['model_revision'] != (model_revision or MODEL_REVISION):
+        p.error('Protocol and model entry point differ')
     if not a.run_service or not np.isfinite(a.wall_seconds) or a.wall_seconds <= 0:
         p.error('Explicit --run-service and a positive wall budget are required')
     import os
@@ -72,9 +71,9 @@ def main(argv=None):
     (out / 'ipc').mkdir()
     started = time.monotonic()
     try:
-        identity = verify_model(a.model.resolve())
+        identity = model_verifier(a.model.resolve())
         import torch
-        policy = load_policy(a.model.resolve(), a.backend_root.resolve(), a.device)
+        policy = model_loader(a.model.resolve(), a.backend_root.resolve(), a.device)
         random.seed(17)
         np.random.seed(17)
         torch.manual_seed(17)
@@ -91,7 +90,9 @@ def main(argv=None):
             with np.load(request, allow_pickle=False) as data:
                 begin = time.monotonic()
                 with torch.inference_mode():
-                    actions = predict_groot(policy, data, cfg['instruction'])
+                    actions = predict(policy, data, cfg['instruction'])
+                if actions.shape != (cfg['chunk_length'], 6) or not np.isfinite(actions).all():
+                    raise ValueError('Decoded policy chunk differs from protocol')
                 if str(a.device).startswith('cuda'):
                     torch.cuda.synchronize()
             # RNG is durable before the response becomes visible to the evaluator.

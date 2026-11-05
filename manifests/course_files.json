@@ -61,8 +61,8 @@
   },
   {
     "path": "course/liftcube/README.md",
-    "bytes": 12714,
-    "sha256": "4342fef5c0eae74a18537502ca43cc05b81e18973f680b4522e27248ad80f022"
+    "bytes": 12992,
+    "sha256": "9dcef12cdb0ff522233b4f6b88e75c454039577047203c064f949f6a90a8dab3"
   },
   {
     "path": "course/liftcube/src/starter/__init__.py",
@@ -371,23 +371,38 @@
   },
   {
     "path": "course/pickorange/AGENTS.md",
-    "bytes": 3028,
-    "sha256": "a1da166aa9c42e88924f70356b597010b3c95b57fcf62c67c84f2cd1b7b07575"
+    "bytes": 4742,
+    "sha256": "df352563b90f73dd2bb1ec40eb184839c7516bfb117d8b70cc727c46c14e601c"
   },
   {
     "path": "course/pickorange/audit.py",
-    "bytes": 8157,
-    "sha256": "5b40547bce7429493bfdd0d3b69cce2ecb4687f8755427d62177203d593e83a9"
+    "bytes": 8425,
+    "sha256": "97fbca2c05d18fed0027b6aee5199e9b4a0e9f4dca1ecbb17684d588cca031c1"
+  },
+  {
+    "path": "course/pickorange/candidate_assets.py",
+    "bytes": 2962,
+    "sha256": "908b9710c3ab4eb88b18ac64fd608981961fbcfe8138ac9dae22298bdf74479a"
   },
   {
     "path": "course/pickorange/common.py",
-    "bytes": 4831,
-    "sha256": "4342e7fb7bc28427c9cadf79c2abdb275d1ce0c81babccbb578de334c716bc17"
+    "bytes": 7579,
+    "sha256": "1f0fca22fdf9004504e01b2ea528299f758c1626b0288e91940226673173a0d7"
   },
   {
     "path": "course/pickorange/evaluate.py",
-    "bytes": 17879,
-    "sha256": "fb1266343825038564f193a0d8d5c428e650a810cad7b9d7f01453f5626d15ca"
+    "bytes": 17965,
+    "sha256": "2f9a899fb7fbbdfe1949f13ad6919645c43718094b85ae456cba84cc79a39193"
+  },
+  {
+    "path": "course/pickorange/openvla_oft.py",
+    "bytes": 6201,
+    "sha256": "0a4201591828e0b0a77bb096cbaa9fcfe98f750f2fdb2ff17bfa92727ac2d56a"
+  },
+  {
+    "path": "course/pickorange/protocols/groot-n16-native-assisted.json",
+    "bytes": 1025,
+    "sha256": "475a406e17f15bea90a4526046a39e4d000138f4ef819d4c5118472ddf7eb2e0"
   },
   {
     "path": "course/pickorange/protocols/groot-native-assisted.json",
@@ -395,14 +410,39 @@
     "sha256": "e491b74d55da1a370b08704681171b8a4ab85e478d26da4189c4977f338c1a82"
   },
   {
+    "path": "course/pickorange/protocols/pi05-native-assisted-30hz.json",
+    "bytes": 1027,
+    "sha256": "b3c18cdd631d6cebabb1ee67c5b2fec3d3c731345ef996fdf0bb446e9b0176ed"
+  },
+  {
+    "path": "course/pickorange/protocols/smolvla-native-assisted-30hz.json",
+    "bytes": 1042,
+    "sha256": "afcb5c38dcc885c901300dd43c51ff49df0709a144e1a9c456e3c494ad8f3b9b"
+  },
+  {
     "path": "course/pickorange/README.md",
-    "bytes": 8227,
-    "sha256": "b5fa1c936d5973fc5c547eb1ba79349962e4d44629a6173356ee94b1e2e0fe82"
+    "bytes": 13512,
+    "sha256": "a2efba045f977c93619ec628d6f8b9a929a2479ca9086700727c4a4d7c5ac5ec"
+  },
+  {
+    "path": "course/pickorange/service_n16.py",
+    "bytes": 3984,
+    "sha256": "b5cffe504f1c1b7c4f6f46da5a52a8ea0bfe70858e3104d7a65cd9e781e22f0f"
+  },
+  {
+    "path": "course/pickorange/service_pi05.py",
+    "bytes": 3449,
+    "sha256": "28a05ff1d3cf59899d4dc3ac6ceb8c9ea86cda97f91787944de1dbed7092161c"
+  },
+  {
+    "path": "course/pickorange/service_smolvla.py",
+    "bytes": 4132,
+    "sha256": "6268240851bd117c20c80043820bd260cbf6495f59f221372ca436d98b1d8070"
   },
   {
     "path": "course/pickorange/service.py",
-    "bytes": 5619,
-    "sha256": "b2b0b2334a7348ddbaf3d985f0de66093f14a68e7414a64b98c610913ab1ed47"
+    "bytes": 5711,
+    "sha256": "22b317f9f00f767c834aac4aa2b14f52a2a98f9263e0789d462400fe88c000db"
   },
   {
     "path": "course/scripts/AGENTS.md",

@@ -3,6 +3,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import subprocess
 import time
 
 import numpy as np
@@ -10,6 +11,12 @@ import numpy as np
 DEFAULT_PROTOCOL = Path(__file__).with_name('protocols') / 'groot-native-assisted.json'
 MODEL_REVISION = '10f20142f96f0b9ef139aa90855a73e28a83ca74'
 BACKEND_REVISION = '4af2b622892f7dcb5aae5a3fb70bcb02dc217b96'
+N16_REVISION = '4e59743e6c9c37b59c3f0350d3ad20b04b5f6d08'
+N16_BACKEND = 'ead52833afbbf4243f8cd5e7664f48a94de03b19'
+PI05_REVISION = 'bf4a13ed9d2ce17a96be5d82939191fa7ccf9ed5'
+PI05_BACKEND = '30da8e687a6dfc617fcd94afc367ac7071c376ce'
+SMOL_REVISION = '71cf4a9d35ce317f6706efe1a9f9d4cbb2b8fb4d'
+SMOL_BACKEND = '58f70b6bd370864139a3795ac3497a9eae8c42d5'
 
 
 def sha256(path):
@@ -21,7 +28,10 @@ def sha256(path):
 
 
 def load_protocol(path=DEFAULT_PROTOCOL):
-    cfg = json.loads(Path(path).read_text(encoding='utf-8'))
+    return validate_protocol(json.loads(Path(path).read_text(encoding='utf-8')))
+
+
+def validate_protocol(cfg):
     required = dict(name='pickorange-groot-n15-native-assisted-v1', task_id='LeIsaac-SO101-PickOrange-v0',
         instruction='Pick three oranges and put them into the plate, then reset the arm to rest state.',
         model_repo='LightwheelAI/leisaac-pick-orange-v0', model_revision=MODEL_REVISION,
@@ -29,6 +39,17 @@ def load_protocol(path=DEFAULT_PROTOCOL):
         chunk_length=16, execute_steps=16, denoising_steps=4, episode_seconds=60,
         dynamic_gripper_effort=True, software_action_clipping=False,
         robot_gravity_enabled=True, formal_course_evaluation=False, automatic_bc_admission=False)
+    if cfg.get('name') == 'pickorange-groot-n16-native-assisted-v1':
+        required.update(name=cfg['name'], model_repo='wsagi/GR00T-N1.6-PickOrange',
+                        model_revision=N16_REVISION, backend_revision=N16_BACKEND)
+    elif cfg.get('name') == 'pickorange-pi05-native-assisted-30hz-v1':
+        required.update(name=cfg['name'], model_repo='Aikwed/pi05_pick_orange_full',
+                        model_revision=PI05_REVISION, backend_revision=PI05_BACKEND,
+                        action_hz=30, chunk_length=50, denoising_steps=10)
+    elif cfg.get('name') == 'pickorange-smolvla-native-assisted-30hz-v1':
+        required.update(name=cfg['name'], model_repo='edge-inference/smolvla-so101-pick-orange',
+                        model_revision=SMOL_REVISION, backend_revision=SMOL_BACKEND,
+                        action_hz=30, chunk_length=50, denoising_steps=10)
     for key, value in required.items():
         if type(cfg.get(key)) is not type(value) or cfg[key] != value:
             raise ValueError(f'Unsupported protocol value: {key}')
@@ -40,6 +61,33 @@ def load_protocol(path=DEFAULT_PROTOCOL):
     if not isinstance(cfg.get('instruction'), str) or not cfg['instruction'].strip():
         raise ValueError('Task instruction is required')
     return cfg
+
+
+def timing(cfg):
+    hold = cfg['physics_hz'] // cfg['action_hz']
+    return hold, hold * cfg['execute_steps'], cfg['physics_hz'] * cfg['episode_seconds']
+
+
+def verify_backend(root, revision):
+    actual = subprocess.check_output(['git', '-C', str(root), 'rev-parse', 'HEAD'], text=True).strip()
+    dirty = subprocess.check_output(
+        ['git', '-C', str(root), 'status', '--porcelain', '--untracked-files=no'], text=True).strip()
+    if actual != revision or dirty:
+        raise ValueError('Use the unmodified pinned model backend')
+
+
+def close_resources(writer, env, app):
+    # SimulationApp.close() may exit the process: flush curves before shutdown.
+    try:
+        if writer is not None:
+            writer.close()
+    finally:
+        try:
+            if env is not None:
+                env.close()
+        finally:
+            if app is not None:
+                app.close()
 
 
 def publish(path, value):
@@ -87,6 +135,18 @@ def validate_request(data):
         if image.shape != (1, 480, 640, 3) or image.dtype != np.uint8:
             raise ValueError('Expected real [1,480,640,3] uint8 RGB views')
     return q.astype(np.float64, copy=True)
+
+
+def lerobot_batch(data, instruction, views):
+    """Real dual RGB and measured joints only; native processors handle batching."""
+    import torch
+    q = validate_request(data)
+    if set(views) != {'front', 'wrist'} or len(views) != 2:
+        raise ValueError('Both trained camera slots must be real views')
+    batch = {'observation.state': torch.tensor(q[0], dtype=torch.float32), 'task': instruction}
+    for cam in views:
+        batch['observation.images.'+cam] = torch.from_numpy(data[cam][0].copy()).permute(2,0,1).float()/255
+    return batch
 
 
 def predict_groot(policy, data, instruction):

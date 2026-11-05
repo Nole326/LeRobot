@@ -27,14 +27,14 @@ Changing a task ID is not an environment port. Shared robot names do not establi
 
 ## 状态表的读法 / Reading the status tables
 
-**整理日期：2026-11-02。** 以下区分公开代码、外部资源和项目已有验证记录；不是本次重新运行的结果。CPU验证沿用截至该日的记录，物理闭环结果来自此前的独立实验。模型与数据不随Git仓库分发，已准备的资产也不代表克隆仓库后即可运行。
+**PickOrange结果更新至2026-11-05；LiftCube验收记录截至2026-11-02。** 以下区分公开代码、外部资源和已完成实验。PickOrange协议、成功率与RL显存见[检验摘要](PICKORANGE_VALIDATION.md)；模型与数据从外部资源获取。
 
-**Snapshot: 2026-11-02.** Public code, external assets and prior project validation are listed separately. No new simulator or GPU run was performed for this inventory. Prepared assets are not bundled with the repository.
+**PickOrange snapshot: 2026-11-05; LiftCube evidence through 2026-11-02.** See the validation summary for protocol-specific results. Download models and datasets separately from the linked resources.
 
 - **接口已接入 / Interface:** 软件字段、单位、视角与chunk管理已对接，不代表模型会完成任务。
 - **CPU验证 / CPU validation:** 按行注明是预处理、权重加载还是完整前向；三者不等价。
 - **实际闭环 / Task rollout:** 模型或脚本已经控制仿真物理执行；一次成功不等于稳定成功率。
-- **任务权重 / Task checkpoint:** 外部作者针对该任务训练的权重；本表不声称本项目已完成VLA微调。
+- **任务权重 / Task checkpoint:** 外部作者针对该任务训练的导出；本项目的RL试验与公开训练器交付分别记录 / An external task export; project RL experiments and released trainers are separate.
 
 ### 脚本与演示 / Scripts and demonstrations
 
@@ -60,10 +60,11 @@ The older `H2Ozone/lift_cube` candidate has a separate action-range mismatch. It
 | LiftCube | **SmolVLA任务权重**：[azazdeaz/smolvla_so101_leisaac_lift_cube](https://huggingface.co/azazdeaz/smolvla_so101_leisaac_lift_cube) | 完整权重及原统计已准备，统计与源数据核对；严格CPU加载及front 64×64＋q6的**50×6完整前向通过**。 / Strict CPU load and full forward passed. | 已有单front包装与公共chunk管理。模型原用front+wrist；缺失视角的性能影响、GPU及LiftCube闭环**未验收**。 / Single-view performance and task rollout remain unverified. |
 | LiftCube | **π₀.₅ SO101域适配基座**：[dongyoonkim/so101-pi05-base](https://huggingface.co/dongyoonkim/so101-pi05-base) | 完整权重、内嵌统计已准备；作者模型图严格CPU加载及front 64×64＋q6的**50×6前向通过**。未确认可直接采用的同任务专用权重。 / Embodiment base, not an accepted LiftCube specialist. | 已有作者模型图专用包装，不等于通用LeRobot π₀.₅加载器。仍需GPU与LiftCube闭环；会输出六关节动作不代表会抓方块。 / GPU and task capability remain unverified. |
 | LiftCube | **OpenVLA-OFT**：未确认匹配的完整任务权重 | 通用OpenVLA核心及处理器CPU加载通过；六维state/action、chunk30的接口合同与测试已有。**缺少匹配且受训的OFT动作头、状态投影及统计组合。** / Core load and contract tests, not a trained OFT policy. | 已有OFT包装入口；未完成匹配策略前向或任务闭环。不能将通用OpenVLA核心、随机初始化头或其他架构当作可用SO101-OFT策略。 / A compatible trained full package is still required. |
-| PickOrange | **GR00T N1.5官方任务权重**：[LightwheelAI/leisaac-pick-orange-v0](https://huggingface.co/LightwheelAI/leisaac-pick-orange-v0) | 完整权重、GPU及真实物理闭环已有历史验收。固定60秒、100回合为**25/100**；选用的原生辅助协议为**52/100**，两组不可合并。 / Historical task validation under two distinct protocols. | [双视角服务、完整评测与审核源码](../course/pickorange/README.md)已整理；新移植有CPU合同检查，尚未重新GPU/仿真验收，不自动继承历史52%。 / Public source port and CPU checks; new runtime validation pending. |
-| PickOrange | **SmolVLA任务权重**：[edge-inference/smolvla-so101-pick-orange](https://huggingface.co/edge-inference/smolvla-so101-pick-orange)、[wsagi/SmolVLA-PickOrange](https://huggingface.co/wsagi/SmolVLA-PickOrange) | 两份完整权重及原统计已准备，GPU与双RGB闭环已有历史记录。Edge有一次整任务成功；Wsagi所测长回合超时。**没有这两份权重的完整100回合成绩。** / Task rollouts exist, not an accepted success-rate estimate. | LiftCube单front包装不等于PickOrange双视角runner；需整理专用服务、完整回合及终态审计入口。 / Dual-view task integration remains separate. |
-| PickOrange | **π₀.₅任务权重候选**：[wsagi/Pi0.5-PickOrange](https://huggingface.co/wsagi/Pi0.5-PickOrange)；另有上述SO101域基座 | 任务专用模型已发现，**未下载或完成CPU/GPU适配**；作者标注负面结果，不能假定可用。SO101域基座另有历史短时闭环，但条件延长100回合组仍为**0个完整回合**，不是0%成功率。 / Task checkpoint discovered only; separate base-model partial runs are not completed evaluation. | 任务候选需独立核对模型图、处理器和统计，不能复用域基座加载器即宣称通过。完整公开runner也待整理。 / Checkpoint-specific integration and task validation remain open. |
-| PickOrange | **OpenVLA-OFT**：未确认匹配的完整任务权重 | 可复用核心CPU检查与SO101软件接口准备；没有匹配OFT策略的GPU或完整任务验收。历史普通OpenVLA短测**不属于OFT验证**。 / Software preparation only; vanilla OpenVLA evidence does not validate OFT. | 同样缺匹配受训动作头、状态投影、统计及核心权重组合，之后再接PickOrange双视角/动作合同。 / Trained package and task-specific runner remain open. |
+| PickOrange | **GR00T N1.5官方任务权重**：[LightwheelAI/leisaac-pick-orange-v0](https://huggingface.co/LightwheelAI/leisaac-pick-orange-v0) | 原生辅助、60秒、seed 17–26 配对组 **7/10**。历史100回合的固定执行器 **25/100** 与原生辅助 **52/100** 独立保留。 / Audited paired run; historical protocols reported separately. | [双视角服务、完整评测与审核源码](../course/pickorange/README.md)。 / Dual-view service and audit. |
+| PickOrange | **GR00T N1.6任务权重**：[wsagi/GR00T-N1.6-PickOrange](https://huggingface.co/wsagi/GR00T-N1.6-PickOrange/tree/4e59743e6c9c37b59c3f0350d3ad20b04b5f6d08) | 原生处理器核对相对手臂、绝对夹爪；同 seed、初态、60秒与执行器的配对组 **3/10**。 / Native decoding and paired physical rollout audited. | [独立N1.6后端](../course/pickorange/README.md)，不复用N1.5加载器。 / Separate native backend. |
+| PickOrange | **SmolVLA任务权重**：[edge-inference/smolvla-so101-pick-orange](https://huggingface.co/edge-inference/smolvla-so101-pick-orange)、[wsagi/SmolVLA-PickOrange](https://huggingface.co/wsagi/SmolVLA-PickOrange) | 两份完整权重及原统计已准备，GPU与双RGB闭环已有历史记录。Edge有一次整任务成功；Wsagi所测长回合超时。**没有这两份权重的完整100回合成绩。** / Task rollouts exist, not an accepted success-rate estimate. | [Edge双视角服务](../course/pickorange/service_smolvla.py)已接公共评测／审核，新增原生辅助协议通过CPU检查，GPU闭环待验；wsagi仍为独立候选。 / Edge service integrated; new protocol rollout pending. |
+| PickOrange | **π₀.₅任务权重**：[Aikwed/pi05_pick_orange_full](https://huggingface.co/Aikwed/pi05_pick_orange_full/tree/bf4a13ed9d2ce17a96be5d82939191fa7ccf9ed5) | 双视角物理闭环通过；30 Hz、16步重规划、60秒原生辅助开发组 **0/10**，不是可靠的完整任务基线。 / The interface ran; task completion was 0/10 under this protocol. | [独立LeRobot后端与30 Hz协议](../course/pickorange/README.md)；与VLASH图及统计不互换。 / Separate native processor and action clock. |
+| PickOrange | **OpenVLA-OFT**：未确认匹配的完整任务权重 | 已实现双视角软件合同，无匹配OFT策略的GPU或任务验收。历史普通OpenVLA短测**不属于OFT验证**。 / Interface only. | 缺匹配受训动作头、状态投影、统计及核心权重组合。 / A compatible trained package is still required. |
 
 单相机GR00T N1.5候选的局部投影/预处理检查，不等于上表LiftCube N1.6任务模型完整验收。通用SO101-OFT候选[Atabaku/so101-openvla-oft-5000](https://huggingface.co/Atabaku/so101-openvla-oft-5000)需要访问批准，尚无可验收的完整权重，也未确认与任一任务匹配。“未确认找到”不表示网络上绝对不存在。
 
@@ -79,12 +80,13 @@ Code, external checkpoints and accepted task policies are distinct. Validate vie
 | --- | --- | --- |
 | SmallCNN BC/PPO | 已有参考训练、存档与评测代码，真实学习能力另验 / Reference trainers and evaluation | 未接入这些训练器 / Not integrated |
 | ACT | 冻结LeRobot实现可复用，当前任务训练包装待接 / Upstream implementation, task integration pending | 有20帧格式/CPU前向及优化恢复诊断；非受训任务策略 / Diagnostic bridge, not a trained task policy |
+| VLA上的RL / RL on a VLA | 尚无任务RL能力验收 / No task-level RL acceptance | N1.5 Residual SAC小训练及30对已审核，19/30→21/30，尚无稳定提升；N1.6及π₀.₅另有流程测峰。DiT12搁置；[结果和代码交付范围](PICKORANGE_VALIDATION.md)，不提供一键RL训练器 / Results do not imply a released trainer |
 
 ## 当前开发顺序 / Development order
 
 1. 分别冻结任务、观测、动作、物理与评分配置；沿各自入口检查真实RGB/q及终态。 / Freeze each task's own contracts and verify observations and terminal capture.
 2. LiftCube优先形成可复现的规则结果、合格演示以及ACT/SmolVLA对照；其他VLA按匹配程度接入。 / Establish rule and ACT/SmolVLA comparisons with accepted demonstrations.
-3. PickOrange先验收已整理的GR00T原生辅助服务、完整回合与终态，再接其他模型；教师采集与固定物理BC准入另审，不把诊断或状态写入成绩当正式评测。 / Validate the source port before additional models and teacher-data admission.
+3. PickOrange以已测N1.5任务基座为开发起点，推进可归因的RL对照、SmolVLA统一协议基线和π₀.₅诊断；OFT先补受训包或选择BC。DiT12暂搁置。教师采集与BC准入独立审核。 / Build on N1.5, standardize SmolVLA evaluation, diagnose PI05 and resolve OFT training assets; DiT12 is deferred.
 4. 两任务独立配置、数据划分、统计、checkpoint和结果目录；比较时保留任务、视角、控制与预算信息。 / Keep data, normalization, checkpoints and evaluation records separate.
 
 多物体迁移方案保存在[后续路线](LIFTCUBE_TRANSFER.md)。它不触发额外训练，也不要求先完成未知正式环境的适配。

@@ -1,5 +1,7 @@
 # SO-101 LiftCube
 
+模型与脚本入口：[双任务VLA导航](../../docs/VLA_INTERFACES.md) · [视觉／state脚本](../../docs/SCRIPTED_POLICIES.md)。相同工具共用源码，环境与控制配置按任务区分。 / Shared interface and script guides link the actual code for both tasks.
+
 抓取桌面方块并抬升的任务，包含环境适配器、演示读取、BC、参考PPO和评测入口。当前与[PickOrange](../../docs/PICK_ORANGE.md)分别推进；环境版本、相机和动作差异见[任务对照](../../docs/TASKS.md)。正式多物体抓放留待后续。
 
 A cube-lifting task with an environment adapter, demonstration reader, BC, reference PPO and evaluation entry points. It runs alongside [PickOrange](../../docs/PICK_ORANGE.md), with separate contracts listed in the [task comparison](../../docs/TASKS.md). The formal multi-object task is deferred.

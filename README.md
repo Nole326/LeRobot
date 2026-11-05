@@ -30,18 +30,16 @@
 ## 当前范围
 
 - **LiftCube**：提供环境适配、演示读取、BC、参考 PPO、视觉规则策略和公共评测入口。配套镜像与运行方法见 [LiftCube 指南](course/liftcube/README.md)。
-- **PickOrange**：提供冻结环境源码、独立GR00T双视角服务与原生辅助评测源码、轨迹审核及ACT数据桥接诊断；新评测移植待真实环境验收。见 [PickOrange 指南](course/pickorange/README.md)。
-- **VLA接口**：[SmolVLA、π₀.₅、GR00T N1.5和OpenVLA-OFT单front推理包装](docs/VLA_INTERFACES.md)位于LiftCube包；已有CPU检查，完整任务验收按后端推进。ACT及VLA训练接入仍在开发，PickOrange需要独立任务适配。
-- **规则基线**：[LiftCube视觉抓取脚本](docs/SCRIPTED_LIFTCUBE.md)，使用RGB定位与逆运动学，作为后续标定和任务适配的开发基准；已有仿真抓取成功，跨场景稳定性仍待改进，需要独立标定。
+- **PickOrange**：提供冻结环境、双相机GR00T／SmolVLA／π₀.₅服务、公共评测与轨迹审核；新增SmolVLA入口已作CPU检查，实际闭环待验。见[运行指南](course/pickorange/README.md)。
+- **VLA接口**：[双任务接口导航](docs/VLA_INTERFACES.md)列出四类模型的源码与入口：LiftCube使用单front包装，PickOrange使用双相机服务；OFT还需匹配的受训动作头、投影与统计。
+- **规则与教师脚本**：[双任务脚本指南](docs/SCRIPTED_POLICIES.md)集中链接LiftCube视觉／state脚本、PickOrange官方state教师及上游参考。PickOrange纯视觉规则脚本尚缺；特权教师与视觉baseline分别使用、分别报告。
 - **后续任务**：正式多物体抓放、跨物体泛化与真机部署；保留迁移设计，当前不以未发布环境的适配为前提。
 
 两任务的环境版本、专家脚本、演示数据及四种VLA的权重与验收进度见[任务与适配状态表](docs/TASKS.md)。同为SO-101不等于接口相同，配置、权重、统计与成绩分别管理。
 
-获取模型与演示从[资源清单](docs/RESOURCES.md)开始；教师、训练及评测按[操作指南](docs/TRAIN_AND_EVALUATE.md)选择对应任务入口。LiftCube特权教师为新开发候选；PickOrange原生辅助使用物体真值夹爪控制，不作为无特权视觉baseline。
+PickOrange模型结果、Residual SAC配对和显存需求见[检验摘要](docs/PICKORANGE_VALIDATION.md)。仓库提供推理与评测入口，实验RL训练器和学习后的参数尚未发布。
 
-当前 LiftCube 使用单路 front RGB 与六关节控制，具体输入、动作和时序见[接口说明](course/liftcube/README.md#接口--interface)。策略仅使用图像与许可本体状态，物体和目标真值用于训练奖励或离线分析。
-
-另提供可选的[受限末端开发接口](docs/PLANAR_EE_DEVELOPMENT.md)，用于固定参考高度和接近轴下的XY控制，物理定高精度尚未验收；它是自研执行层，不是课程正式IK，旧关节策略不能直接套用。
+从[资源清单](docs/RESOURCES.md)获取模型与演示，按[训练与评测指南](docs/TRAIN_AND_EVALUATE.md)选择任务入口。PickOrange原生辅助评测使用物体真值控制夹爪，与无特权视觉baseline分开报告。
 
 ## 快速开始
 
@@ -78,7 +76,7 @@ LiftCube集成代码位于 `course/liftcube/src/starter/`；PickOrange运行入�
 │   ├── configs/              # 当前任务配置
 │   └── patches/              # 相对课程原包的可逆修改
 ├── course/scripts/           # PickOrange环境、重放、ACT桥接等诊断
-├── course/pickorange/        # 独立GR00T原生辅助评测、模型服务与审核
+├── course/pickorange/        # 双视角VLA服务、评测与轨迹审核
 ├── configs/                  # 公共实验计划模板
 ├── scripts/                  # 仓库、来源与计划检查
 ├── tests/                    # 项目回归测试
@@ -93,7 +91,7 @@ LiftCube集成代码位于 `course/liftcube/src/starter/`；PickOrange运行入�
 ## 开发路线
 
 1. 分别冻结LiftCube与PickOrange的环境、输入、动作和成功判据，补齐各自运行入口。
-2. 优先完成LiftCube规则、演示准入及ACT/小规模VLA对照；并行补齐PickOrange的任务适配与完整回合评测。
+2. 保留LiftCube规则、演示准入及ACT/小规模VLA路线；当前重点推进PickOrange的VLA基线、可归因RL对照与其他模型能力验收。
 3. 根据已验收的数据和模型推进微调、RL及必要消融，记录完整回合和失败原因。
 4. 正式多物体环境发布后，再恢复跨物体迁移、泛化和真机对齐。
 
@@ -117,6 +115,7 @@ VLA 强化学习实现参考 [RLinf](docs/RLINF.md)，目前尚未接入本项�
 
 - [开发起步与阶段验收](docs/GETTING_STARTED.md)
 - [LiftCube与PickOrange：资源与适配状态表](docs/TASKS.md)
+- [PickOrange模型检验、RL配对与显存参考](docs/PICKORANGE_VALIDATION.md)
 - [模型权重与专家演示获取](docs/RESOURCES.md)
 - [按任务进行教师采集、训练和评测](docs/TRAIN_AND_EVALUATE.md)
 - [SwanLab训练与评测曲线](docs/SWANLAB.md)：仅数值与脱敏配置，默认离线，在线使用私有项目
