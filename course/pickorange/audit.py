@@ -6,7 +6,7 @@ import sys
 
 import numpy as np
 
-from common import publish, sha256
+from common import load_protocol, publish, sha256, timing, validate_protocol
 
 
 def native_success(joints, objects):
@@ -32,9 +32,11 @@ def audit_episode(run_dir, row):
     if sha256(path) != row['trajectory_sha256']:
         raise ValueError('Trajectory SHA mismatch')
     manifest = json.loads((run_dir / 'manifest.json').read_text(encoding='utf-8'))
+    cfg = validate_protocol(manifest['protocol']) if 'protocol' in manifest else load_protocol()
+    hold, stride, max_steps = timing(cfg)
     with h5py.File(path, 'r') as f:
         n = int(row['physics_steps'])
-        if not f.attrs.get('complete') or n < 1 or n > 3600 or f.attrs['physics_steps'] != n or f.attrs['env_seed'] != row['env_seed']:
+        if not f.attrs.get('complete') or n < 1 or n > max_steps or f.attrs['physics_steps'] != n or f.attrs['env_seed'] != row['env_seed']:
             raise ValueError('Incomplete or inconsistent episode identity')
         arrays = {key: f[key][:] for key in ('raw_model_motor', 'target_rad', 'action_manager_raw', 'pre_joint_rad', 'post_joint_rad')}
         if any(v.shape != (n, 6) or not np.isfinite(v).all() for v in arrays.values()):
@@ -51,7 +53,7 @@ def audit_episode(run_dir, row):
         if objects.shape != (n, 4, 3) or efforts.shape != (n,) or not np.isfinite(objects).all() or not np.isfinite(efforts).all():
             raise ValueError('Diagnostic stream mismatch')
         samples = f['sample_steps'][:]
-        if not np.array_equal(samples, np.arange(0, n, 16)) or row['model_queries'] != len(samples):
+        if not np.array_equal(samples, np.arange(0, n, stride)) or row['model_queries'] != len(samples):
             raise ValueError('Model-query alignment mismatch')
         query_ids = f['query_ids'][:]
         latencies = f['inference_seconds'][:]
@@ -72,12 +74,13 @@ def audit_episode(run_dir, row):
                 for cam in ('front', 'wrist'):
                     if not np.array_equal(request[cam][0], f['policy_rgb/'+cam][index]):
                         raise ValueError('Query RGB differs from trajectory')
-            stop = min(n, int(start)+16)
+            stop = min(n, int(start)+stride)
             with np.load(run_dir / 'ipc' / f'response-{query:06d}.npz', allow_pickle=False) as response:
                 actions = response['actions_motor']
-                if actions.shape != (16, 6) or not np.isfinite(actions).all() or int(response['query_id']) != query:
+                if actions.shape != (cfg['chunk_length'], 6) or not np.isfinite(actions).all() or int(response['query_id']) != query:
                     raise ValueError('Invalid raw model response')
-                if not np.array_equal(arrays['raw_model_motor'][start:stop], actions[:stop-start].astype(np.float32)):
+                expected = actions[np.arange(stop-start)//hold].astype(np.float32)
+                if not np.array_equal(arrays['raw_model_motor'][start:stop], expected):
                     raise ValueError('Executed model prefix differs from original response')
                 if not np.isclose(float(response['inference_sec']), latencies[index], atol=1e-8):
                     raise ValueError('Query latency differs from response')
@@ -85,7 +88,7 @@ def audit_episode(run_dir, row):
         rng_file = path.parent / 'model-rng-after-episode.pt'
         if row['model_rng_sha256'] != last_rng_digest or sha256(rng_file) != last_rng_digest:
             raise ValueError('Model RNG handshake mismatch')
-        if not bool(row['terminated'] or row['truncated']) or (row['truncated'] and n != 3600):
+        if not bool(row['terminated'] or row['truncated']) or (row['truncated'] and n != max_steps):
             raise ValueError('Native terminal budget mismatch')
         if bool(f.attrs['terminated']) != row['terminated'] or bool(f.attrs['truncated']) != row['truncated']:
             raise ValueError('Native termination record mismatch')

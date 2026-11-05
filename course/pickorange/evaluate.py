@@ -17,8 +17,8 @@ import traceback
 
 import numpy as np
 
-from common import (DEFAULT_PROTOCOL, load_protocol, publish, rng_state,
-                    save_arrays, sha256, wait_file)
+from common import (DEFAULT_PROTOCOL, close_resources, load_protocol, publish, rng_state,
+                    save_arrays, sha256, timing, wait_file)
 
 
 def check_imported_sources():
@@ -51,6 +51,7 @@ def main(argv=None):
     # Parse --check before importing AppLauncher: no implicit GPU/application.
     preliminary, _ = p.parse_known_args(argv)
     cfg = load_protocol(preliminary.protocol)
+    hold, stride, max_steps = timing(cfg)
     if preliminary.check:
         p.parse_args(argv)
         print(json.dumps(dict(status='protocol_checked', protocol=cfg, simulation_run=False)))
@@ -82,7 +83,7 @@ def main(argv=None):
         from starter.logging.swanlab import ScalarWriter
         writer = ScalarWriter(dict(seed=seeds[0], env=dict(id=cfg['task_id']),
             eval=dict(num_episodes=len(seeds), oracle_actuator_assisted=True),
-            logging=dict(dir=str(out), swanlab=dict(name='pickorange-groot-native-assisted-eval'))), 'pickorange-eval')
+            logging=dict(dir=str(out), swanlab=dict(name=cfg['name']+'-eval'))), 'pickorange-eval')
         def budget():
             if time.monotonic()-started >= a.wall_seconds:
                 raise TimeoutError('Wall budget reached; preserve the partial and completed prefix')
@@ -139,7 +140,7 @@ def main(argv=None):
         env = gym.make(cfg['task_id'], cfg=env_cfg).unwrapped
         robot = env.scene['robot']
         ids, names = robot.find_joints(JOINTS, preserve_order=True)
-        if names != JOINTS or env.action_manager.total_action_dim != 6 or abs(env.step_dt-1/60) > 1e-7 or env.max_episode_length != 3600:
+        if names != JOINTS or env.action_manager.total_action_dim != 6 or abs(env.step_dt-1/cfg['physics_hz']) > 1e-7 or env.max_episode_length != max_steps:
             raise ValueError('Joint/action/timing contract differs from this protocol')
         terms = [env.action_manager.get_term(k) for k in env.action_manager.active_terms]
         if sum([list(t._joint_names) for t in terms], []) != JOINTS:
@@ -168,7 +169,7 @@ def main(argv=None):
             episode_start, latencies, samples, query_ids = time.monotonic(), [], [], []
             with h5py.File(directory / 'trajectory.hdf5', 'x') as h5:
                 h5.attrs.update(complete=False, env_seed=seed, oracle_actuator_assisted=True,
-                                action_hz=60, physics_hz=60, automatic_bc_admission=False)
+                                action_hz=cfg['action_hz'], physics_hz=cfg['physics_hz'], automatic_bc_admission=False)
                 streams = {key: h5.create_dataset(key, shape=(0, 6), maxshape=(None, 6), dtype='f4',
                     chunks=(64, 6), compression='lzf') for key in
                     ('raw_model_motor', 'target_rad', 'action_manager_raw', 'pre_joint_rad', 'post_joint_rad')}
@@ -178,8 +179,8 @@ def main(argv=None):
                 cameras = {cam: h5.create_dataset('policy_rgb/'+cam, shape=(0, 480, 640, 3),
                     maxshape=(None, 480, 640, 3), dtype='u1', chunks=(1, 480, 640, 3), compression='lzf')
                     for cam in ('front', 'wrist')}
-                for step in range(3600):
-                    if step % 16 == 0:
+                for step in range(max_steps):
+                    if step % stride == 0:
                         budget()
                         measured = robot.data.joint_pos[:, ids].detach().cpu().numpy().copy()
                         motor = convert_leisaac_action_to_lerobot(measured)
@@ -197,7 +198,7 @@ def main(argv=None):
                             if int(data['query_id']) != query:
                                 raise ValueError('Model query identity mismatch')
                             model_rng_digest = str(data['model_rng_sha256'])
-                        if chunk_motor.shape != (16, 6) or not np.isfinite(chunk_motor).all() or not np.isfinite(latency) or latency < 0:
+                        if chunk_motor.shape != (cfg['chunk_length'], 6) or not np.isfinite(chunk_motor).all() or not np.isfinite(latency) or latency < 0:
                             raise ValueError('Invalid model response')
                         chunk = convert_lerobot_action_to_leisaac(chunk_motor)
                         if not np.allclose(chunk, motor_to_rad(chunk_motor), atol=1e-4):
@@ -210,7 +211,8 @@ def main(argv=None):
                             dst.resize(len(samples), axis=0)
                             dst[-1] = payload[cam][0]
                         query += 1
-                    target = chunk[step % 16]
+                    action_index = (step % stride) // hold
+                    target = chunk[action_index]
                     command = (torch.as_tensor(target[None], device=env.device)-offsets) / scales
                     pre = robot.data.joint_pos[0, ids].detach().cpu().numpy().copy()
                     dynamic_reset_gripper_effort_limit_sim(env, 'so101leader')
@@ -220,7 +222,7 @@ def main(argv=None):
                     final = env.public_final if done else snapshot()
                     if final is None:
                         raise RuntimeError('Missing pre-reset terminal snapshot')
-                    for key, value in dict(raw_model_motor=chunk_motor[step % 16], target_rad=target,
+                    for key, value in dict(raw_model_motor=chunk_motor[action_index], target_rad=target,
                         action_manager_raw=command[0].detach().cpu().numpy(),
                         pre_joint_rad=pre, post_joint_rad=final['joint_pos']).items():
                         if not np.isfinite(value).all():
@@ -231,7 +233,7 @@ def main(argv=None):
                     objects[-1] = final['objects']
                     efforts.resize(step+1, axis=0)
                     efforts[-1] = effort
-                    if step % 16 == 0 or done:
+                    if step % stride == 0 or done:
                         h5.flush()
                         publish(out / 'progress.json', dict(completed_episodes=len(results), episode=episode,
                             env_seed=seed, physics_steps=step+1, model_queries=query))
@@ -252,7 +254,7 @@ def main(argv=None):
                 raise ValueError('Model end-of-episode RNG handshake mismatch')
             torch.save(rng_state(torch, random), directory / 'simulation-rng-after-episode.pt')
             row = dict(episode=episode, env_seed=seed, success=final['success'], physics_steps=step+1,
-                simulated_seconds=(step+1)/60, wall_seconds=time.monotonic()-episode_start,
+                simulated_seconds=(step+1)/cfg['physics_hz'], wall_seconds=time.monotonic()-episode_start,
                 model_queries=len(samples), mean_inference_seconds=float(np.mean(latencies)),
                 terminated=bool(terminated[0]), truncated=bool(truncated[0]),
                 trajectory=f'{directory.name}/trajectory.hdf5', trajectory_sha256=sha256(directory / 'trajectory.hdf5'),
@@ -282,12 +284,7 @@ def main(argv=None):
         raise
     finally:
         (out / 'STOP').touch()
-        if env is not None:
-            env.close()
-        if app is not None:
-            app.close()
-        if writer is not None:
-            writer.close()
+        close_resources(writer, env, app)
 
 
 if __name__ == '__main__':

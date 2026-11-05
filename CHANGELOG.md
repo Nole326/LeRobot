@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+- 首页按LiftCube／PickOrange列出模型和脚本入口；新增视觉／state脚本导航，链接现有第一方实现与保留许可证的上游源码。
+- 增加PickOrange SmolVLA双相机服务，使用Edge固定导出及原处理器，复用IPC、评测、审核与SwanLab；新增协议仅完成CPU检查，实际闭环待验。
+- PickOrange视觉规则脚本尚缺；官方state教师保留物理与直接写状态的限制。OFT仍需匹配受训包。
+
+Add task-specific model/script navigation and a CPU-checked dual-view SmolVLA service. Shared evaluation and tracking remain single implementations; rollout validation and a PickOrange visual rule policy remain open.
+
+整理PickOrange模型能力、Residual SAC配对与RL显存参考，连接任务／资源／训练指南并区分实验结果与公开代码交付；DiT12标记搁置，不打包其训练器或参数。补齐N1.6／π₀.₅真实后端版本拒绝检查；SwanLab先于仿真应用关闭，并覆盖关闭失败分支。只做CPU回归，不刷新历史GPU成绩。
+
+Connect task capability, paired Residual SAC and memory notes to the public guides. Defer DiT12 and exclude experimental RL trainers/artifacts. Verify pinned backends for N1.6/PI05 and flush scalar tracking before application shutdown, with CPU regressions rather than a new GPU benchmark.
+
+新增 PickOrange 双视角 GR00T N1.6 和 LeRobot π₀.₅ 任务导出入口，保留各自处理器、动作时序与轨迹审计；新增缺少匹配受训包时拒绝加载的 OpenVLA-OFT 接口。未修改任务物理、原生评分或默认 N1.5 协议。
+
+Add separate PickOrange GR00T N1.6 and LeRobot π₀.₅ task entry points and a fail-closed dual-view OpenVLA-OFT boundary. Preserve the original physics, success criteria and default N1.5 protocol.
+
 修复SwanLab测试在无NumPy的源码检查环境导入失败：评测汇总按需加载NumPy，保留原指标与日志导出接口；新增`-I -S`隔离导入回归，不改训练算法、评分或依赖版本。
 
 Load NumPy only when summarizing nonempty evaluation records, keeping scalar-tracking imports standard-library-only. Preserve existing exports and calculations, with an isolated import regression test.

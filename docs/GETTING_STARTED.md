@@ -10,15 +10,16 @@ Build one minimal loop before increasing model size or training budget: read obs
 
 Read this page, then the [interface contracts](INTERFACE_CONTRACTS.md), [dependencies](DEPENDENCIES.md) and [training validation](TRAINING_VALIDATION.md). The formal task definition takes precedence over artwork and upstream examples. Leave unpublished parameters unresolved instead of substituting familiar defaults.
 
-当前先按[任务对照](TASKS.md)选择LiftCube或PickOrange，再按[资源清单](RESOURCES.md)获取模型/演示、按[训练与评测](TRAIN_AND_EVALUATE.md)选择执行入口。LiftCube已有配套镜像、视觉脚本与参考训练；PickOrange使用独立环境，另有[GR00T原生辅助服务/评测源码](../course/pickorange/README.md)，移植待实际验收。两任务不混用依赖、统计或评分，不等待尚未发布的正式多物体环境才开发。
+先按[任务对照](TASKS.md)选择LiftCube或PickOrange，再按[资源清单](RESOURCES.md)获取模型/演示、按[训练与评测](TRAIN_AND_EVALUATE.md)选择入口。LiftCube已有配套镜像、视觉脚本和参考训练；PickOrange使用独立环境与[双视角推理/评测入口](../course/pickorange/README.md)。两任务不混用依赖、统计或评分。
 
-Choose a task in the comparison, obtain its resources and follow the execution guide. LiftCube has a matching image and reference implementations; PickOrange has a separate runtime and a GR00T assisted source port awaiting runtime acceptance. Keep task dependencies and results separate.
+Choose a task in the comparison, obtain its resources and follow the execution guide. LiftCube has a matching image and reference implementations; PickOrange has a separate runtime and dual-view rollout entry points. Keep task dependencies and results separate.
 
 按目标选择入口，避免把所有训练前提都套到规则推理上：
 
 | 目标 / Goal | 入口与前提 / Entry and prerequisites |
 | --- | --- |
 | PickOrange接口与重放 / PickOrange interfaces and replay | [任务指南](PICK_ORANGE.md)；独立仿真/模型环境、真实动作offset与终态，诊断不作正式评测 / Separate runtime, native action mapping and terminal capture; diagnostics are not benchmarks |
+| PickOrange模型／RL选型 / Model and RL selection | [检验与显存摘要](PICKORANGE_VALIDATION.md)：任务成绩、资源需求及代码可用范围 / Task scores, resource requirements and available code |
 | 视觉规则抓取 / Rule grasping | [规则指南](SCRIPTED_LIFTCUBE.md)；匹配标定与运动学，先`--check`再获准闭环，无需演示或权重 / Calibrated kinematics, offline check then authorized rollout; no dataset/weights |
 | 三维末端开发 / Planar EE development | [开发契约](PLANAR_EE_DEVELOPMENT.md)；独立标定、有效初始姿态及匹配策略，物理精度未验收 / Separate calibration, valid starting pose and compatible policy; tracking not accepted |
 | BC/PPO / Learning | [训练指南](../course/liftcube/TRAINING.md)；当前为六关节SmallCNN参考路径，BC先完成演示准入 / Six-joint SmallCNN reference path; BC requires accepted demonstrations |

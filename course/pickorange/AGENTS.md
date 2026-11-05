@@ -2,7 +2,12 @@
 
 适用于本目录，与[根AGENTS](../../AGENTS.md)同时遵守。先读[本目录README](README.md)、[环境指南](../../docs/PICK_ORANGE.md)、[资源清单](../../docs/RESOURCES.md)。本目录是独立模型评测；`course/scripts/`保留历史诊断，LiftCube继续使用其专属包。
 
-- `common.py`校验协议、NPZ输入白名单和有界等待；`service.py`只负责固定GR00T N1.5双视角推理；`evaluate.py`负责原生动作转换、完整回合及reset前捕获；`audit.py`独立读盘。不要复制一套LiftCube工厂或将N1.6权重交给N1.5加载器。
+- `common.py`校验协议、NPZ输入白名单和有界等待；`service.py`默认GR00T N1.5，`service_n16.py`和`service_pi05.py`各绑定自己的权重与后端；`evaluate.py`负责原生动作转换、完整回合及reset前捕获；`audit.py`独立读盘。不要将N1.6权重交给N1.5加载器，或复用π₀.₅域基座的处理器。
+- 四个服务在构造模型前验证真实后端commit及受管工作树；不要仅凭协议版本声明放行。收尾须先关闭SwanLab writer再关闭环境／SimulationApp，保留错误但仍尝试释放资源；补测关闭顺序和失败分支，不伪造历史SDK状态。
+- `service_smolvla.py`复用同一IPC／评测／审核，固定Edge导出与LeRobot v0.4.2；完整front+wrist、原pre/post统计，不复用LiftCube缺槽配置。每次预测清缓存但不重seed，30 Hz动作只由评测器保持两tick。新增原生辅助协议只有CPU证据，不继承旧固定执行器成绩。
+- 视觉／state脚本从[统一指南](../../docs/SCRIPTED_POLICIES.md)定位实际源码。上游教师留在冻结第三方目录，勿复制成自研视觉脚本；PickOrange视觉规则实现仍缺。
+- N1.6手臂相对量由原生处理器转为绝对motor，夹爪已为绝对量；不再加当前q。π₀.₅按checkpoint原统计解码，30 Hz动作保持两个60 Hz物理步。仿真和模型须使用同一协议，禁止为方便比较改变模型的预处理或执行节奏。
+- `openvla_oft.py`是待受训包的接口，不继承LiftCube单front入口；无匹配同源双RGB、六关节动作头/投影与统计时拒绝加载。不能把新初始化组件、通用OpenVLA或LIBERO结果当作PickOrange策略能力。
 - 默认`protocols/groot-native-assisted.json`明确允许上游物体真值夹爪辅助；不把真值发给网络，不称无特权视觉baseline或课程正式评分。换物理、辅助、相机、频率、限幅或时限须新命名协议，不能沿用历史结果。
 - `--check`与`--help`不可创建AppLauncher或加载大模型。服务须显式`--run-service`，仿真须`--run-simulation`。文件IPC仅在受信任本地共享目录，不使用pickle或开放网络端口。
 - 结果目录唯一，服务创建/evaluator独占claim；不复用旧ready、删除claim、覆盖失败或自动重跑。当前无自动resume；保留partial，不重复计入已完成seed。RNG存档不能冒称任意中途物理恢复。
@@ -10,6 +15,7 @@
 - 原始模型motor、转换后rad、action manager raw和实测q分开，明确scale/offset与关节顺序；本原生辅助协议不软件限幅，其他包装的动作保护不得因此放宽。
 - 官方特权教师代码已在`third_party/leisaac`。其重力/阻尼/直接写状态与成功覆盖必须在采集说明中披露；不得把它的生成成功当成固定物理BC准入。
 - 命令与资源说明必须让新使用者从公开仓库操作；权重、数据、个人部署、凭据、设备或私有运维配置不入Git。训练流程见[训练与评测](../../docs/TRAIN_AND_EVALUATE.md)，当前推理服务不等于VLA训练器。
+- 已完成实验的公开范围见[检验摘要](../../docs/PICKORANGE_VALIDATION.md)。只维护可公开的协议／指标和实际代码交付状态，不复制私有实验记录；DiT12为搁置项，不提供虚构训练命令或自行恢复，历史结果也不能算修订源码已重新GPU验收。
 
 修改后在根目录的独立CPU环境运行：
 

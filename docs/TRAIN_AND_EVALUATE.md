@@ -10,7 +10,7 @@ Start with the [status matrix](TASKS.md) and [resources](RESOURCES.md). Commands
 | --- | --- | --- |
 | 视觉脚本 / Visual rule | [已有规则基准](SCRIPTED_LIFTCUBE.md) | 暂未公开实现，可后续开发 / Not yet implemented |
 | 特权教师 / Privileged teacher | 本页下一节，显式`--privileged-teacher` | [已收录官方状态机](../course/pickorange/README.md#特权教师采集--privileged-teacher-collection)，含物理/直接写状态限制 |
-| 预训练VLA推理 / Pretrained inference | [单front包装](VLA_INTERFACES.md)，匹配本地适配描述；完整GPU闭环按模型验收 | [GR00T双视角原生辅助](../course/pickorange/README.md)，其他后端按状态表接入 |
+| 预训练VLA推理 / Pretrained inference | [单front包装](VLA_INTERFACES.md)，匹配本地适配描述；完整GPU闭环按模型验收 | [GR00T N1.5/N1.6、SmolVLA与π₀.₅双视角入口](../course/pickorange/README.md)，能力与限制见[检验摘要](PICKORANGE_VALIDATION.md) |
 | SmallCNN BC/PPO | [已有参考训练](../course/liftcube/TRAINING.md) | 当前不使用LiftCube训练器 / Not integrated |
 | ACT/SmolVLA训练 | 数据验收后复用下述上游离线训练；任务闭环单独接入 | 同理，保持双视角与本任务动作/统计 / Separate task adapter required |
 | π₀.₅/GR00T/OFT微调 | 先冻结形态、输入/动作与数据合同，再按匹配版本原生训练器实现 / Backend-specific training integration pending | 同左；不得混用不同模型图、形态头和处理器 / Same boundary |
@@ -97,3 +97,11 @@ PickOrange沿相同离线入口，但更换成其**独立已准入**数据、匹
 - GitHub发布代码、公开配置、来源及结果摘要；模型/LoRA/动作头和统计可发布到Hugging Face模型仓库，演示发布到数据集仓库，均先确认许可、隐私及完整性。下载URL和固定revision回填[资源清单](RESOURCES.md)，运行产物不进入Git。
 
 Publish reproducible code/configuration in Git, model exports on an appropriate model hub and demonstrations in a dataset repository. Keep artifact URLs and revisions synchronized with the status matrix; report only independently audited complete episodes under one protocol.
+
+## 6. PickOrange上的VLA RL / RL on the PickOrange VLA
+
+已有独立工程实验的流程测峰、Residual SAC小训练及配对结果见[检验摘要](PICKORANGE_VALIDATION.md)。这些结果不表示本仓库已提供通用SAC/PPO VLA训练器；当前命令加载原公开任务基座，不会自动加载实验残差或重现其后测。DiT12暂搁置，训练器和学习参数均未打包。
+
+先冻结匹配的BC／任务基座与评测协议，再分别定义可训练范围（残差、LoRA、Adapter或部分解冻）和学习目标（BC/SFT、SAC或PPO）。直接更新flow策略还需验证采样／概率处理和训练部署一致性；显存短测通过不能替代这一项。正式扩大训练前核验同点优化器、replay、RNG恢复，以及未参与选参的新场景配对。
+
+Existing pilot results are not a released general-purpose VLA RL trainer. Define the trainable scope separately from the learning objective, validate flow-policy sampling and train/deploy consistency, and test complete recovery before scaling. Use new held-out paired scenes for capability claims.

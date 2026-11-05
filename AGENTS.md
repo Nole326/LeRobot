@@ -19,6 +19,8 @@
 
 ## 按任务找入口
 
+两任务模型源码从[统一VLA导航](docs/VLA_INTERFACES.md)查找，视觉和state脚本从[统一脚本指南](docs/SCRIPTED_POLICIES.md)查找。共用实现只链接一次，不复制到两个任务目录。PickOrange SmolVLA已有独立双视角服务和CPU检查；其新协议尚待真实闭环，OFT仍缺受训包，PickOrange视觉规则脚本仍缺。
+
 | 任务 | 修改位置与必读入口 |
 | --- | --- |
 | 仓库检查、文档、来源清单 | `scripts/`、`tests/`、`manifests/`；[来源说明](docs/IMPORT_MANIFEST.md) |
@@ -27,14 +29,15 @@
 | LiftCube视觉规则基线 | `starter/scripted_liftcube.py`、`scripted_geometry.py`、`joint_chain.py`与`starter.scripts.evaluate_scripted`；[标定及验收](docs/SCRIPTED_LIFTCUBE.md)，实际相机标定辅助须显式启用，不得以合成标定启动仿真 |
 | 自研受限末端开发接口 | `starter/envs/planar_ee.py`、`envs/factory.py`、`tests/test_planar_ee.py`及[开发契约](docs/PLANAR_EE_DEVELOPMENT.md)；三维绝对XY/夹爪，非课程正式IK；旧关节策略不得自动接入 |
 | PickOrange任务与诊断 | [任务指南](docs/PICK_ORANGE.md)、`course/scripts/`及冻结上游任务源码；[目录AGENTS](course/scripts/AGENTS.md)、[部署边界](docs/REPRODUCIBILITY.md) |
-| PickOrange GR00T原生辅助评测 | `course/pickorange/`；[目录AGENTS](course/pickorange/AGENTS.md)、[运行指南](course/pickorange/README.md)；固定N1.5双视角、60Hz及显式物体真值夹爪辅助，不当无特权或课程正式评分 |
+| PickOrange双视角评测 | `course/pickorange/`；[目录AGENTS](course/pickorange/AGENTS.md)、[运行指南](course/pickorange/README.md)；GR00T N1.5/N1.6与π₀.₅各用匹配后端和协议，原生物体真值夹爪辅助不当无特权或课程正式评分 |
+| PickOrange验收与RL资源选型 | [公开检验摘要](docs/PICKORANGE_VALIDATION.md)连接模型状态与资源；实验结果不表示训练器／学习参数已交付，DiT12暂搁置，不从历史记录自动恢复 |
 | 教师、数据/权重获取、离线训练 | [资源清单](docs/RESOURCES.md)、[训练与评测](docs/TRAIN_AND_EVALUATE.md)；LiftCube显式`--privileged-teacher`，PickOrange已有上游状态机，其直接写状态不自动满足BC准入 |
 | 训练与评测曲线 | [SwanLab指南](docs/SWANLAB.md)、`starter/logging/swanlab.py`与`starter.scripts.train_lerobot`；共享数值记录，保留本地证据，不另造每模型日志器 |
 | ACT、SmolVLA、OpenVLA-OFT、π₀.₅、GR00T 接入 | 对应任务的策略包装；[架构](docs/ARCHITECTURE.md)、[接口契约](docs/INTERFACE_CONTRACTS.md)、该任务的子级 AGENTS |
 | 单front VLA与chunk生命周期 | `starter/models/`的SmolVLA/PI05/GR00T/OFT包装、共享chunk/backend I/O及[推理接口](docs/VLA_INTERFACES.md)；GR00T可显式在模型侧接收不同输入尺寸，环境保持不变；CPU替身通过不等于真实模型或GPU验收 |
 | 正式多物体任务或真机 | 先确认实际提供的环境、SDK、标定与评分包；[接口契约](docs/INTERFACE_CONTRACTS.md) |
 
-LiftCube 已有 SmallCNN BC/PPO 参考训练与评测，`starter.utils.build_policy()` 仍固定 SmallCNN。PickOrange另有GR00T原生辅助评测源码，移植尚待真实环境验收，其他VLA任务后端及通用训练接入仍有缺口。禁止只换task ID、沿用单front包装或将`starter`工厂冒称通用PickOrange入口。两任务独立记录视角、动作映射、统计、预算和评分；正式多物体与真机后续按实际接口开发，不提前虚构或自动恢复其适配工作。
+LiftCube 已有 SmallCNN BC/PPO 参考训练与评测，`starter.utils.build_policy()` 仍固定 SmallCNN。PickOrange另有双视角模型服务和原生辅助评测；按[任务对照](docs/TASKS.md)核对验收状态，OFT不能在缺匹配受训包时启动。禁止只换task ID、沿用单front包装或将`starter`工厂冒称通用PickOrange入口。两任务独立记录视角、动作映射、统计、预算和评分；正式多物体与真机后续按实际接口开发。
 
 ## 环境边界
 

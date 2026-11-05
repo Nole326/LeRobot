@@ -1,6 +1,6 @@
 # SO-101 PickOrange
 
-将三颗橙子放入盘中，再让机械臂返回休息姿态。这里说明环境与诊断入口；完整GR00T原生辅助开发评测和教师采集见[PickOrange运行指南](../course/pickorange/README.md)。任务方法和结果与[LiftCube](../course/liftcube/README.md)分开管理。两者差异见[任务对照](TASKS.md)。
+将三颗橙子放入盘中，再让机械臂返回休息姿态。这里说明环境与诊断入口；模型闭环评测和教师采集见[PickOrange运行指南](../course/pickorange/README.md)。任务方法和结果与[LiftCube](../course/liftcube/README.md)分开管理。两者差异见[任务对照](TASKS.md)。
 
 Put three oranges on the plate and return the arm to rest. This guide covers the public environment and diagnostic tools currently in the repository. Keep its methods and results separate from LiftCube; see the [task comparison](TASKS.md).
 
@@ -16,9 +16,11 @@ Put three oranges on the plate and return the arm to rest. This guide covers the
 | 轨迹/末帧/重放检查 / Trajectory diagnostics | [validate_rollout.py](../course/scripts/validate_rollout.py) |
 | ACT数据桥 / ACT data bridge | [validate_bridge.py](../course/scripts/validate_bridge.py)、[训练诊断说明](TRAINING_VALIDATION.md) |
 
-仓库另有`course/pickorange/`的GR00T模型服务、原生辅助完整回合评测及CPU轨迹审核，新移植仍待真实环境验收。尚无通用PickOrange训练器、已训练ACT策略或完整视觉规则baseline；其他VLA后端需继续接入。LiftCube的`starter.evaluation.evaluate`工厂只创建LiftCube。
+仓库另有`course/pickorange/`的GR00T N1.5／N1.6、SmolVLA与π₀.₅独立模型服务、原生辅助评测及CPU轨迹审核；OFT需匹配受训包。各模型验收状态见[任务对照](TASKS.md)。尚无通用PickOrange训练器、已训练ACT策略或完整视觉规则baseline；LiftCube工厂只创建LiftCube。
 
-The separate GR00T native-assisted source port includes a model service, full-episode runner and CPU audit; runtime validation remains pending. A general trainer, trained ACT policy, visual rule baseline and other task backends remain open. The LiftCube factory is not a PickOrange runner.
+The separate model services for GR00T N1.5/N1.6 and π₀.₅ share the native-assisted evaluator and CPU audit. OFT requires a matching trained package. The LiftCube factory is not a PickOrange runner.
+
+模型成绩、Residual SAC配对和RL显存需求见[检验摘要](PICKORANGE_VALIDATION.md)。实验RL训练器与学习参数尚未发布。 / See the validation summary for task results, paired Residual SAC evaluation and memory requirements. Experimental RL trainers and learned artifacts have not been released.
 
 ## 独立运行环境 / Separate runtime
 
