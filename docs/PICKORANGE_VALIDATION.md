@@ -111,7 +111,7 @@ DiT12 is deferred. Its training/deployment sampling mismatch and unchanged 7/10 
 - 本仓库提供GR00T N1.5／N1.6、π₀.₅及Edge SmolVLA独立推理服务，共用评测与CPU轨迹审核；OFT提供缺项拒绝接口。新增SmolVLA原生辅助协议仅通过CPU检查，不继承历史单例成绩。
 - 实验RL训练器、学习后的残差／LoRA／Adapter／DiT参数及完整恢复包**尚未发布**。仓库命令加载原公开基座；复现训练后结果还需要对应训练器与学习参数。
 - 模型与数据继续按[资源清单](RESOURCES.md)获取。后续公开学习参数需另有模型仓库、固定revision及许可审核；原始轨迹、机器配置和私人存储位置不随Git分发。
-- 新运行按[SwanLab指南](SWANLAB.md)记录数值与白名单配置。本文以本地结果和离线曲线对账为依据，不宣称云端同步已完成。部分历史SDK运行状态未正常关闭，但完整回合已有独立记录与审核。
+- 新运行按[SwanLab指南](SWANLAB.md)记录数值与白名单配置。本文结果依据本地回合记录和离线曲线审核；云端同步不在本页验收范围内。
 - 后续优先做N1.5可归因的RL对照、SmolVLA统一协议基线、π₀.₅失败诊断，以及OFT受训包／BC方案选择。训练前按[数据与训练指南](TRAIN_AND_EVALUATE.md)完成准入；不通过改评分、裁剪标签或更换统计掩盖失败。
 
 Public code covers inference, protocols and audits. Reproducing post-training results also requires the unreleased trainers and learned artifacts. Reported results are backed by local episode audits and offline curves; cloud synchronization is not established here.

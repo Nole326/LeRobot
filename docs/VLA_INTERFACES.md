@@ -25,7 +25,7 @@ Shared helpers cover model loading, unit conversion and scalar logging. PickOran
 
 These wrappers target the LiftCube single-front/q6 contract. PickOrange requires its own observation/action/terminal adapter; they are not universal task loaders. The GR00T loader is N1.5, not N1.6/N1.7.
 
-权重、演示与完整revision见[资源清单](RESOURCES.md)，训练/评测步骤见[指南](TRAIN_AND_EVALUATE.md)。PickOrange GR00T N1.5/N1.6、π₀.₅及OFT接口在[独立目录](../course/pickorange/README.md)，不使用这里的单front类。 / See the separate PickOrange directory for dual-view model interfaces.
+权重、演示与完整revision见[资源清单](RESOURCES.md)，训练/评测步骤见[指南](TRAIN_AND_EVALUATE.md)。PickOrange四类VLA接口在[独立目录](../course/pickorange/README.md)，不使用这里的单front类。 / See the separate PickOrange directory for dual-view model interfaces.
 
 PickOrange任务成功率和RL资源记录见[检验摘要](PICKORANGE_VALIDATION.md)。本页的单front CPU证据不能代替双视角任务验收，也不能从六维输出推断机械臂能力适配完成。 / Six-dimensional software output alone does not establish learned embodiment or task competence.
 

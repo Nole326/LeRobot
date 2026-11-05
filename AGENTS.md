@@ -30,7 +30,7 @@
 | 自研受限末端开发接口 | `starter/envs/planar_ee.py`、`envs/factory.py`、`tests/test_planar_ee.py`及[开发契约](docs/PLANAR_EE_DEVELOPMENT.md)；三维绝对XY/夹爪，非课程正式IK；旧关节策略不得自动接入 |
 | PickOrange任务与诊断 | [任务指南](docs/PICK_ORANGE.md)、`course/scripts/`及冻结上游任务源码；[目录AGENTS](course/scripts/AGENTS.md)、[部署边界](docs/REPRODUCIBILITY.md) |
 | PickOrange双视角评测 | `course/pickorange/`；[目录AGENTS](course/pickorange/AGENTS.md)、[运行指南](course/pickorange/README.md)；GR00T N1.5/N1.6与π₀.₅各用匹配后端和协议，原生物体真值夹爪辅助不当无特权或课程正式评分 |
-| PickOrange验收与RL资源选型 | [公开检验摘要](docs/PICKORANGE_VALIDATION.md)连接模型状态与资源；实验结果不表示训练器／学习参数已交付，DiT12暂搁置，不从历史记录自动恢复 |
+| PickOrange验收与RL资源选型 | [公开检验摘要](docs/PICKORANGE_VALIDATION.md)连接模型状态、资源测量与代码可用范围；不要为尚未发布的训练器或学习参数编造复现命令 |
 | 教师、数据/权重获取、离线训练 | [资源清单](docs/RESOURCES.md)、[训练与评测](docs/TRAIN_AND_EVALUATE.md)；LiftCube显式`--privileged-teacher`，PickOrange已有上游状态机，其直接写状态不自动满足BC准入 |
 | 训练与评测曲线 | [SwanLab指南](docs/SWANLAB.md)、`starter/logging/swanlab.py`与`starter.scripts.train_lerobot`；共享数值记录，保留本地证据，不另造每模型日志器 |
 | ACT、SmolVLA、OpenVLA-OFT、π₀.₅、GR00T 接入 | 对应任务的策略包装；[架构](docs/ARCHITECTURE.md)、[接口契约](docs/INTERFACE_CONTRACTS.md)、该任务的子级 AGENTS |
