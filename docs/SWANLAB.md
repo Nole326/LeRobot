@@ -50,14 +50,14 @@ Modes: `offline` stores locally, `online` explicitly uploads, and `disabled` is 
 | `starter.training.train_rl` | `ppo/*`，累计决策步；另记物理tick / Decision steps, separate physics counters |
 | `starter.scripts.train_lerobot` | ACT/SmolVLA上游训练的`train/*`与`eval/*`，累计优化更新 / Native optimizer steps |
 | `starter.evaluation.evaluate` | `eval/*`，完整回合数；长度、return、sim秒、终止及完成前缀成功率 / Completed episodes |
-| `starter.scripts.evaluate_scripted` | 同上；标注视觉规则或特权教师 / Rule/teacher identity kept separate |
+| `starter.scripts.evaluate_scripted` | 同上；标注视觉规则或特权state控制脚本 / Rule/control script identity kept separate |
 | `course/pickorange/evaluate.py` | `eval/*`完整回合，`inference/*`查询序号；原生辅助标记 / Episodes and query counters |
 
 LiftCube评测入口同样覆盖已接入的VLA包装，不需要每个模型再建一个日志run。PickOrange仅evaluator写SwanLab，模型service不重复写。曲线中的完成前缀仍需本地逐回合审核，不能视为已发布的最终成绩。`--check`、数据检查、模型下载和单元测试不是策略实验，不隐式创建云端run。
 
 ACT/SmolVLA使用[训练指南](TRAIN_AND_EVALUATE.md)中的`python -m starter.scripts.train_lerobot`，而不是直接`lerobot-train`。包装仅在当前进程替换冻结LeRobot v0.4.2的logger挂钩，保留原训练循环、主进程选择、优化器和恢复逻辑；内部W&B开关只是路由条件，不会调用W&B SDK。模型、视频上传请求被忽略，原文件仍保留本地。其他版本须重新核对挂钩。
 
-Use the wrapper for the pinned ACT/SmolVLA offline trainer. It does not implement or validate new PI05/GR00T/OFT fine-tuning pipelines; those future trainers should call the same scalar writer after their own training integration is accepted. Upstream teacher generators and historical diagnostic tools are not silently rewritten.
+Use the wrapper for the pinned ACT/SmolVLA offline trainer. It does not implement or validate new PI05/GR00T/OFT fine-tuning pipelines; those future trainers should call the same scalar writer after their own training integration is accepted. Upstream control script generators and historical diagnostic tools are not silently rewritten.
 
 ## 隐私、异常与恢复 / Privacy and recovery
 

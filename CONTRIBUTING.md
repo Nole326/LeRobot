@@ -28,9 +28,9 @@ Use `feature/liftcube` to import shared foundations, then close it after merging
 
 Branches isolate code under development; model implementations coexist on main after merging. Distinguish baselines, SFT and RL through configurations and weight provenance, not branches per seed or checkpoint. Merge shared data/action/evaluation fixes separately and synchronize model branches. Add a temporary `dev/liftcube` integration branch only when multiple pending changes require joint validation.
 
-Git保存代码、配置、数据/权重清单和哈希。大镜像通过原渠道或获准的容器仓库分发，数据与权重使用有权限控制的存储或模型/数据仓库；记录固定版本、许可和获取方式，避免将运行产物加入Git历史。
+Git保存代码、配置、数据/权重清单。大镜像通过原渠道或获准的容器仓库分发，数据与权重使用有权限控制的存储或模型/数据仓库；记录固定版本、许可和获取方式，避免将运行产物加入Git历史。
 
-Keep code, configurations and data/weight manifests with hashes in Git. Distribute large images through their original channel or an approved container registry, and datasets/weights through access-controlled storage or model/data repositories. Record fixed versions, licenses and retrieval instructions rather than adding runtime artifacts to Git history.
+Keep code, configurations and data/weight manifests in Git. Distribute large images through their original channel or an approved container registry, and datasets/weights through access-controlled storage or model/data repositories. Record fixed versions, licenses and retrieval instructions rather than adding runtime artifacts to Git history.
 
 ## 版本记录 / Version history
 
@@ -60,9 +60,9 @@ git diff --cached --stat
 
 For action, data, training or evaluation interface changes, update the [contracts](docs/INTERFACE_CONTRACTS.md) and plan-inspection tests; do not commit private experiment configurations. Run `python scripts/inspect_plan.py configs/experiment-plan.toml --print-config` to list template gaps. Exit code 3 is expected for the unfilled template, not a training failure. See the [development guide](docs/GETTING_STARTED.md) for stage ownership.
 
-自动检查核验源码哈希、公开工具 Python 语法、通用 Markdown 的本地文件链接及海报尺寸。它不运行上游代码，不验证外部网页可用性，也不是完整安全审计或 GPU 测试。
+自动检查核验源码一致性、公开工具 Python 语法、通用 Markdown 的本地文件链接及海报尺寸。它不运行上游代码，不验证外部网页可用性，也不是完整安全审计或 GPU 测试。
 
-Automated checks validate source hashes, public utility Python syntax, local file links in generic Markdown and poster dimensions. They do not execute upstream code or verify external websites, and are not a complete security audit or GPU test.
+Automated checks validate source consistency, public utility Python syntax, local file links in generic Markdown and poster dimensions. They do not execute upstream code or verify external websites, and are not a complete security audit or GPU test.
 
 根README分为中文 `README.md` 和英文 `README.en.md`，顶部互链；修改目标、用法、范围与文档入口时同步两版。GitHub中这是普通文档链接，不需要网页脚本或额外部署。其他新写项目说明仍按中文一段、英文一段组织。上游原文不强行翻译。提交说明应包含目的、受影响接口、检查结果与尚未验证的部分。
 

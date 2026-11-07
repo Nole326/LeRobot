@@ -1,6 +1,6 @@
 # SO-101 PickOrange
 
-将三颗橙子放入盘中，再让机械臂返回休息姿态。这里说明环境与诊断入口；模型闭环评测和教师采集见[PickOrange运行指南](../course/pickorange/README.md)。任务方法和结果与[LiftCube](../course/liftcube/README.md)分开管理。两者差异见[任务对照](TASKS.md)。
+将三颗橙子放入盘中，再让机械臂返回休息姿态。这里说明环境与诊断入口；模型闭环评测和控制脚本采集见[PickOrange运行指南](../course/pickorange/README.md)。任务方法和结果与[LiftCube](../course/liftcube/README.md)分开管理。两者差异见[任务对照](TASKS.md)。
 
 Put three oranges on the plate and return the arm to rest. This guide covers the public environment and diagnostic tools currently in the repository. Keep its methods and results separate from LiftCube; see the [task comparison](TASKS.md).
 
@@ -42,7 +42,7 @@ The pinned sources are LeIsaac0.4.0 and IsaacLab2.3.0, not the LiftCube image. L
 /data/course/validation/     # 诊断产物 / diagnostic outputs
 ```
 
-这是脚本接口路径，不是个人服务器绑定。资产来源与SHA见[外部资产清单](../manifests/external_assets.json)；`prepare_assets.py`会下载/解压并写文件，不能当只读检查。`constraints-isaac51.txt`明确记载历史安装冲突，不是可直接复现的环境锁；不要据其文件名推断已安装的Isaac Sim版本。
+这是脚本接口路径，不是个人服务器绑定。资产来源见[外部资产清单](../manifests/external_assets.json)；`prepare_assets.py`会下载/解压并写文件，不能当只读检查。`constraints-isaac51.txt`明确记载历史安装冲突，不是可直接复现的环境锁；不要据其文件名推断已安装的Isaac Sim版本。
 
 These are launcher paths, not personal infrastructure. Asset preparation downloads and writes files. The historical `constraints-isaac51.txt` is not an installation lock or evidence of the deployed simulator version.
 
@@ -53,7 +53,7 @@ These are launcher paths, not personal infrastructure. Asset preparation downloa
 - 原生成功要求三颗橙子同时满足盘区XYZ条件，且机械臂回位；一颗入盘或曾经命中过盘区是进度，不是整任务成功。 / Native success requires all three objects and the rest pose.
 - 运行前记录实际`physics_dt`、`step_dt`、动作保持和时限；20帧10Hz、128×128桥接条件仅属于该诊断，不是统一策略规格。 / Record real timing; bridge settings are not a task-wide specification.
 - 环境提供双相机与课程允许策略使用双相机是不同问题；按实际考核要求固定front-only或双视角协议，报告真实输入，不把双图结果当单图结果。 / Freeze the permitted view protocol and report it accurately.
-- 保持原生物理、执行器、成功条件及reset前终态；键盘/状态机等上游路径可能启用重力或夹爪辅助，教师采集与视觉baseline必须分组。 / Separate assisted teachers from visual baselines.
+- 保持原生物理、执行器、成功条件及reset前终态；键盘/状态机等上游路径可能启用重力或夹爪辅助，控制脚本采集与视觉baseline必须分组。 / Separate assisted control scripts from visual baselines.
 
 ## 已配置环境中的检查 / Checks in a configured runtime
 
@@ -67,7 +67,7 @@ bash scripts/course_python.sh scripts/validate_rollout.py \
   --run-tag NEW_TAG --headless --enable_cameras
 ```
 
-来源manifest及SHA通过后，才做ACT格式/前向桥接，使用另一个新tag / Validate source identity before the separate ACT bridge:
+来源记录和轨迹验证通过后，才做ACT格式/前向桥接，使用另一个新tag / Validate source identity before the separate ACT bridge:
 
 ```bash
 bash scripts/course_bc_python.sh scripts/validate_bridge.py \

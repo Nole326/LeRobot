@@ -6,7 +6,7 @@ cd LeRobot
 python scripts/check_project.py
 ```
 
-No submodule initialization or LFS download is needed. Manifests preserve baseline commits/trees, original blob hashes and materialized fixture SHA256 values. Auditing checks files without executing upstream code.
+No submodule initialization or LFS download is needed. Manifests preserve baseline commits/trees, source and fixture records. Auditing checks files without executing upstream code.
 
 Use Git and Python 3.11+ for these CPU-only checks. The unified entry point also parses project Python files, checks local Markdown file links and poster dimensions, and runs checker unit tests. It does not test GPU deployment. See [BASELINE.md](BASELINE.md) to check out the fixed initial version.
 
@@ -29,7 +29,7 @@ Simulation and BC application dependencies may conflict in NumPy/packaging versi
 ## Validation order
 
 1. Confirm container permissions, resources, device mappings, mounts and cache rules.
-2. Verify actual runtime and module paths; obtain assets with checksum validation.
+2. Verify actual runtime and module paths; obtain compatible assets.
 3. Verify reset/step, camera updates, unit conversions, timing, episode boundaries and final observations.
 4. For [rule inference](SCRIPTED_LIFTCUBE.md), check independent robot/camera calibration before a short authorized rollout, then freeze the scene set. Demonstrations and ACT optimization are not prerequisites.
 5. For learning, separately validate the selected trainer, device, data processing and synchronized checkpoints/RNG; follow the [current LiftCube guide](../course/liftcube/TRAINING.md) rather than automatically running legacy ACT diagnostics. Replay/data acceptance is required when demonstrations are used.
@@ -45,4 +45,4 @@ All 45 fixtures are already included. To recover a separate verified copy:
 python scripts/fetch_lfs_objects.py --output /approved/asset/directory
 ```
 
-The tool downloads fixed official commits, verifies size/SHA256, never loads weights or executes assets, and preserves mismatched/partial downloads for diagnosis. Use --limit 1 for a small connectivity test. Destination policies and authorizations still apply.
+The tool downloads fixed official commits, checks downloaded files, never loads weights or executes assets, and preserves mismatched/partial downloads for diagnosis. Use --limit 1 for a small connectivity test. Destination policies and authorizations still apply.

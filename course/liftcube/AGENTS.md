@@ -13,7 +13,7 @@
 | PPO、存档恢复 | [TRAINING](TRAINING.md)；`training/train_rl.py`、`training/checkpoint.py`，`algorithms/reference/ppo.py`、`rewards/lift_cube.py`，`configs/rl_lift_cube.yaml` |
 | 策略与评测 | `interfaces/policy.py`、`interfaces/model.py`，`utils.py::build_policy`，`evaluation/evaluate.py`，`configs/eval_lift_cube.yaml` |
 | 视觉规则脚本 | `scripted_liftcube.py`、`joint_chain.py`、`scripts/export_joint_chain.py`、`scripts/evaluate_scripted.py`、[标定与验收](../../docs/SCRIPTED_LIFTCUBE.md)；每回合新建状态机，沿用共同`run_episode`，不接训练协议 |
-| 特权教师 | `privileged_liftcube.py`、同一规则runner的`--privileged-teacher`；[使用与数据准入](../../docs/TRAIN_AND_EVALUATE.md)；物体真值单独回调，不放入Observation，不当视觉baseline或已验收专家 |
+| 特权state控制脚本 | `privileged_liftcube.py`、同一规则runner的`--privileged-teacher`；[使用与数据准入](../../docs/TRAIN_AND_EVALUATE.md)；物体真值单独回调，不放入Observation，不当视觉baseline或已验收专家 |
 | 受限末端开发接口 | `envs/planar_ee.py`、`envs/factory.py`、[契约](../../docs/PLANAR_EE_DEVELOPMENT.md)；`control_mode: planar_ee_dev`仅自研开发，不当课程正式控制器 |
 | ACT/VLA或任务迁移 | [架构](../../docs/ARCHITECTURE.md)、[迁移路线](../../docs/LIFTCUBE_TRANSFER.md)、[契约](../../docs/INTERFACE_CONTRACTS.md)及上面的策略/环境边界 |
 
@@ -24,7 +24,7 @@
 - **修环境或动作接口**：沿 `envs/factory.py → LiftCubeEnvAdapter.reset/step → Observation/ActionSpec` 追踪数据；先用 `tests/test_so101_adapter.py` 的替身环境覆盖单位、形状与边界，再补真实环境短测。
 - **运行规则基准**：走`starter.scripts.evaluate_scripted`，先按规则指南检查外部标定；不需要演示、训练权重或`build_policy()`。不要为此运行BC/ACT优化验证。正式标定迁移只修改读取/坐标边界，控制SDK改变时再处理执行层，复用未变验证。
 - **接入演示数据**：沿 `data/hf_adapter.py → schema/validator → loader → training/train_bc.py` 检查字段、episode划分和标签单位；先验证一小批真实样本，再做获准的小批拟合。合成单测不替代真实数据映射验收。
-- **特权教师**：显式定位回调只供`PrivilegedLiftCube`；复用视觉控制器的保护和原生评分，不把真值写进公共观测。当前为固定标定姿态/高度的开发候选，拒绝视觉grasp_presets与开爪规划；CPU通过不能更新为成功专家。权重与演示来源见[资源清单](../../docs/RESOURCES.md)。
+- **特权state控制脚本**：显式定位回调只供`PrivilegedLiftCube`；复用视觉控制器的保护和原生评分，不把真值写进公共观测。当前为固定标定姿态/高度的开发候选，拒绝视觉grasp_presets与开爪规划；CPU通过不能更新为成功专家。权重与演示来源见[资源清单](../../docs/RESOURCES.md)。
 - **新增 ACT/VLA**：在实际接入时新增 `starter/models/` 包装，核对 `interfaces/policy.py` 中 `act/forward/update/save/load` 及调用者。推理先接 `evaluation.evaluate.load_policy` 的 `--policy-class`；训练再接 `utils.build_policy`、数据预处理和对应算法。现有BC/PPO依赖SmallCNN的具体实现，不能仅满足协议或替换模型名就宣称可训练；后端依赖保持可选。
 - **处理动作chunk**：`act()`向执行层返回当前一个六维目标，预测chunk可在包装内缓存；规格中的策略频率须与 `envs/timing.py` 一致。公共`run_episode`在两端和异常退出调用可选`policy.reset()`清缓存、不重seed；旧无reset策略兼容。复用`models/joint_chunk.py`；任务文本变化走`set_task()`，接管后显式reset，不能跨回合沿用旧动作。
 - **SmolVLA单front推理**：见[推理接口](../../docs/VLA_INTERFACES.md)和`tests/test_vla_interfaces.py`。本地适配JSON通过`--policy-class starter.models.smolvla:SmolVLAFrontPolicy`加载；相机首槽、缺槽mask、六维motor和显式统计严格核对。CPU替身/mask检查不等于完整权重或GPU/仿真通过；不将新包装接入SmallCNN训练器。
@@ -52,7 +52,7 @@
 
 ## 3. 运行前提
 
-- 镜像 `isaac-lab:4.5.0-v2.1.1-leisaac-v0.1.2-src`，归档SHA与image ID见README。内部Python 3.10.15、Torch 2.5.1+cu118；包元数据与源码标签可能不同，核对真实来源，不为标签升级。
+- 镜像 `isaac-lab:4.5.0-v2.1.1-leisaac-v0.1.2-src`，获取方式见README。内部Python 3.10.15、Torch 2.5.1+cu118；包元数据与源码标签可能不同，核对真实来源，不为标签升级。
 - 使用配套运行环境，示例约定仓库挂载 `/repo`，演示 `/data/lift_cube`，输出到当前使用者可写位置。保留镜像内 `/isaaclab`、`/leisaac`；缓存与数据分开。按使用者的平台核对设备映射、RAM、磁盘和GPU资源。
 - `envs/container.py`可在宿主自动启动Docker，硬编码GPU0/设备/默认容器名并传入许可同意变量。先核对是否适合当前平台；已有兼容容器时在其中执行，不自行启动额外容器或代用户同意许可。
 - 使用镜像已有解释器，先核对NumPy/Torch/PyYAML、SwanLab 0.10.3；数据读取另需PyArrow/PyAV。缺包不授权重装模拟器或Torch/CUDA。
@@ -88,8 +88,8 @@ export PYTHONPATH="$PWD/src:/leisaac/source/leisaac${PYTHONPATH:+:$PYTHONPATH}"
 - 适配器关闭上游默认演示记录器，避免每步在GPU上拼接完整RGB历史；评测轨迹与图像由显式外部记录器保存。需要原生演示导出时使用独立采集入口，不在普通评测中隐式开启，也不靠周期清缓存掩盖增长。
 - 规则策略可单独标定`lift_rotation`，并显式启用`gravity_compensation`。实测反馈不按待发送动作裁剪；名义参考、积分偏置与实际发送值分开，原发送范围/限速/跟踪保护不变。不同IK后端须验证实际路径，不能把独立USD诊断后端的成绩当作Placo入口已通过。
 - 可选`contact_close`仅用实测夹爪位置限制闭合领先量；停滞代理不是力传感器或抓取成功信号，抬升后仍按原生评分判定。复用已验证几何，独立冻结测试seed/预算；不得混合调参回合、重选失败或更改物理来达到目标比例。
-- 规则入口默认front64，也可显式配置同一路front128/256：环境resize、标定`image_shape/K`必须一致，像素中心随resize换算，不能只放大旧图伪称新视觉信息。其他模型默认输入不变；跨分辨率成绩分协议记录。实际策略类与基类源码分别留SHA，诊断子类成绩不冒称默认入口成绩。
-- 非空`grasp_presets`显式选择`starter.scripted_geometry.GeometricLiftCube`，要求joint_chain与有界补偿；固定CAD姿态选择不读取物体真值。离桌子阶段只按实测q的FK高度/朝向连续三次切入运输，≤0.25motor/步；它不是抓取成功，原发送范围、8motor保护、最后评分不变。预设示例只适用于其资产SHA与3cm方块假设，不能作为完整标定直接启动。
+- 规则入口默认front64，也可显式配置同一路front128/256：环境resize、标定`image_shape/K`必须一致，像素中心随resize换算，不能只放大旧图伪称新视觉信息。其他模型默认输入不变；跨分辨率成绩分协议记录。实际策略类与基类源码分别记录版本，诊断子类成绩不冒称默认入口成绩。
+- 非空`grasp_presets`显式选择`starter.scripted_geometry.GeometricLiftCube`，要求joint_chain与有界补偿；固定CAD姿态选择不读取物体真值。离桌子阶段只按实测q的FK高度/朝向连续三次切入运输，≤0.25motor/步；它不是抓取成功，原发送范围、8motor保护、最后评分不变。预设示例只适用于其资产及3cm方块假设，不能作为完整标定直接启动。
 - `plan_while_opening`默认false且仅用于上述几何模式；启用后在原开爪期间积累三次稳定RGB观察，完整开爪命令和实测到位等待保持，不提前移动手臂。视觉未就绪则走原定位流程；开关写入manifest，成绩分组。修改此路径至少检查开爪前缀、视觉缺失回退及关闭时行为不变，不能把调度提速当抓取精度改善。
 - `--runtime-camera-calibration`仅显式启用配套模拟器的相机/基座标定接口，每次reset记录实际变换；相机随机化后的`camera.data`缓存可能仍是名义值。此模式与固定外参分组，真机接口支持待确认，不把额外标定输入藏进普通RGB/q成绩。`--check`仍不创建环境。
 - 固定关节链后端用NumPy/SciPy和来源可核验的五轴SO101 JSON，原生轴向与零偏置，不读实时物体状态；导出只用USD Python API，不启动SimulationApp。URDF/Placo仍为可选后端。标定IK回算使用每个参考点自身的朝向，各阶段预检显式传入阶段朝向，不按高度猜测。
@@ -101,9 +101,9 @@ export PYTHONPATH="$PWD/src:/leisaac/source/leisaac${PYTHONPATH:+:$PYTHONPATH}"
 - 超限先留原值诊断；`allow_action_clipping`仅诊断，正式BC拒绝启用。禁止放宽范围、裁剪标签或用下一帧q替代请求动作来通过检查。
 - `build_policy()`固定SmallCNN。ACT/VLA包装须真实处理图像、tokenizer/统计、本体、动作语义与执行长度，不能只加模型名或随机权重就称完成基线。
 - 当前BC/PPO验收是默认六关节路径；三维`planar_ee_dev`不自动继承其数据、权重或恢复验收，不能只更改模式就宣称支持末端训练。
-- `checkpoint.pt`是推理导出；`checkpoint.pt.training.pt`及SHA是完整续训。BC→PPO只复制规格匹配权重，新建优化器；同任务resume恢复原模型/Adam/计数/数据身份/RNG。
+- `checkpoint.pt`是推理导出；`checkpoint.pt.training.pt`是完整续训。BC→PPO只复制规格匹配权重，新建优化器；同任务resume恢复原模型/Adam/计数/数据身份/RNG。
 - BC完整epoch保存、当前 `num_workers=0`；PPO在完整采集回合/更新边界保存。不承诺任意中途仿真接续。加入私有RNG、异步worker、外部VLA缓存前扩展恢复合同。
-- epochs/updates是总目标，不是追加量。新任务、结构或数据身份另开实验，权重初始化不伪装resume。只加载可信本地存档，SHA不等于来源认证。
+- epochs/updates是总目标，不是追加量。新任务、结构或数据身份另开实验，权重初始化不伪装resume。只加载可信本地存档，文件一致不代表来源可信。
 - 新输出位置与旧实验隔离，保留日志/存档和历史TensorBoard事件。新曲线用[SwanLab](../../docs/SWANLAB.md)，优化更新、决策步与物理tick分别记录；默认offline，online需私有项目，恢复显式新分段、不覆盖旧step。数值与白名单配置以外不上传，日志操作不改变科学RNG。
 - ACT/SmolVLA的离线训练使用`starter.scripts.train_lerobot`包装冻结上游logger，不改第三方源码；保留主进程选择与原生恢复，忽略模型/视频上传请求。包装通过CPU替身不表示真实模型训练已验收。日志改动补测`test_swanlab.py`和`test_liftcube_training.py`。
 
@@ -130,6 +130,6 @@ python -m unittest discover -s tests -p test_vla_native_backends.py -v
 - 实际环境路径变化再补授权下reset/step/RGB/终态最小集成检查，复用未受影响证据。
 - 规则脚本的`--check`需匹配URDF与独立标定；空模板必须拒绝。CPU合成通过不表示真实IK/抓取通过。运行必须显式`--run-simulation`，禁止使用特权物体坐标补齐视觉失败，不擅改默认评测预算或固定物理。
 
-故障按层定位：导入失败先检查解释器和模块来源；观测/动作失败先检查形状、单位和标定；恢复失败先核对存档类型、SHA及配置身份；加载成功但无任务进展则分析实际图像、模型输出与执行反馈。保留首个有效报错，不用切换模型、放宽评分、重装环境或反复重跑来掩盖未知原因。
+故障按层定位：导入失败先检查解释器和模块来源；观测/动作失败先检查形状、单位和标定；恢复失败先核对存档类型及配置身份；加载成功但无任务进展则分析实际图像、模型输出与执行反馈。保留首个有效报错，不用切换模型、放宽评分、重装环境或反复重跑来掩盖未知原因。
 
 修改受管源码同步来源清单、可逆补丁、契约和测试，具体分工见根AGENTS。命令、前提或接口改变时，同步本文件及根任务分流。

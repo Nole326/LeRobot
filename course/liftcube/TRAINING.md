@@ -35,11 +35,11 @@ python -m starter.training.train_rl --config configs/rl_lift_cube.yaml \
 ## 保存与恢复
 
 - `checkpoint.pt`是推理导出，供评测和新任务初始化。
-- `checkpoint.pt.training.pt`是训练恢复文件，附`.sha256`。包含模型、Adam、epoch/update、累计优化/交互计数、历史、全局Python/NumPy/Torch CPU及已初始化CUDA的全部随机流。
+- `checkpoint.pt.training.pt`是训练恢复文件。包含模型、Adam、epoch/update、累计优化/交互计数、历史、全局Python/NumPy/Torch CPU及已初始化CUDA的全部随机流。
 - BC只在完整epoch后保存，当前明确要求`num_workers=0`，无独立sampler generator；epoch内故障从上个完整epoch恢复，不宣称中途batch游标已保存。
 - PPO只在完整回合收集及优化更新结束后保存。每个update从`seed + update`的独立reset开始；既有更新内回合使用环境自己的随机流。恢复不拼接任意中途仿真现场，不保证RTX或新进程物理位级等价。
 - 恢复核对代码、有效配置、策略规格和BC已加载数组的身份；除总预算/输出位置等明确排除项外，不允许悄悄改配置。当前不序列化自定义私有RNG、异步worker或外部模型缓存；添加此类组件前必须扩展状态契约。
-- 文件通过临时文件原子替换、SHA侧文件最后发布；文件或SHA不完整时拒绝恢复。只读取可信的本地训练文件，SHA用于完整性检查而非来源认证。
+- 文件通过临时文件原子替换；数据不完整时拒绝恢复。只读取可信的训练文件。
 
 ```bash
 # epochs/num-updates都是总目标，不是再追加的数量。

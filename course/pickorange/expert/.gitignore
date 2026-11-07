@@ -1,0 +1,7 @@
+# All collection output belongs in an external output directory.
+*.npz
+*.pt
+*.mkv
+*.png
+*.jsonl
+*.log

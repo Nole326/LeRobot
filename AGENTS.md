@@ -31,7 +31,7 @@
 | PickOrange任务与诊断 | [任务指南](docs/PICK_ORANGE.md)、`course/scripts/`及冻结上游任务源码；[目录AGENTS](course/scripts/AGENTS.md)、[部署边界](docs/REPRODUCIBILITY.md) |
 | PickOrange双视角评测 | `course/pickorange/`；[目录AGENTS](course/pickorange/AGENTS.md)、[运行指南](course/pickorange/README.md)；GR00T N1.5/N1.6与π₀.₅各用匹配后端和协议，原生物体真值夹爪辅助不当无特权或课程正式评分 |
 | PickOrange验收与RL资源选型 | [公开检验摘要](docs/PICKORANGE_VALIDATION.md)连接模型状态、资源测量与代码可用范围；不要为尚未发布的训练器或学习参数编造复现命令 |
-| 教师、数据/权重获取、离线训练 | [资源清单](docs/RESOURCES.md)、[训练与评测](docs/TRAIN_AND_EVALUATE.md)；LiftCube显式`--privileged-teacher`，PickOrange已有上游状态机，其直接写状态不自动满足BC准入 |
+| 控制脚本、数据/权重获取、离线训练 | [资源清单](docs/RESOURCES.md)、[训练与评测](docs/TRAIN_AND_EVALUATE.md)；LiftCube显式`--privileged-teacher`，PickOrange自研[控制脚本](course/pickorange/expert/README.md)通过原生动作与回放检验采集；上游状态机的直接写状态不自动满足BC准入 |
 | 训练与评测曲线 | [SwanLab指南](docs/SWANLAB.md)、`starter/logging/swanlab.py`与`starter.scripts.train_lerobot`；共享数值记录，保留本地证据，不另造每模型日志器 |
 | ACT、SmolVLA、OpenVLA-OFT、π₀.₅、GR00T 接入 | 对应任务的策略包装；[架构](docs/ARCHITECTURE.md)、[接口契约](docs/INTERFACE_CONTRACTS.md)、该任务的子级 AGENTS |
 | 单front VLA与chunk生命周期 | `starter/models/`的SmolVLA/PI05/GR00T/OFT包装、共享chunk/backend I/O及[推理接口](docs/VLA_INTERFACES.md)；GR00T可显式在模型侧接收不同输入尺寸，环境保持不变；CPU替身通过不等于真实模型或GPU验收 |
@@ -54,7 +54,7 @@ LiftCube 已有 SmallCNN BC/PPO 参考训练与评测，`starter.utils.build_pol
 
 - 当前任务共用代码位于 `course/liftcube/src/starter/`：`interfaces/` 定义契约，`envs/` 处理环境，`data/` 处理演示，`training/` 负责训练与存档，`evaluation/` 负责评测。模型包装复用这些边界，不复制环境和评分逻辑。
 - `course/liftcube/configs/` 是运行配置；根 `configs/experiment-plan.toml` 只是计划模板。`course/scripts/` 保持为独立诊断工具。
-- `course/pickorange/`保存该任务模型服务/原生辅助评测及其协议，不与LiftCube或教师生成器混用。新增资源回填`docs/RESOURCES.md`及`docs/TASKS.md`，写明完整revision和实际验收级别，不提交模型参数或演示。
+- `course/pickorange/`保存该任务模型服务/原生辅助评测及其协议，不与LiftCube或控制脚本生成器混用。新增资源回填`docs/RESOURCES.md`及`docs/TASKS.md`，写明完整revision和实际验收级别，不提交模型参数或演示。
 - `third_party/` 为冻结来源，优先在外部适配。未经明确任务要求，不改第三方源码、依赖版本或生成文件来消除检查失败。
 - 沿用邻近代码与测试风格，复用现有函数、标准库和测试。修复实际调用链，只增加当前需求所需的实现；不预建空注册器、无关抽象或按模型复制整套训练器。
 - 代码标识符应清晰，注释解释不明显的原因。公开说明、提交消息和 PR 面向未参与对话的读者，不记录聊天过程或个人操作流水。
@@ -67,7 +67,7 @@ LiftCube 已有 SmallCNN BC/PPO 参考训练与评测，`starter.utils.build_pol
 - 请求动作、限幅后发送动作、实测位置分开；发送不等于到位。不得用下一帧实测位置替换请求动作标签，或静默裁剪演示标签。
 - 兼容补零不是实际速度/末端反馈。必要关节状态缺失应报错；派生状态注明来源与时序。
 - 相机布局、图像处理、环境周期、策略频率、chunk 与执行长度显式对应；训练和评测共用兼容执行层。
-- 物体/目标真值、分割和成功标记不得进入普通视觉策略或其 metadata；教师、监督、奖励、特权 critic 与评分分别隔离。
+- 物体/目标真值、分割和成功标记不得进入普通视觉策略或其 metadata；控制脚本、监督、奖励、特权 critic 与评分分别隔离。
 - 自动 reset 前捕获终态；区分 `terminated`、`truncated`、bootstrap 与成功。接口修正不改变物理、限位、执行器或评分条件。
 - 推理导出、权重初始化和完整续训分别处理。续训需同点模型、优化器、计数、数据位置/replay 与相关 RNG；重新 seed 不等于恢复。
 - 成功率仅统计同协议完整回合。保留失败与 partial，不换 seed、跳回合或覆盖旧证据；加载和进程退出不能证明测试完成。
@@ -85,7 +85,7 @@ git diff --check
 git diff --cached --stat
 ```
 
-统一检查覆盖来源 SHA、项目 Python 语法、Markdown 本地链接、海报和软件单测；不启动模拟器。依赖缺失导致的 skip 必须披露，不能当相关功能通过。交付时写明实际命令、结果和未验证部分，不把合成测试写成真实仿真/真机成绩。
+统一检查覆盖来源记录、项目 Python 语法、Markdown 本地链接、海报和软件单测；不启动模拟器。依赖缺失导致的 skip 必须披露，不能当相关功能通过。交付时写明实际命令、结果和未验证部分，不把合成测试写成真实仿真/真机成绩。
 
 修改VLA包装时，另在具备NumPy、CPU Torch和PyYAML的隔离环境运行`python -m unittest discover -s tests -p 'test_vla*.py' -v`；环境说明见[推理接口](docs/VLA_INTERFACES.md)。CI的`vla-cpu`专门执行这些测试，避免纯标准库检查将其全部skip；feature分支推送本身不触发此工作流，PR、main推送或手动触发才运行。
 
@@ -100,8 +100,8 @@ git diff --cached --stat
 | 变化 | 同步内容 |
 | --- | --- |
 | 输入、动作、时序、数据或恢复语义 | 对应配置、契约、模型/数据身份与针对性测试 |
-| `course/` 中新增或修改公开文件 | `manifests/course_files.json` 中受影响文件的大小与 SHA |
-| 修改课程原始受管源码 | 同时更新 `manifests/liftcube_source.json` 当前 SHA 与 `course/liftcube/patches/team-interface.patch`，保留原始 SHA |
+| `course/` 中新增或修改公开文件 | `manifests/course_files.json` 中受影响文件记录 |
+| 修改课程原始受管源码 | 同时更新 `manifests/liftcube_source.json` 当前记录 与 `course/liftcube/patches/team-interface.patch`，保留原始记录 |
 | 入口、命令、依赖或执行规则改变 | 根目录及受影响子级 AGENTS，同 PR 更新；其他变更无需机械改日期 |
 | 用户可见功能或用法改变 | 对应文档；首页信息同步中英文 README，重要变化写 CHANGELOG |
 

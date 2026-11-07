@@ -1,0 +1,21 @@
+{
+  "sha256": {
+    "adaptive_face_teacher.py": "9c5efeef4694c8d4f2567379723fe33d36644f1bbff697fe6cec41e0c416845d",
+    "calibrated_face_teacher.py": "22dee4642aee3ada84dd65621fa6ca39123b24dd9da4b0b75099d1e09c74ff5a",
+    "conservative_efficient_teacher.py": "d7209a67cbc347426ae55576149d42a898e707bec28e5ed7f4dc63eeb79c52b9",
+    "diameter_geometry.json": "3d37e05827734e59bc7cf4289e8509fc323c8324fa07b30ba9e3c03fcf449247",
+    "diameter_teacher.py": "6cf8ada4a44893eac30746f5943d1fb43b37c7aee5d7182afb3b2a9a5f64f4c3",
+    "efficient_motion_teacher.py": "2cff49f326f9b7f9f98ad5621bf6f015da3e6534c4ae4d24a8e4af6630de5045",
+    "finger_geometry_calibration.json": "735f56d8172c95cbdd6a73a976f8da17f27aba609ec41ca9774fb1b73195b446",
+    "fixed_face_teacher.py": "7dded7e0e51ee42e7afb2d030e51506f022cb981cb8b3aa166660a9673d80d20",
+    "geometric_teacher.py": "7f2c775e1c8ffeb6a9de50b4970c3dc75b2d82ccb0431acdd88e72e0017f0eed",
+    "joint_contract.py": "bbacff0d1fab508b8ea940540ef448b280d7f82ffbfd2e0c61223e607c2f49e6",
+    "object_center_calibration.json": "5068004241351af594d40b086f55b1c0cb46db422868dcb96ce820e4984148fc",
+    "privileged_teacher.py": "f72d3b631c547916df06c7541217b6f08df75e098fe8af7afacf69250c253fc5",
+    "reachable_retreat_teacher.py": "e6134e4b537df40f93343f16ef08ef30464f34372ca26f422569278692902b20",
+    "reachable_third_teacher.py": "45786668d4bfef2258c2fea86e1ff5e49801cce9800b860969f3fd7be2016394",
+    "release_clearance_teacher.py": "27c39ac275a0d86c408630d7e524f92ec85ac7ef39ef3af665d818084260f170",
+    "third_closure_teacher.py": "86178c5737f80461ee6161b0bb94a9e3c8730c49865706e3367a1b8cb8b7e6d5",
+    "verified_release_teacher.py": "34bc84f903133e9422af1a8d8ad39377b3cd283a4df3de9d76be91e3679c68ef"
+  }
+}

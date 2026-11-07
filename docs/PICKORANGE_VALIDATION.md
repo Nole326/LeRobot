@@ -8,8 +8,8 @@ This snapshot covers PickOrange development experiments through **2026-11-05**, 
 
 - 输入为front、wrist两路RGB（各480×640）、实测q6及完整任务文本。网络不接收物体真值；原生夹爪effort助手使用物体位置／质量，因此**整个控制栈属于特权辅助**，不作为无特权视觉baseline。
 - 保持原生重力、关节物理限位、动作映射及“三颗入盘且回位”判据，时限60仿真秒。GR00T N1.5/N1.6为60 Hz动作、16步执行、4步去噪；π₀.₅任务导出为30 Hz动作、50步预测执行前16步、10步去噪，每个目标保持两个物理tick。
-- 完整结果经过逐回合轨迹／SHA、原模型响应到实际目标、连续性、查询索引、原生终态及模型RNG握手审核。物理初态可配对；RGB不承诺逐像素一致，回合长度不同也会使模型随机流分岔。
-- 成功终态RGB新鲜度与独立冷重放仍是另行的数据准入项；成功轨迹不自动成为BC演示。软件检查、GPU前向、物理闭环和可靠任务能力分别记录。
+- 完整结果经过逐回合轨迹、原模型响应到实际目标、连续性、查询索引、原生终态及模型RNG握手审核。物理初态可配对；RGB不承诺逐像素一致，回合长度不同也会使模型随机流分岔。
+- 成功终态RGB新鲜度与动作轨迹独立回放检验仍是另行的数据准入项；成功轨迹不自动成为BC演示。软件检查、GPU前向、物理闭环和可靠任务能力分别记录。
 
 Policies receive dual RGB, measured q6 and task text, not object truth. The upstream gripper-effort helper does use truth, so these are **oracle-actuator-assisted** results. Native physics, limits and full-task success remain unchanged. GR00T and PI05 have different action clocks. Complete-episode audits do not by themselves admit trajectories for BC.
 

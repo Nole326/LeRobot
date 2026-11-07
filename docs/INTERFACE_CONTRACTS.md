@@ -70,9 +70,9 @@ Keep raw failures and label whether they enter BC. Split complete episodes, grou
 
 Auto-reset environments may return the next episode's initial observation. Replay must use the actual pre-reset final observation for the previous transition, including correctly refreshed images; the next policy call uses the reset observation. True terminals do not bootstrap. External time truncations usually bootstrap from the final observation; task-defined finite-horizon terminals follow that task's rules. Never infer this from `done` alone; retain flags and reasons.
 
-正式评测清单、成功条件、时间上限、控制器和指标冻结并记录版本/哈希。训练 reward 与评测成功独立。逐回合保存实际场景、结果、时间和失败原因，不筛选成功 seed。中断从首个未落盘回合恢复并避免重复计数，不宣称恢复了回合中途的全部仿真随机现场。
+正式评测清单、成功条件、时间上限、控制器和指标冻结并记录版本。训练 reward 与评测成功独立。逐回合保存实际场景、结果、时间和失败原因，不筛选成功 seed。中断从首个未落盘回合恢复并避免重复计数，不宣称恢复了回合中途的全部仿真随机现场。
 
-Freeze and version/hash the evaluation manifest, success criteria, horizon, controller and metrics. Keep training rewards independent from evaluation success. Persist actual scenes, outcomes, timing and failure reasons per episode, without success-filtering seeds. Resume from the first uncommitted episode without double-counting; do not claim restoration of the entire mid-episode simulator state.
+Freeze and version the evaluation manifest, success criteria, horizon, controller and metrics. Keep training rewards independent from evaluation success. Persist actual scenes, outcomes, timing and failure reasons per episode, without success-filtering seeds. Resume from the first uncommitted episode without double-counting; do not claim restoration of the entire mid-episode simulator state.
 
 ## 5. 存档与恢复 / Checkpoints and recovery
 
