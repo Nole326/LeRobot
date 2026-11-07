@@ -4,13 +4,13 @@ Choose the task using the [runtime/interface comparison](TASKS.md). LiftCube and
 
 ## Current LiftCube runtime
 
-LiftCube uses the separately distributed `isaac-lab:4.5.0-v2.1.1-leisaac-v0.1.2-src` image: Isaac Sim 4.5.0, Isaac Lab v2.1.1 and LeIsaac v0.1.2. Obtain it through the [image guide](../course/liftcube/README.md#运行环境--runtime), which includes the SJTU share link and archive/image checksums. Preserve its bundled Torch/CUDA and source paths; the historical snapshots below are not a replacement for this runtime. PyArrow/PyAV are optional dataset-reading dependencies that may need a compatible install inside the application environment.
+LiftCube uses the separately distributed `isaac-lab:4.5.0-v2.1.1-leisaac-v0.1.2-src` image: Isaac Sim 4.5.0, Isaac Lab v2.1.1 and LeIsaac v0.1.2. Obtain it through the [image guide](../course/liftcube/README.md#运行环境--runtime), which includes the SJTU share link and image acquisition instructions. Preserve its bundled Torch/CUDA and source paths; the historical snapshots below are not a replacement for this runtime. PyArrow/PyAV are optional dataset-reading dependencies that may need a compatible install inside the application environment.
 
 ## PickOrange runtime
 
 Follow the [PickOrange guide](PICK_ORANGE.md). Its diagnostic launchers expect a separate Isaac Sim/IsaacLab runtime with Python3.11 `venv_sim`/`venv_bc` overlays. The public task source is pinned LeIsaac0.4.0 with IsaacLab2.3.0; the repository does not supply an equally locked matching image/installation. Verify the actual simulator version and imports instead of deriving them from a constraint filename or installing over the LiftCube image.
 
-Kitchen/SO101 assets are external and checksum-listed below. `course/constraints-isaac51.txt` records a conflicting historical dependency experiment, not a supported unified installation recipe. Complete model backends need their own compatible environments and task adapters.
+Kitchen/SO101 assets are external and listed below. `course/constraints-isaac51.txt` records a conflicting historical dependency experiment, not a supported unified installation recipe. Complete model backends need their own compatible environments and task adapters.
 
 ## Rule and planar-control development
 
@@ -47,9 +47,9 @@ ACT, SmolVLA and SAC/HIL-SERL implementations are already in LeRobot; separate r
 | --- | --- | --- |
 | Isaac Sim / runtime | nvcr.io/nvidia/isaac-lab:2.3.0 | Obtain official image under its terms; verify actual runtime after pull. No image binaries in Git |
 | Python dependencies | Upstream pyproject/extension metadata; course/constraints-*.txt | Resolve in compatible isolated application environments, retaining image-shared torch/CUDA |
-| PickOrange kitchen / SO101 USD | manifests/external_assets.json and course/scripts/prepare_assets.py | Official URLs, sizes and SHA256; download to approved asset storage |
+| PickOrange kitchen / SO101 USD | manifests/external_assets.json and course/scripts/prepare_assets.py | Official download information; download to approved asset storage |
 | LFS test fixtures | manifests/lfs_objects.json | All 45 binaries are included and verified; recovery tool supplied |
-| Pretrained policies | Upstream model docs/cards | Select version and record digest before use; no arbitrary weights claimed as included |
+| Pretrained policies | Upstream model docs/cards | Select and record the version before use; no arbitrary weights claimed as included |
 | Real-robot calibration | LeRobot hardware modules and optional dependencies | Configure for the actual device; private calibrations not published |
 | Formal task environment/scoring | External task provider | Supplied separately; no invented implementation of undisclosed protocols |
 

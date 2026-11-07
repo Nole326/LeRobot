@@ -27,9 +27,9 @@ The commands above retrieve the historical source snapshot. For the rule referen
 
   Pinned LeRobot v0.4.2, LeIsaac 0.4.0 and IsaacLab v2.3.0 source with original licenses.
 
-- 4,361 个上游文件、45 个已物化的 LFS 测试素材，以及 18 个公开工具/依赖约束文件。准确版本和哈希见 [manifests](../manifests/)。
+- 4,361 个上游文件、45 个已物化的 LFS 测试素材，以及 18 个公开工具/依赖约束文件。准确版本见 [manifests](../manifests/)。
 
-  4,361 upstream files, 45 materialized LFS test fixtures and 18 public utility/constraint files. Exact versions and hashes are recorded in [manifests](../manifests/).
+  4,361 upstream files, 45 materialized LFS test fixtures and 18 public utility/constraint files. Exact versions are recorded in [manifests](../manifests/).
 
 - 双语项目说明、包含官方 SO-101 照片的矢量文字海报与 4K PNG，以及无 GPU 的仓库自动检查和字体排版回归测试。
 
@@ -47,9 +47,9 @@ The formal task environment and scoring interface, end-to-end RL training, real-
 
 ## 后续改动 / Future changes
 
-每次实验记录本仓库 commit、上游版本、实际依赖、配置和输入数据哈希。修改上游文件时需保留原版本和补丁依据，并同步更新可审核的哈希清单；不要只改清单来掩盖不明差异。课程与服务器记录仍留本地。
+每次实验记录本仓库 commit、上游版本、实际依赖、配置和输入数据版本。修改上游文件时需保留原版本和补丁依据，并同步更新来源清单；不要只改清单来掩盖不明差异。课程与服务器记录仍留本地。
 
-Record the repository commit, upstream versions, actual dependencies, configuration and input-data hashes for each experiment. Upstream changes need preserved provenance, patch rationale and updated auditable manifests; never change hashes merely to hide unexplained differences. Course and server records remain private.
+Record the repository commit, upstream versions, actual dependencies, configuration and input-data versions for each experiment. Upstream changes need preserved provenance, patch rationale and updated auditable manifests; never alter records to hide unexplained differences. Course and server records remain private.
 
 本基准不会给整仓套用一个新许可证。第三方源码继续适用各自许可；独立整合代码的新许可证由仓库所有者另行决定，详见[版权说明](../THIRD_PARTY_NOTICES.md)。
 

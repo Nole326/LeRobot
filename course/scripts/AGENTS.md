@@ -20,7 +20,7 @@ PickOrange完整GR00T原生辅助开发评测、服务及轨迹审核走[独立�
 | `validate_dataset.py` | 向固定目录写合成v3数据并检查读取/padding；不是采集 |
 | `training_contracts.py` / `validate_training_readiness.py` | 独立终态/RNG工具及20帧样本的少量ACT优化/跨进程恢复，见[专项说明](../../docs/TRAINING_VALIDATION.md) |
 | `joint_contract.py` / `validate_joint_contract.py` | 历史动作换算与CPU检查；固定标定不自动适用新任务 |
-| `validate_ee_control.py` / `analyze_ee_motion.py` | 开发用基座XY控制/分析，不是课程桌面控制器或现成专家教师 |
+| `validate_ee_control.py` / `analyze_ee_motion.py` | 开发用基座XY控制/分析，不是课程桌面控制器或现成控制脚本 |
 | `audit_install_plan.py` | 读既有安装计划、写约束；不是自动安装器或通用依赖锁 |
 
 不要批量运行所有 `validate_*.py`。多份脚本在模块顶层就解析参数、写文件或创建应用，不能通过import来无副作用探测。CPU授权不覆盖CUDA/仿真，读取授权不覆盖下载/解压/覆盖。
@@ -36,7 +36,7 @@ PickOrange完整GR00T原生辅助开发评测、服务及轨迹审核走[独立�
 - 数据/资产 `/data/course`，日志 `/workspace/course/logs`，缓存 `/workspace/course/cache`；缓存不写数据集，预先核对权限与已有文件依赖。
 - 实际导入须为预期固定版本，不能被同名namespace遮蔽。PickOrange注册ID `LeIsaac-SO101-PickOrange-v0`，源码在 `third_party/leisaac/source/leisaac/leisaac/tasks/pick_orange/`。
 - `course/constraints-isaac51.txt`注明有冲突的历史诊断约束，不是当前安装配方；其中未随仓库分发的参考文档不能作为必需步骤。按公开依赖与实际环境检查缺口，不据此重装。
-- 场景资产不在Git，来源见 `manifests/external_assets.json`和 `prepare_assets.py`。已验SHA且未变的资产复用，下载/解压和运行授权分开确认。
+- 场景资产不在Git，来源见 `manifests/external_assets.json`和 `prepare_assets.py`。已验证且未变的资产复用，下载/解压和运行授权分开确认。
 
 这些路径是脚本当前的容器内接口，不是某个人的宿主目录。不同平台可用挂载或独立适配满足接口；版本/路径不符先列明差异，不依赖未发布部署记录，不强行合装LiftCube。
 
@@ -58,7 +58,7 @@ bash scripts/course_python.sh scripts/validate_rollout.py \
 
 创建 `/workspace/course/logs/NEW_TAG`、`/data/course/validation/NEW_TAG`。旧证据保留；固定输出脚本若已有结果，先考虑独立入口/输出参数，不覆盖重跑。
 
-只有来源rollout完整manifest与SHA匹配后才做桥接，输出tag不得与来源重复：
+只有来源rollout记录完整且数据一致后才做桥接，输出tag不得与来源重复：
 
 ```bash
 bash scripts/course_bc_python.sh scripts/validate_bridge.py \

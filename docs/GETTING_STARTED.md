@@ -34,9 +34,9 @@ python scripts/check_project.py
 python scripts/inspect_plan.py configs/experiment-plan.toml --print-config
 ```
 
-配置检查只需 Python 3.11+，不导入 Torch、LeRobot 或模拟器。退出码 2 表示错误，3 表示未填齐，0 只表示字段齐全且通过静态检查，**不表示已经允许或可以安全开训**。`--print-config` 输出配置和文件 SHA，便于对照；没有启动或安装副作用。
+配置检查只需 Python 3.11+，不导入 Torch、LeRobot 或模拟器。退出码 2 表示错误，3 表示未填齐，0 只表示字段齐全且通过静态检查，**不表示已经允许或可以安全开训**。`--print-config` 输出配置，便于对照；没有启动或安装副作用。
 
-Plan inspection needs only Python 3.11+, with no Torch, LeRobot or simulator imports. Exit code 2 means invalid, 3 means incomplete, and 0 means specified and statically consistent—**not authorized or safe to train**. `--print-config` prints the configuration and file SHA for comparison; it launches and installs nothing.
+Plan inspection needs only Python 3.11+, with no Torch, LeRobot or simulator imports. Exit code 2 means invalid, 3 means incomplete, and 0 means specified and statically consistent—**not authorized or safe to train**. `--print-config` prints the configuration for comparison; it launches and installs nothing.
 
 ## 2. 按阶段交付 / Deliver stage by stage
 

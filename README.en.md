@@ -1,6 +1,6 @@
 <p align="center">
   <a href="assets/lerobot-tabletop-pushing-bilingual.svg">
-    <img src="assets/lerobot-tabletop-pushing-bilingual.svg?v=20261003-pdf-aligned" width="960" alt="Bilingual LeRobot tabletop manipulation poster">
+    <img src="assets/lerobot-tabletop-pushing-bilingual.svg" width="960" alt="Bilingual LeRobot tabletop manipulation poster">
   </a>
 </p>
 
@@ -30,9 +30,9 @@ The current stage covers LiftCube and PickOrange as separate policy, data and ev
 ## Current scope
 
 - **LiftCube:** environment adapters, demonstration loading, BC, reference PPO, a visual rule policy and shared evaluation. See the [LiftCube guide](course/liftcube/README.md) for the matching image and runtime.
-- **PickOrange:** pinned environment, dual-view GR00T/SmolVLA/PI05 services, shared evaluation and trajectory audits. The new SmolVLA entry has CPU checks; rollout validation is pending. See the [runner guide](course/pickorange/README.md).
+- **PickOrange:** pinned environment, dual-view GR00T/SmolVLA/PI05 services, shared evaluation and trajectory audits. The [privileged state control script](course/pickorange/expert/README.md) adds demonstration collection and independent action-trajectory replay verification. Control execution, independent replay and demonstration collection have been jointly validated in simulation. The new SmolVLA entry has CPU checks; its GPU rollout validation remains pending. See the [runner guide](course/pickorange/README.md).
 - **VLA interfaces:** the [two-task interface guide](docs/VLA_INTERFACES.md) links all four model families: single-front wrappers for LiftCube and dual-view services for PickOrange. OFT still requires matching trained heads, projections and statistics.
-- **Rules and teachers:** the [two-task script guide](docs/SCRIPTED_POLICIES.md) links LiftCube visual/state policies, the official PickOrange state teacher and upstream references. A PickOrange visual rule policy is still missing; privileged teachers are separate from visual baselines.
+- **Rules and control scripts:** the [two-task script guide](docs/SCRIPTED_POLICIES.md) links LiftCube visual/state policies, the official PickOrange state control script and upstream references. A PickOrange visual rule policy is still missing; privileged state control scripts are separate from visual baselines.
 - **Later scope:** the formal multi-object task, cross-object generalization and hardware deployment. The unreleased environment is not a prerequisite for current development.
 
 See the [task and adaptation matrix](docs/TASKS.md) for runtimes, expert scripts, demonstrations and checkpoint/validation status across the four VLA families. A shared SO-101 robot does not make the interfaces interchangeable; keep configurations, checkpoints, statistics and scores separate.
@@ -81,7 +81,7 @@ LiftCube integration lives in `course/liftcube/src/starter/`. PickOrange executi
 ├── scripts/                  # Repository, provenance and plan checks
 ├── tests/                    # First-party regression tests
 ├── third_party/              # Pinned upstream sources
-├── manifests/                # Source, version and hash inventories
+├── manifests/                # Source, version inventories
 ├── docs/                     # Architecture, interfaces, runtime and reproducibility
 └── assets/                   # Poster and project artwork
 ```
@@ -119,7 +119,7 @@ See the [import inventory](docs/IMPORT_MANIFEST.md) for source provenance and in
 - [LiftCube/PickOrange resources and adaptation status](docs/TASKS.md)
 - [PickOrange model validation, paired RL and memory reference](docs/PICKORANGE_VALIDATION.md)
 - [Model weights and demonstration downloads](docs/RESOURCES.md)
-- [Task-specific teacher collection, training and evaluation](docs/TRAIN_AND_EVALUATE.md)
+- [Task-specific control script collection, training and evaluation](docs/TRAIN_AND_EVALUATE.md)
 - [LiftCube source, image and runtime](course/liftcube/README.md)
 - [PickOrange sources, separate runtime and diagnostics](docs/PICK_ORANGE.md)
 - [Visual rule reference, calibration and migration](docs/SCRIPTED_LIFTCUBE.md)

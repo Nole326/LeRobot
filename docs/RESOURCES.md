@@ -1,5 +1,7 @@
 # 数据与模型获取 / Data and model acquisition
 
+PickOrange 自采可使用 [特权state控制脚本](../course/pickorange/expert/README.md)，无需 VLA 权重；机器人与场景资产仍需单独获取。仓库只包含自研控制脚本所需的小型几何标定数值，不包含生成的演示图像、轨迹或模型。已完成控制执行、回放检验与采集流程的实际仿真联合验证；使用方法见[控制脚本说明](../course/pickorange/expert/README.md)。
+
 先在[适配状态表](TASKS.md)选择任务和后端，再获取本页资产。Git只保存代码、配置和来源；权重、数据、标定与运行产物放在仓库外。下载模型不会启动训练或测试。访问权限和再分发许可分别确认。
 
 Choose a task/backend in the [status matrix](TASKS.md). Git contains integration code, not model/data binaries. Store assets externally and respect each resource's access and redistribution terms.

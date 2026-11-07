@@ -69,11 +69,11 @@ Usually only the calibration reader and coordinate conversion change: normalize 
 
 在外部标定文件中填入非空`grasp_presets`，入口会选择`starter.scripted_geometry.GeometricLiftCube`；默认空数组继续使用原策略。此模式要求`kinematics_backend: "joint_chain"`与`gravity_compensation: true`。每个预设包括`tilt`标签、固定工具`rotation`和`tcp_offset_m`，不包含物体位置或按seed编写的动作。
 
-可参考[固定资产示例](../course/liftcube/configs/scripted_grasps.example.json)，先核对资产SHA及其3cm方块、夹爪开度和名义净空假设，再将`presets`复制为自己标定文件的`grasp_presets`、`asset_sha256`复制为`grasp_asset_sha256`。入口拒绝预设与关节链来源资产不匹配。示例不包含相机、工作区、桌面、FK独立核验等必要标定，不能单独启动。更换资产或抓取对象须重新验证相关几何，不盲用这些数字。
+可参考[固定资产示例](../course/liftcube/configs/scripted_grasps.example.json)，先核对资产及其3cm方块、夹爪开度和名义净空假设，再将`presets`复制为自己标定文件的`grasp_presets`，并按配置模板填写资产信息。入口拒绝预设与关节链来源资产不匹配。示例不包含相机、工作区、桌面、FK独立核验等必要标定，不能单独启动。更换资产或抓取对象须重新验证相关几何，不盲用这些数字。
 
 算法由RGB产生位置，联合求可达抓取偏航，依次核验抓取/hover/运输预设和关节余量。接近路径保持原参考/发送步长；闭合后先保持抓取方向，以≤0.25motor/策略步离桌。实测q的FK高度达到`hover_z−3mm`且朝向误差≤0.15rad连续三次后，进入原运输目标；不要求带载中间点完全静止，但硬跟踪保护不变。此子阶段只判断离桌，不判断是否夹住；空抓和掉落仍按原生success失败。最后的物理、执行器、关节限位、640tick预算及0.20m评分不变。
 
-配套仿真可显式加入`--runtime-camera-calibration`，通过`starter.camera_calibration`读取相机/基座标定，记录到每回合JSONL的reset行；不开启则只用外部固定标定，不读取场景相机。记录清单同时保存开关和标定代码SHA。此辅助接口仅适配当前仿真，不代表课程真机SDK已提供同样能力；仍不能读取隐藏物体位置回填标定。`--check`即使带此开关也不创建仿真环境。
+配套仿真可显式加入`--runtime-camera-calibration`，通过`starter.camera_calibration`读取相机/基座标定，记录到每回合JSONL的reset行；不开启则只用外部固定标定，不读取场景相机。记录清单同时保存开关和标定代码版本。此辅助接口仅适配当前仿真，不代表课程真机SDK已提供同样能力；仍不能读取隐藏物体位置回填标定。`--check`即使带此开关也不创建仿真环境。
 
 The opt-in geometric policy chooses reachable fixed-CAD grasps, clears the table slowly, then tilts and lifts. Its intermediate FK-height gate is not grasp success; native scoring and hard guards remain unchanged. Copy presets only after checking the example's asset identity and assumptions, and complete independent calibration. `--runtime-camera-calibration` explicitly enables a matching-simulator-only camera/base provider and logs each reset transform; this is a distinct input contract, not a confirmed hardware feature.
 
@@ -103,13 +103,13 @@ Copy the template outside the repository and fill it from measured or independen
 | `workspace` | `[xyz_min, xyz_max]`；必须是已核验的无遮挡工作范围 / Validated clear workspace |
 | `open_motor`, `close_motor` | 已核验的公共夹爪请求，满足0≤close<open≤100 / Motor targets |
 | `kinematics_backend` | `urdf`（缺省）或`joint_chain` / Backend selection |
-| `urdf_path`, `urdf_sha256` | URDF后端的路径和SHA256；独立核对与当前USD一致 / URDF backend source |
-| `chain_path`, `chain_sha256`, `tcp_offset_m` | 关节链JSON路径/SHA及固定夹爪frame中的三维TCP偏置；原生轴向、零偏置 / Joint-chain source and fixed tool offset |
+| `urdf_path` | URDF后端的路径；独立核对与当前USD一致 / URDF backend source |
+| `chain_path`, `tcp_offset_m` | 关节链JSON路径及固定夹爪frame中的三维TCP偏置；原生轴向、零偏置 / Joint-chain source and fixed tool offset |
 | `tcp_frame`, `joint_names` | 已标定工具frame、按公共五臂关节顺序排列的URDF名称 / TCP and ordered arm names |
 | `joint_sign`, `joint_offset_deg` | 五维轴向与零位映射，不能从同名模型猜测 / Axis and zero-offset mapping |
 | `fk_checks` | 至少三个不同臂姿态，各含`motor`六维、独立获得的`tcp_xyz`三维和`tcp_rotation`3×3 / Independent FK pose references |
 
-先独立验证TCP位置/方向、相机投影与关节映射，再填写该文件。`--check`只做数值/哈希、FK参考与IK回算检查，不证明标定记录真实或碰撞安全。仿真模型导出的固定机器人/相机标定可以作为几何先验，但每回合物体位置、分割或成功标记不得用于更新策略标定；正式课程是否允许这些固定先验仍按评分要求确认。
+先独立验证TCP位置/方向、相机投影与关节映射，再填写该文件。`--check`只做数值、FK参考与IK回算检查，不证明标定记录真实或碰撞安全。仿真模型导出的固定机器人/相机标定可以作为几何先验，但每回合物体位置、分割或成功标记不得用于更新策略标定；正式课程是否允许这些固定先验仍按评分要求确认。
 
 例如64→256同视场resize，`fx/fy`乘4，`cx/cy`按`(c+0.5)*4-0.5`转换；同时在独立评测YAML设置`image_height: 256`、`image_width: 256`。只改图像形状而复用旧内参是不合法标定。入口会拒绝配置与标定尺寸不一致；不同输入分辨率的成绩须注明，不自动视为同一比较协议。
 
@@ -129,7 +129,7 @@ CPU软件单测（NumPy、Torch；集成测试另需PyYAML），仓库根目录�
 python -m unittest discover -s tests -p test_scripted_liftcube.py -v
 ```
 
-固定关节链后端需要NumPy/SciPy；JSON记录五个臂关节的父/子frame、原限位、轴向和来源USD SHA。导出是CPU操作，不启动SimulationApp，不包含物体/相机真值或碰撞资产。只适配已核验的SO101五轴Z旋转链，不是通用机器人解析器。
+固定关节链后端需要NumPy/SciPy；JSON记录五个臂关节的父/子frame、原限位、轴向和来源USD。导出是CPU操作，不启动SimulationApp，不包含物体/相机真值或碰撞资产。只适配已核验的SO101五轴Z旋转链，不是通用机器人解析器。
 
 配套镜像中导出（输出必须是新文件；USD Python库需按镜像实际路径配置）：
 
@@ -140,7 +140,7 @@ PYTHONPATH="$USD_LIB_DIR:$PWD/src" LD_LIBRARY_PATH="$USD_LIB_DIR/bin${LD_LIBRARY
   --asset /leisaac/assets/robots/so101_follower.usd --output /path/to/chain.json
 ```
 
-在外部标定文件中设置`kinematics_backend: "joint_chain"`、`chain_path`、`chain_sha256`及`tcp_offset_m`，并填写共同标定字段。该后端要求`joint_sign=[1,1,1,1,1]`、`joint_offset_deg=[0,0,0,0,0]`和导出文件中的关节顺序。SHA证明文件身份，不能替代独立FK和抓取标定。
+在外部标定文件中设置`kinematics_backend: "joint_chain"`、`chain_path`及`tcp_offset_m`，并填写共同标定字段。该后端要求`joint_sign=[1,1,1,1,1]`、`joint_offset_deg=[0,0,0,0,0]`和导出文件中的关节顺序。使用前仍需独立完成FK和抓取标定。
 
 The joint-chain backend uses NumPy/SciPy and fixed geometry exported from the matching SO101 USD. It requires native axes/zero offsets and independently validated camera/TCP calibration. Export does not launch the simulator or read live object state.
 
@@ -164,7 +164,7 @@ export PYTHONPATH="$PWD/src:/leisaac/source/leisaac${PYTHONPATH:+:$PYTHONPATH}"
 
 默认沿用4回合、每回合640环境tick、30Hz策略/60Hz环境，不扩预算、不改物理或成功条件。每回合新建状态机，调用共同`run_episode`。自有运行器用`finally`关闭环境，不触发训练或真机连接；输出目录已存在时拒绝覆盖。
 
-Outputs: `manifest.json` identifies calibration, kinematics data/code, config, base policy, actual policy class/code and runner hashes; each episode writes a flushed JSONL trace and RGB NPZ (reset plus post-step/terminal images), and completed episodes enter the shared `metrics.json`/`episodes.csv`. `run-status.json` distinguishes finished runs from errors. A partial episode is not counted as a complete failure. Recorded RGB and diagnostics stay outside Git.
+Outputs: `manifest.json` identifies calibration, kinematics data/code, config, base policy, actual policy class/code and runner versions; each episode writes a flushed JSONL trace and RGB NPZ (reset plus post-step/terminal images), and completed episodes enter the shared `metrics.json`/`episodes.csv`. `run-status.json` distinguishes finished runs from errors. A partial episode is not counted as a complete failure. Recorded RGB and diagnostics stay outside Git.
 
 适配器关闭LeIsaac默认的原生演示记录器：其每步GPU拼接完整分辨率RGB历史会造成显存池快速增长。本入口仍显式保存CPU图像和轨迹，不改变相机、物理或成功判据；原生演示HDF5导出不属于这个评测入口。
 
@@ -182,7 +182,7 @@ The adapter disables LeIsaac's implicit demonstration recorder, whose growing GP
 | 新增seed40–59 | 8/20 | 40、42、45、47、48、50、51、56 | 9.43 |
 | 同配置合计seed30–59 | 13/30（43.3%） | 上述全部 | 9.38 |
 
-新增20回合在原公共几何入口实际运行。全部完整轨迹的动作映射、原范围、无裁剪、发送连续性、原生终态/RGB和SHA经独立CPU审核。新增12个失败中，4个触发原跟踪保护，2个阶段超时，6个未形成有效抬升但无脚本故障。`hold`或夹爪停滞代理都不能算成功；原生高度判定也不等于额外的稳定持物测试。比例只描述这些有限场景。
+新增20回合在原公共几何入口实际运行。全部完整轨迹的动作映射、原范围、无裁剪、发送连续性、原生终态/RGB经独立CPU审核。新增12个失败中，4个触发原跟踪保护，2个阶段超时，6个未形成有效抬升但无脚本故障。`hold`或夹爪停滞代理都不能算成功；原生高度判定也不等于额外的稳定持物测试。比例只描述这些有限场景。
 
 ### 定位调度优化配对 / Paired localization-scheduling comparison
 
@@ -203,7 +203,7 @@ The unchanged assisted controller completed 30 scenes with 13 native successes, 
 
 ### 定位调度变体100场景 / Scheduling variant across 100 scenes
 
-冻结seed1000–1099，每回合至多640环境tick，front256、实测6D q及每reset实际相机标定辅助，原60Hz环境/30Hz策略、原物理/限位/执行器/原生成功判据不变。100回合完整结束并通过轨迹、动作映射、原生终态与SHA审核：45成功、55失败，成功平均9.468、中位9.383仿真秒；失败中16次跟踪保护、2次阶段超时、37次无脚本错误但未达原生成功。
+冻结seed1000–1099，每回合至多640环境tick，front256、实测6D q及每reset实际相机标定辅助，原60Hz环境/30Hz策略、原物理/限位/执行器/原生成功判据不变。100回合完整结束并通过轨迹、动作映射、原生终态审核：45成功、55失败，成功平均9.468、中位9.383仿真秒；失败中16次跟踪保护、2次阶段超时、37次无脚本错误但未达原生成功。
 
 这组使用冻结开发入口的定位调度版本，对应公共几何模式的`plan_while_opening: true`。公共移植已复用完整记录输入进行逐命令/阶段等价检查，最大命令差0；没有另把公共CLI重跑100次。准确复现仍需同版本环境及匹配标定，仓库只提供模板与获取/核验方式，不附私有标定、原始轨迹或图像。该成绩不属于自研末端执行层，也不能作为未来正式标定/控制SDK或真机的成绩。
 
@@ -235,9 +235,9 @@ Three later development variants achieved 1/3, 1/3 and 2/3 versus the existing l
 | 原生成功 | 6/10 | 4/10 |
 | 成功seed | 60、61、63、65、68、69 | 61、63、65、69 |
 
-全部轨迹动作映射、原范围、无裁剪、连续性及原生终态/RGB/SHA审核通过。候选没有新增成功，丢失60/68，闭合推移分别从4.90/3.81mm增至25.14/17.00mm。四个共同成功回合中，候选中位慢0.083仿真秒；臂命令三阶差分RMS比值中位0.913，但实测关节二阶差分RMS比值中位1.191。因此两项新方案均不并入公共运行代码，保留现有控制。
+全部轨迹动作映射、原范围、无裁剪、连续性及原生终态/RGB审核通过。候选没有新增成功，丢失60/68，闭合推移分别从4.90/3.81mm增至25.14/17.00mm。四个共同成功回合中，候选中位慢0.083仿真秒；臂命令三阶差分RMS比值中位0.913，但实测关节二阶差分RMS比值中位1.191。因此两项新方案均不并入公共运行代码，保留现有控制。
 
-两组记录的初始关节/物体XYZ/相机变换及臂接近前状态匹配，未承诺隐藏模拟器状态位级相等。物体位置只用于评分侧推移诊断，不输入策略。新对照与旧r25的13/30分协议统计；同一红方块的位置/偏航随机化仍不足以证明跨物体能力。
+两组记录的初始关节/物体XYZ/相机变换及臂接近前状态匹配，未承诺隐藏模拟器状态位级相等。物体位置只用于评分侧推移诊断，不输入策略。新对照与原控制配置的13/30分协议统计；同一红方块的位置/偏航随机化仍不足以证明跨物体能力。
 
 Two external controller experiments preserved the original physics, actuators, limits and 640-tick budget. Wider opening achieved 1/5 on old development scenes versus 2/5 and was rejected. A CAD/measured-jaw midpoint controller achieved 3/5 in development, was frozen, then scored 4/10 versus the existing scheduling controller's 6/10 on new paired seeds60–69. It gained no successes and lost two. On four common successes it was 0.083 simulation seconds slower; median command-jerk ratio was 0.913, but measured-joint second-difference RMS ratio was 1.191. Full trace/native-result audits passed; neither experimental controller is included in the public runtime. Recorded initial and pre-approach states match without claiming hidden-state identity. Scoring-side object truth never enters the controller, and these paired results remain separate from the earlier 13/30 protocol.
 
@@ -253,7 +253,7 @@ Two external controller experiments preserved the original physics, actuators, l
 | 腕轴请求越界 | 1 | 拒绝发送，不裁剪或放宽原范围 |
 | 空抓后超时 | 1 | 流程到hold，但原生评分失败 |
 
-完整轨迹的动作映射、原范围、无执行限幅、连续性、reset前RGB/终态、原生高度评分与SHA均经独立CPU复核。1/10仅是这十个场景的实测比例，不是总体成功率保证，也不代表课程正式多物体评分。
+完整轨迹的动作映射、原范围、无执行限幅、连续性、reset前RGB/终态、原生高度评分均经独立CPU复核。1/10仅是这十个场景的实测比例，不是总体成功率保证，也不代表课程正式多物体评分。
 
 反馈闭合的开发场景17/18分别在566/532tick成功，19仍不可达；原闭合方案在同三个开发场景中仅17成功。开发集改善没有转化为广泛场景稳定性。更早同seed的TCP选参和随后抬高/倾斜诊断均独立保留，不混入上表，也不把成功轨迹自动作为BC数据。
 

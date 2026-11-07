@@ -8,9 +8,9 @@ A cube-lifting task with an environment adapter, demonstration reader, BC, refer
 
 ## 当前状态 / Status
 
-模型/演示链接与固定版本见[资源清单](../../docs/RESOURCES.md)，教师、训练和评测步骤见[使用指南](../../docs/TRAIN_AND_EVALUATE.md)。新增特权教师显式使用cube真值、复用原控制保护，目前只有CPU检查，尚未验收真实抓取；不作为视觉baseline。
+模型/演示链接与固定版本见[资源清单](../../docs/RESOURCES.md)，控制脚本、训练和评测步骤见[使用指南](../../docs/TRAIN_AND_EVALUATE.md)。新增特权state控制脚本显式使用cube真值、复用原控制保护，目前只有CPU检查，尚未验收真实抓取；不作为视觉baseline。
 
-See the resource and execution guides for assets and task-specific steps. The explicit object-truth teacher is a CPU-tested development candidate, not a validated expert or visual baseline.
+See the resource and execution guides for assets and task-specific steps. The explicit object-truth control script is a CPU-tested development candidate, not a validated expert or visual baseline.
 
 六关节环境交互与BC/PPO参考训练基础已接入，规则脚本可独立于训练使用。候选演示尚未通过正式BC准入；[四种VLA的单front包装与共享chunk层](../../docs/VLA_INTERFACES.md)已有CPU接口检查，完整模型及GPU/闭环尚未验收，ACT接入仍在开发。训练和恢复用法见[训练指南](TRAINING.md)，任务迁移与采集方案见[开发路线](../../docs/LIFTCUBE_TRANSFER.md)。
 
@@ -35,29 +35,18 @@ Verify demonstration action mapping before training; see [Getting started](#起�
 
 Use the matching image `isaac-lab:4.5.0-v2.1.1-leisaac-v0.1.2-src`: Isaac Sim 4.5.0, Isaac Lab v2.1.1, LeIsaac v0.1.2, Python 3.10.15 and Torch 2.5.1+cu118. Package metadata may report Isaac Lab 0.41.3 and LeIsaac 0.1.0. The repository's existing `third_party/` snapshots use different versions; keep them off this runtime's Python path.
 
-从[交大云盘分享页](https://pan.sjtu.edu.cn/web/share/74e1cfacf999d941ad66860a03104554)下载 `isaac-lab_4.5.0-v2.1.1-leisaac-v0.1.2-src.tar`，核对下方SHA256后在Docker宿主导入。该链接是分享页面，不是tar文件直链；访问按页面要求及课程授予的权限进行。仓库不存储模拟器镜像、场景资产或缓存。
+从[交大云盘分享页](https://pan.sjtu.edu.cn/web/share/74e1cfacf999d941ad66860a03104554)下载 `isaac-lab_4.5.0-v2.1.1-leisaac-v0.1.2-src.tar`，然后在Docker宿主导入。该链接是分享页面，不是tar文件直链；访问按页面要求及课程授予的权限进行。仓库不存储模拟器镜像、场景资产或缓存。
 
-Download `isaac-lab_4.5.0-v2.1.1-leisaac-v0.1.2-src.tar` from the [SJTU cloud-drive share](https://pan.sjtu.edu.cn/web/share/74e1cfacf999d941ad66860a03104554), verify the SHA256 below, then load it on the Docker host. This is a share page, not a direct tar URL; follow its access requirements and the permissions granted by the course. Simulator images, scene assets and caches remain outside Git.
+Download `isaac-lab_4.5.0-v2.1.1-leisaac-v0.1.2-src.tar` from the [SJTU cloud-drive share](https://pan.sjtu.edu.cn/web/share/74e1cfacf999d941ad66860a03104554), then load it on the Docker host. This is a share page, not a direct tar URL; follow its access requirements and the permissions granted by the course. Simulator images, scene assets and caches remain outside Git.
 
 ```bash
-sha256sum /path/to/isaac-lab_4.5.0-v2.1.1-leisaac-v0.1.2-src.tar
 docker load -i /path/to/isaac-lab_4.5.0-v2.1.1-leisaac-v0.1.2-src.tar
 docker image inspect --format '{{.Id}}' isaac-lab:4.5.0-v2.1.1-leisaac-v0.1.2-src
 ```
 
-Windows下载后可用PowerShell核验 / Verify a Windows download with PowerShell:
+若分发方更新镜像，使用前先确认发布版本与兼容性。
 
-```powershell
-Get-FileHash -Algorithm SHA256 -LiteralPath '.\isaac-lab_4.5.0-v2.1.1-leisaac-v0.1.2-src.tar'
-```
-
-镜像归档SHA256 / Image archive SHA256：`83df9539e280d663681b876cda3aa4eff631164f743f0aad3d693e1e17d6b17f`。
-
-导入后的image ID / Loaded image ID：`sha256:17d6d1a69fc4b361dffab3238ab170f72ec7f2f9b5cb6d58050e1c6ffd80d752`。
-
-以上校验值对应当前配套镜像；若分发方更新文件，先核对发布说明和版本，再更新清单。
-
-These checksums identify the current matching image. If the distributor replaces it, confirm the release/version before updating the inventory.
+If the distributor replaces the image, confirm the release and compatibility before use.
 
 ## 接口 / Interface
 
@@ -106,9 +95,9 @@ The rule policy has its own `starter.scripts.evaluate_scripted` CLI and offline 
 
 ## 来源与修改 / Provenance and changes
 
-[来源清单](../../manifests/liftcube_source.json)记录原始归档及逐文件原始／当前SHA。[开发补丁](patches/team-interface.patch)记录环境接口与训练基础修改；评测配置保持原包内容。
+[来源清单](../../manifests/liftcube_source.json)记录原始归档及逐文件来源记录。[开发补丁](patches/team-interface.patch)记录环境接口与训练基础修改；评测配置保持原包内容。
 
-The [source manifest](../../manifests/liftcube_source.json) records original/current file hashes. The [patch](patches/team-interface.patch) covers environment-interface and training-foundation changes. The evaluation configuration retains its original contents.
+The [source manifest](../../manifests/liftcube_source.json) records source records. The [patch](patches/team-interface.patch) covers environment-interface and training-foundation changes. The evaluation configuration retains its original contents.
 
 原包 `pyproject.toml` 声明MIT，未附独立LICENSE文件；保留原声明和作者字段，见[第三方说明](../../THIRD_PARTY_NOTICES.md)。镜像、数据和权重分别遵循其来源条款。
 

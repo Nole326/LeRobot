@@ -1,0 +1,293 @@
+{
+  "objects": {
+    "Orange001": {
+      "center_offset_root_m": [
+        0.0,
+        1.862645149230957e-09,
+        0.0221941282135662
+      ],
+      "half_extent_m": [
+        0.027697505429387093,
+        0.026530558243393898,
+        0.02219412875350152
+      ],
+      "local_bounds": [
+        [
+          -0.027697505429387093,
+          -0.02653055638074875,
+          -5.399353186774647e-10
+        ],
+        [
+          0.027697505429387093,
+          0.026530560106039047,
+          0.04438825696706772
+        ]
+      ],
+      "root_world_transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          2.1255872534204743
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          -0.303665590487424
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.9244327503433306
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "collision_metadata": [
+        {
+          "path": "/Root/Orange001/Orange001/Collisions/Orange001_C",
+          "schemas": [
+            "MaterialBindingAPI",
+            "PhysicsCollisionAPI",
+            "PhysicsMeshCollisionAPI"
+          ],
+          "attributes": {
+            "physics:approximation": "convexHull",
+            "physics:collisionEnabled": "True"
+          }
+        }
+      ]
+    },
+    "Orange002": {
+      "center_offset_root_m": [
+        0.0,
+        1.862645149230957e-09,
+        0.021678065070266372
+      ],
+      "half_extent_m": [
+        0.026942692697048187,
+        0.025362253189086914,
+        0.02167805924141919
+      ],
+      "local_bounds": [
+        [
+          -0.026942692697048187,
+          -0.025362251326441765,
+          5.828847182698382e-09
+        ],
+        [
+          0.026942692697048187,
+          0.025362255051732063,
+          0.04335612431168556
+        ]
+      ],
+      "root_world_transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          2.249221251030364
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          -0.33217272183906854
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.9241049740181722
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "collision_metadata": [
+        {
+          "path": "/Root/Orange002/Orange002/Collisions/Orange002_C",
+          "schemas": [
+            "MaterialBindingAPI",
+            "PhysicsCollisionAPI",
+            "PhysicsMeshCollisionAPI"
+          ],
+          "attributes": {
+            "physics:approximation": "convexHull",
+            "physics:collisionEnabled": "True"
+          }
+        }
+      ]
+    },
+    "Orange003": {
+      "center_offset_root_m": [
+        0.0,
+        0.0,
+        0.020887842429472447
+      ],
+      "half_extent_m": [
+        0.02873917669057846,
+        0.027826856821775436,
+        0.02088784237425184
+      ],
+      "local_bounds": [
+        [
+          -0.02873917669057846,
+          -0.027826856821775436,
+          5.5220605865713424e-11
+        ],
+        [
+          0.02873917669057846,
+          0.027826856821775436,
+          0.04177568480372429
+        ]
+      ],
+      "root_world_transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          2.153771638893834
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          -0.4053714928730934
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.9230279297756251
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "collision_metadata": [
+        {
+          "path": "/Root/Orange003/Orange003/Collisions/Orange003_C",
+          "schemas": [
+            "MaterialBindingAPI",
+            "PhysicsCollisionAPI",
+            "PhysicsMeshCollisionAPI"
+          ],
+          "attributes": {
+            "physics:approximation": "convexHull",
+            "physics:collisionEnabled": "True"
+          }
+        }
+      ]
+    },
+    "Plate": {
+      "center_offset_root_m": [
+        0.0,
+        0.0,
+        0.018577475456286296
+      ],
+      "half_extent_m": [
+        0.10125185734300235,
+        0.10125185734300218,
+        0.01857748047404484
+      ],
+      "local_bounds": [
+        [
+          -0.10125185734300235,
+          -0.10125185734300218,
+          -5.017758542003037e-09
+        ],
+        [
+          0.10125185734300235,
+          0.10125185734300218,
+          0.037154955930331135
+        ]
+      ],
+      "root_world_transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          2.4153075113292406
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          -0.33843361609065753
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.9374869833877418
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "collision_metadata": [
+        {
+          "path": "/Root/Plate/Plate/Collisions/Plate_C",
+          "schemas": [
+            "MaterialBindingAPI",
+            "PhysicsCollisionAPI",
+            "PhysicsMeshCollisionAPI"
+          ],
+          "attributes": {
+            "physics:approximation": "convexDecomposition",
+            "physics:collisionEnabled": "True"
+          }
+        }
+      ]
+    }
+  },
+  "support_candidates": [
+    {
+      "path": "/Root/Scene/counter_main_main_group/geometry_1",
+      "bounds": [
+        [
+          1.7083333730697632,
+          -0.6499999761581421,
+          0.8899999856948853
+        ],
+        [
+          2.75,
+          -5.551115123125783e-17,
+          0.9200000166893005
+        ]
+      ]
+    },
+    {
+      "path": "/Root/Scene/dishwasher_main_group/_body_0/object/visuals/model_0_vis",
+      "bounds": [
+        [
+          1.7500000613297042,
+          -0.5673120141844838,
+          1.7881393427066072e-07
+        ],
+        [
+          2.4000000340377277,
+          -1.532919069457961e-08,
+          0.8900001645088196
+        ]
+      ]
+    }
+  ],
+  "center_is_frozen_mesh_proxy_not_contact_sensor": true
+}

@@ -9,7 +9,6 @@ The current poster presents visual Pick & Place: multi-object manipulation, imit
 The original photograph is stored as [so101-follower-official.webp](so101-follower-official.webp), at 2048×1536, unchanged from the download. In the poster it is proportionally downscaled with a small crop of the top and bottom background margins; the robot and sticker contents are not retouched.
 
 - 官方下载地址 / Official download: [SO101_Follower.webp](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/lerobot/SO101_Follower.webp)
-- SHA-256: `855809851ecf2ac5a28b2f0050b4baca3adc5a18c5175908399f9c6a52dd6877`
 
 ## 清晰文字与原图配色 / Sharp typography and original colors
 

@@ -8,6 +8,8 @@ The current scope covers **LiftCube** and **PickOrange** as separate tasks. The 
 
 ## 环境与接口 / Environments and interfaces
 
+PickOrange 自研 [特权state控制脚本](../course/pickorange/expert/README.md)提供源码、55秒场景验证、回放检验和脚本专家演示采集入口。已在实际仿真环境中完成控制执行、回放检验与采集流程的联合验证。控制脚本采集与视觉策略评测采用不同输入边界，成绩应分别报告。
+
 | 内容 / Item | LiftCube | PickOrange |
 | --- | --- | --- |
 | 指南 / Guide | [任务README](../course/liftcube/README.md) | [任务与部署指南](PICK_ORANGE.md) |
@@ -41,12 +43,12 @@ Changing a task ID is not an environment port. Shared robot names do not establi
 | 资源 / Resource | LiftCube | PickOrange |
 | --- | --- | --- |
 | 视觉脚本 / Visual script | **已有公开实现与实际评测。** [规则策略与评测入口](../course/liftcube/README.md)。既有100回合结果为45/100，条件为front 256×256、q6及显式相机标定辅助；不能称为不使用标定的纯视觉结果，也不是高可靠专家。 / Implemented and evaluated with explicit calibration assistance. | **尚无完整公开、已验收的自研视觉策略。** 现有任务诊断入口不能代替视觉baseline。 / No complete accepted first-party visual baseline. |
-| 特权state脚本 / Privileged teacher | **已有SO101开发教师源码与CPU测试，真实成功率待验。** [PrivilegedLiftCube](../course/liftcube/src/starter/privileged_liftcube.py)显式读取cube真值，复用原控制保护；[执行与采集准入](TRAIN_AND_EVALUATE.md)。上游Franka状态机不直接适用。 / Implemented development candidate; physical grasp acceptance pending. | **已有官方采集状态机源码。** [任务状态机](../third_party/leisaac/source/leisaac/leisaac/datagen/state_machine/pick_orange.py)与[生成入口](../third_party/leisaac/scripts/datagen/state_machine/generate.py)已收录；其直接写关节状态等限制见[采集指南](../course/pickorange/README.md)。另有历史单场景教师成功记录，不能作为本入口批量BC准入。 / Included upstream generator, with physics/state-write caveats. |
+| 特权state脚本 / privileged state control scripts | **已有SO101开发控制脚本源码与CPU测试，真实成功率待验。** [PrivilegedLiftCube](../course/liftcube/src/starter/privileged_liftcube.py)显式读取cube真值，复用原控制保护；[执行与采集准入](TRAIN_AND_EVALUATE.md)。上游Franka状态机不直接适用。 / Implemented development candidate; physical grasp acceptance pending. | **已有自研[特权state控制脚本](../course/pickorange/expert/README.md)，已完成控制执行、回放检验与采集流程的实际仿真联合验证。** 同时保留官方采集状态机源码。 [任务状态机](../third_party/leisaac/source/leisaac/leisaac/datagen/state_machine/pick_orange.py)与[生成入口](../third_party/leisaac/scripts/datagen/state_machine/generate.py)已收录；其直接写关节状态等限制见[采集指南](../course/pickorange/README.md)。生成数据必须通过回放检验后才能用于BC。 / Control execution, independent replay and collection jointly validated in simulation; upstream generator retained with physics/state-write caveats. |
 | 网络演示 / Online demonstrations | **有候选资源。** [azazdeaz/teleop_so101_leisaac_lift_cube](https://huggingface.co/datasets/azazdeaz/teleop_so101_leisaac_lift_cube)：17回合、front+wrist、30fps。已核对元数据、统计与任务文本；未完成全量下载、逐回合成功和当前环境重放验收。 / Metadata checked; full replay and training admission remain open. | **有官方资源。** [LightwheelAI/leisaac-pick-orange](https://huggingface.co/datasets/LightwheelAI/leisaac-pick-orange)：60回合、front+wrist、30fps。已有样例和接口检查，不代表60回合均已独立复核成功或可直接用于BC。 / Official dataset exists; sample checks are not whole-dataset acceptance. |
 
-特权教师使用物体真值，只能作为另行声明的采集工具，不能冒充视觉规则baseline。官方PickOrange生成流程会改变重力、夹爪控制及终止方式，并在setup/回位/成功检查中写关节状态；使用前须与冻结的评测环境逐项对齐，不能仅依据状态机结束就认定原生任务成功。
+特权state控制脚本使用物体真值，只能作为另行声明的采集工具，不能冒充视觉规则baseline。官方PickOrange生成流程会改变重力、夹爪控制及终止方式，并在setup/回位/成功检查中写关节状态；使用前须与冻结的评测环境逐项对齐，不能仅依据状态机结束就认定原生任务成功。
 
-Privileged teachers are data-generation tools, not visual baselines. The official PickOrange generation setup can change gravity, gripper control and termination; audit those differences against the evaluation contract.
+privileged state control scripts are data-generation tools, not visual baselines. The official PickOrange generation setup can change gravity, gripper control and termination; audit those differences against the evaluation contract.
 
 历史候选`H2Ozone/lift_cube`另有动作范围不匹配记录：约62.64%的帧至少一维请求超出当前声明范围。这不是直接裁剪原标签的理由；其映射、标定和原生请求/执行时限幅对照重放尚未完成，不能与上表17回合数据集混为同一份数据。
 
@@ -86,11 +88,11 @@ Code, external checkpoints and accepted task policies are distinct. Validate vie
 
 1. 分别冻结任务、观测、动作、物理与评分配置；沿各自入口检查真实RGB/q及终态。 / Freeze each task's own contracts and verify observations and terminal capture.
 2. LiftCube优先形成可复现的规则结果、合格演示以及ACT/SmolVLA对照；其他VLA按匹配程度接入。 / Establish rule and ACT/SmolVLA comparisons with accepted demonstrations.
-3. PickOrange以已测N1.5任务基座为开发起点，推进可归因的RL对照、SmolVLA统一协议基线和π₀.₅诊断；OFT先补受训包或选择BC。DiT12暂搁置。教师采集与BC准入独立审核。 / Build on N1.5, standardize SmolVLA evaluation, diagnose PI05 and resolve OFT training assets; DiT12 is deferred.
+3. PickOrange以已测N1.5任务基座为开发起点，推进可归因的RL对照、SmolVLA统一协议基线和π₀.₅诊断；OFT先补受训包或选择BC。DiT12暂搁置。控制脚本采集与BC准入独立审核。 / Build on N1.5, standardize SmolVLA evaluation, diagnose PI05 and resolve OFT training assets; DiT12 is deferred.
 4. 两任务独立配置、数据划分、统计、checkpoint和结果目录；比较时保留任务、视角、控制与预算信息。 / Keep data, normalization, checkpoints and evaluation records separate.
 
 多物体迁移方案保存在[后续路线](LIFTCUBE_TRANSFER.md)。它不触发额外训练，也不要求先完成未知正式环境的适配。
 
 See the [deferred transfer plan](LIFTCUBE_TRANSFER.md) for later work; it does not launch additional training.
 
-资源下载、固定revision见[资源清单](RESOURCES.md)，教师与训练/评测步骤见[使用指南](TRAIN_AND_EVALUATE.md)。 / See [resources](RESOURCES.md) and [training/evaluation](TRAIN_AND_EVALUATE.md) for actionable next steps.
+资源下载、固定revision见[资源清单](RESOURCES.md)，控制脚本与训练/评测步骤见[使用指南](TRAIN_AND_EVALUATE.md)。 / See [resources](RESOURCES.md) and [training/evaluation](TRAIN_AND_EVALUATE.md) for actionable next steps.

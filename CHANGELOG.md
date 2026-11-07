@@ -2,9 +2,13 @@
 
 ## Unreleased
 
+新增 PickOrange 特权state控制脚本、几何标定、控制脚本验证与脚本专家演示采集工具。明确区分 actor 的图像与本体输入和控制脚本使用的特权状态，补充运行说明、数据契约与 CPU 检查。已在实际仿真环境中完成控制执行、回放检验与采集流程的联合验证。不包含演示或模型权重。
+
+Add a PickOrange privileged state control script, geometric calibration, demonstration collection, and independent action-trajectory replay verification tools. Document actor input boundaries, data contracts and CPU checks. Control execution, independent replay and demonstration collection have been jointly validated in simulation. Datasets and model weights are excluded.
+
 - 首页按LiftCube／PickOrange列出模型和脚本入口；新增视觉／state脚本导航，链接现有第一方实现与保留许可证的上游源码。
 - 增加PickOrange SmolVLA双相机服务，使用Edge固定导出及原处理器，复用IPC、评测、审核与SwanLab；新增协议仅完成CPU检查，实际闭环待验。
-- PickOrange视觉规则脚本尚缺；官方state教师保留物理与直接写状态的限制。OFT仍需匹配受训包。
+- PickOrange视觉规则脚本尚缺；官方特权state控制脚本保留物理与直接写状态的限制。OFT仍需匹配受训包。
 
 Add task-specific model/script navigation and a CPU-checked dual-view SmolVLA service. Shared evaluation and tracking remain single implementations; rollout validation and a PickOrange visual rule policy remain open.
 
@@ -20,13 +24,13 @@ Add separate PickOrange GR00T N1.6 and LeRobot π₀.₅ task entry points and a
 
 Load NumPy only when summarizing nonempty evaluation records, keeping scalar-tracking imports standard-library-only. Preserve existing exports and calculations, with an isolated import regression test.
 
-新训练及策略评测统一接入SwanLab：SmallCNN BC/PPO、LiftCube策略/规则/教师评测、PickOrange原生辅助evaluator，以及复用冻结LeRobot logger挂钩的ACT/SmolVLA训练包装。默认离线，在线显式选择私有项目；仅数值和白名单配置，关闭媒体/模型、终端、主机探针及原始调用栈采集。新增本地journal、新进程分段、全局计数与RNG保护及离线SDK CPU检查；保留历史TensorBoard事件，不启动新训练或仿真。
+新训练及策略评测统一接入SwanLab：SmallCNN BC/PPO、LiftCube策略/规则/控制脚本评测、PickOrange原生辅助evaluator，以及复用冻结LeRobot logger挂钩的ACT/SmolVLA训练包装。默认离线，在线显式选择私有项目；仅数值和白名单配置，关闭媒体/模型、终端、主机探针及原始调用栈采集。新增本地journal、新进程分段、全局计数与RNG保护及离线SDK CPU检查；保留历史TensorBoard事件，不启动新训练或仿真。
 
 Wire scalar-only SwanLab into existing training/evaluation entries and a pinned LeRobot training wrapper. Default to offline records; require an explicit private online destination. Preserve local evidence, historical events, global counters and RNG, and test privacy, segmented tracking, failure handling and real offline SDK writes on CPU. Native model-training and cloud/runtime acceptance remain separate.
 
-新增显式LiftCube特权教师，复用原视觉控制器的运动与跟踪保护；整理PickOrange GR00T双视角服务、60Hz原生辅助协议、完整回合记录及独立CPU轨迹/查询/RNG握手审核。新增模型/演示资源链接及分任务训练评测指南，更新分层AGENTS和CPU CI。新增源码尚未重新GPU/仿真验收，不继承历史52/100为新移植成绩；官方PickOrange教师直接写状态等限制显式说明。
+新增显式LiftCube特权state控制脚本，复用原视觉控制器的运动与跟踪保护；整理PickOrange GR00T双视角服务、60Hz原生辅助协议、完整回合记录及独立CPU轨迹/查询/RNG握手审核。新增模型/演示资源链接及分任务训练评测指南，更新分层AGENTS和CPU CI。新增源码尚未重新GPU/仿真验收，不继承历史52/100为新移植成绩；官方PickOrange控制脚本直接写状态等限制显式说明。
 
-Add an explicit LiftCube privileged teacher and a separate dual-view PickOrange GR00T assisted evaluation source port, with CPU trajectory/query/RNG-handshake audits. Document resource acquisition and task-specific training/evaluation; update agent routing and CPU CI. New code awaits runtime acceptance and does not inherit the historical 52/100 score. Document state-writing caveats in the upstream teacher.
+Add an explicit LiftCube privileged state control script and a separate dual-view PickOrange GR00T assisted evaluation source port, with CPU trajectory/query/RNG-handshake audits. Document resource acquisition and task-specific training/evaluation; update agent routing and CPU CI. New code awaits runtime acceptance and does not inherit the historical 52/100 score. Document state-writing caveats in the upstream control script.
 
 将当前开发导航调整为LiftCube与PickOrange双任务，补充环境/观测/动作对照、脚本与演示资源、四种VLA的权重及分级验收状态，以及PickOrange独立部署指南。区分公开代码、外部资产、CPU检查与历史物理闭环；正式多物体迁移留待后续。运行代码、配置与既有成绩不变。
 
@@ -135,17 +139,17 @@ Restyle both README headers with the existing poster first, centered project tit
 
 Split the root README into linked Chinese and English editions, organize navigation by rl-garden-style responsibilities, and document the existing starter package, model extension points and branch workflow. Add an RLinf assessment distinguishing VLA training references, SO101 hardware support and course-task adaptation gaps. Runtime code, dependencies and frozen evaluation configurations remain unchanged.
 
-导入课程LiftCube起点代码及配置，新增独立运行说明、原始／当前文件哈希和可逆接口补丁。加入SO101补零、相机与时序检查、自动重置前终态捕获、纯渲染准备及超限数据拒绝；保留原评测配置和既有上游快照。镜像、数据、权重及私有部署记录不纳入仓库。
+导入课程LiftCube起点代码及配置，新增独立运行说明、来源记录和可逆接口补丁。加入SO101补零、相机与时序检查、自动重置前终态捕获、纯渲染准备及超限数据拒绝；保留原评测配置和既有上游快照。镜像、数据、权重及私有部署记录不纳入仓库。
 
-Import the course LiftCube starter and configurations with standalone runtime instructions, original/current hashes and a reversible interface patch. Add SO101 padding, camera/timing checks, pre-reset terminal capture, render-only preparation and out-of-range data rejection; preserve the evaluation configuration and existing upstream snapshots. Images, datasets, weights and private deployment records remain external.
+Import the course LiftCube starter and configurations with standalone runtime instructions, source records and a reversible interface patch. Add SO101 padding, camera/timing checks, pre-reset terminal capture, render-only preparation and out-of-range data rejection; preserve the evaluation configuration and existing upstream snapshots. Images, datasets, weights and private deployment records remain external.
 
 补充LiftCube参考训练器的本体融合、BC→RL时序、存档恢复及PPO超时待办；注明4回合/640tick仅为起点配置，并更新导入清单说明。
 
 Document pending proprioceptive fusion, BC-to-RL timing, checkpoint recovery and PPO timeout handling in the LiftCube reference trainers. Clarify that four episodes/640 ticks are starter defaults and update the import inventory description.
 
-补充配套环境的交大云盘获取入口、跨平台SHA256核验与镜像导入步骤；同步开发起步、依赖和部署说明，区分LiftCube课程环境与历史上游快照。
+补充配套环境的交大云盘获取入口、镜像导入步骤；同步开发起步、依赖和部署说明，区分LiftCube课程环境与历史上游快照。
 
-Add the matching image's SJTU cloud-drive link, cross-platform SHA256 checks and import steps; align the development, dependency and deployment guides while keeping the LiftCube runtime separate from historical upstream snapshots.
+Add the matching image's SJTU cloud-drive link, import steps; align the development, dependency and deployment guides while keeping the LiftCube runtime separate from historical upstream snapshots.
 
 依据当前项目任务说明重写README与海报文案，突出视觉多物体抓放、遥操与BC/VLA基线、强化学习、泛化评测和安全部署。海报保留原有字体字号、排版、纯色图形及官方照片，重新生成原生4K PNG和矢量文字SVG。
 
@@ -155,9 +159,9 @@ Rewrite the README and poster copy around the current task specification: visual
 
 Align the project description with visual pick-and-place while retaining the earlier poster and distinguishing it from the control specification. Add a development guide, observation/action/data/recovery contracts and a dependency-free plan inspector covering schemas, action units/joint order, control timing, chunk execution, dataset splits and budget units. Leave unconfirmed values blank; static checks do not replace training acceptance.
 
-仓库检查同时覆盖未暂存且未忽略的项目新文件，避免新增源码和文档遗漏语法/链接检查；上游文件与公开工具哈希清单保持原样。
+仓库检查同时覆盖未暂存且未忽略的项目新文件，避免新增源码和文档遗漏语法/链接检查；上游文件与公开工具来源清单保持原样。
 
-Repository checks now include non-ignored new first-party files before staging, preventing new source and documentation from missing syntax/link checks. Upstream files and public-utility hash manifests remain unchanged.
+Repository checks now include non-ignored new first-party files before staging, preventing new source and documentation from missing syntax/link checks. Upstream files and public-utility inventories remain unchanged.
 
 新增训练前验证工具：末帧与超时转移检查、ACT padding、匹配的随机数/采样位置存档及独立进程恢复对照。工具独立于上游源码，尚未接入正式训练入口，使用范围见[训练前验证](docs/TRAINING_VALIDATION.md)。
 

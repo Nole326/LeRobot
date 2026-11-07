@@ -1,4 +1,4 @@
-# PickOrange：模型评测与教师采集
+# PickOrange：模型评测与控制脚本采集
 
 本目录负责PickOrange独立运行入口；LiftCube走[另一目录](../liftcube/README.md)。环境安装与资产见[PickOrange环境指南](../../docs/PICK_ORANGE.md)，模型和演示链接见[资源清单](../../docs/RESOURCES.md)。
 
@@ -8,6 +8,8 @@ This directory contains PickOrange-specific execution code. It does not use the 
 
 ## 当前入口 / Available entry points
 
+自研 [特权state控制脚本](expert/README.md)提供动作验证与演示筛选。actor 输入仅含双 RGB 与实测六关节位置；控制脚本执行与回放检验均在55秒内满足原生成功条件后才入集。已在实际仿真环境中完成控制执行、回放检验与采集流程的联合验证。
+
 | 入口 / Entry | 用途 / Purpose |
 | --- | --- |
 | `service.py` | 固定GR00T N1.5任务权重、双RGB/q6/文本，独立模型进程；本地NPZ通信，不开放端口 / Separate local inference process |
@@ -16,8 +18,8 @@ This directory contains PickOrange-specific execution code. It does not use the 
 | `service_smolvla.py` | Edge SmolVLA双视角任务权重、原统计与处理器，30 Hz；共享评测／审核，CPU验证 / Dual-view task service; CPU-validated integration |
 | `openvla_oft.py` | 双相机、六关节OFT接口；需匹配的受训包，不是可运行的已受训策略 / Dual-view boundary; trained package required |
 | `evaluate.py` | 单持续仿真进程，显式seed序列、原生成功与超时、reset前终态、逐步轨迹与逐回合结果 / Full-episode development runner |
-| `audit.py` | CPU核对闭合轨迹、SHA、动作映射、连续性、查询索引和原生终态；不自动收入BC / Closed-trajectory audit |
-| [官方特权教师](../../third_party/leisaac/scripts/datagen/state_machine/generate.py) | 已收录上游状态机采集入口；采用不同物理/状态写入机制，使用限制见下文 / Upstream privileged generation, with explicit caveats |
+| `audit.py` | CPU核对闭合轨迹、动作映射、连续性、查询索引和原生终态；不自动收入BC / Closed-trajectory audit |
+| [官方特权state控制脚本](../../third_party/leisaac/scripts/datagen/state_machine/generate.py) | 已收录上游状态机采集入口；采用不同物理/状态写入机制，使用限制见下文 / Upstream privileged generation, with explicit caveats |
 
 ## 选用协议 / Selected development protocol
 
@@ -57,7 +59,7 @@ python course/pickorange/service.py --run-service \
   --run-dir /outputs/pickorange/new-run --device cuda:0 --wall-seconds 3600
 ```
 
-服务会核验固定模型文件SHA、后端commit和严格加载结果。后端工作树有受管修改时拒绝；安装环境应与源码保持分离。检查`service-ready.json`后，在匹配的**仿真解释器**执行：
+服务会核验固定模型文件、后端commit和严格加载结果。后端工作树有受管修改时拒绝；安装环境应与源码保持分离。检查`service-ready.json`后，在匹配的**仿真解释器**执行：
 
 ```bash
 python course/pickorange/evaluate.py --run-simulation \
@@ -76,7 +78,7 @@ python course/pickorange/audit.py --run-dir /outputs/pickorange/new-run \
   --output /outputs/pickorange/new-run-audit.json
 ```
 
-`report.json`是原生完成前缀，`audit.py`通过后才对外发布该前缀成绩。数据准入还需原始模型查询、真实终态RGB新鲜度、独立冷重放、完整动作与场景审查；成功轨迹不自动变成训练数据。RNG存档供审计，不宣称保存了隐藏物理/RTX状态。
+`report.json`是原生完成前缀，`audit.py`通过后才对外发布该前缀成绩。数据准入还需原始模型查询、真实终态RGB新鲜度、回放检验、完整动作与场景审查；成功轨迹不自动变成训练数据。RNG存档供审计，不宣称保存了隐藏物理/RTX状态。
 
 `evaluate.py`复用[SwanLab共享记录层](../../docs/SWANLAB.md)，evaluator环境需SwanLab 0.10.3；默认在本run目录离线写回合与查询耗时曲线，只有显式在线配置才上传。模型service不创建重复run；RGB、HDF5和RNG存档均不上传，曲线不能替代审核。The evaluator alone records scalar curves, with media and artifacts retained locally.
 
@@ -121,24 +123,24 @@ OFT 包须声明 front+wrist 的训练顺序、六维绝对 motor 目标、30步
 
 The OFT boundary requires a matching trained dual-view package with six absolute motor targets, a 30-step continuous head and BOUNDS statistics. A vanilla backbone or single-view package cannot substitute for it.
 
-## 特权教师采集 / Privileged teacher collection
+## 特权state控制脚本采集 / Privileged state control script collection
 
-两个任务的视觉／state源码集中在[脚本指南](../../docs/SCRIPTED_POLICIES.md)；PickOrange目前只有可复用的官方state教师，没有已验收的传统视觉规则策略。
+两个任务的视觉／state源码集中在[脚本指南](../../docs/SCRIPTED_POLICIES.md)；PickOrange包含自研控制脚本和官方状态机采集入口，尚无已验收的传统视觉规则策略。
 
-仓库已含官方[状态机](../../third_party/leisaac/source/leisaac/leisaac/datagen/state_machine/pick_orange.py)和生成脚本，无需另下载教师模型。在匹配环境中，**仅作为辅助教师原型**运行：
+仓库已含官方[状态机](../../third_party/leisaac/source/leisaac/leisaac/datagen/state_machine/pick_orange.py)和生成脚本，无需另下载控制脚本模型。在匹配环境中，**仅作为辅助控制脚本原型**运行：
 
 ```bash
 python third_party/leisaac/scripts/datagen/state_machine/generate.py \
   --task LeIsaac-SO101-PickOrange-v0 --num_envs 1 --seed 17 \
   --device cuda:0 --headless --enable_cameras --record \
-  --dataset_file /datasets/pickorange/new-teacher.hdf5 --num_demos 1
+  --dataset_file /datasets/pickorange/script-demonstrations.hdf5 --num_demos 1
 ```
 
 **重要限制：**此官方入口会关闭机器人重力、改变阻尼/夹爪控制、替换终止逻辑，且在setup、回位及`check_success()`中直接写关节状态。它与上面的GR00T原生辅助协议不同，状态机的“成功”不能作为固定物理下的BC成功标签；`--num_demos`只限制成功条数，失败重试可能持续，应由操作者另加墙钟上限。
 
-The upstream generator teleports/blends joint states and changes physics/termination. Its success flag is not BC acceptance under the fixed evaluation physics. Independently replay and score the original physical trajectory before admitting data. Do not merge teacher-generator and model-assisted results.
+The upstream generator teleports/blends joint states and changes physics/termination. Its success flag is not BC acceptance under the fixed evaluation physics. Independently replay and score the original physical trajectory before admitting data. Do not merge control script-generator and model-assisted results.
 
-尚无公开验收通过的自研高可靠PickOrange教师采集器或视觉脚本；历史单场景教师冷重放不等于本入口已通过。后续优先改造成只发送原生关节目标、保持物理与评分的教师，再做批量采集；不把官方直接写状态的机制隐藏在普通baseline中。
+自研 [特权state控制脚本](expert/README.md)通过原生关节目标执行，保持任务物理与评分条件，并通过回放检验筛选演示。已完成控制执行、回放检验与采集流程的实际仿真联合验证；使用方法见[控制脚本说明](expert/README.md)。PickOrange 视觉规则脚本仍缺，特权state控制脚本不能作为无特权视觉基线。
 
 ## 训练与其他模型 / Training and other models
 

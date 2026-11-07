@@ -33,14 +33,13 @@ IK/跟踪失败锁定保持最后安全命令，须显式reset才能解除；保
 
 ## 标定与接入 / Calibration and use
 
-将以下JSON保存到仓库外，并用独立核验结果填齐。`null`是未标定占位，不能用于运行。关节链获取见[导出及标定](SCRIPTED_LIFTCUBE.md)。桌面→机器人基座变换、TCP及接近轴必须属于同一模型/坐标定义；这里只读这份固定文件，不查询运行中的相机/物体位姿。
+以下JSON展示主要标定字段，不是完整运行配置。实际配置应基于导出结果填写，并保留程序生成的附加字段。`null`是未标定占位，不能用于运行。关节链获取见[导出及标定](SCRIPTED_LIFTCUBE.md)。桌面→机器人基座变换、TCP及接近轴必须属于同一模型/坐标定义；这里只读这份固定文件，不查询运行中的相机/物体位姿。
 
 ```json
 {
   "schema": "so101-planar-ee-dev-v1",
   "evidence": "填写独立标定和机器人资产版本的引用",
   "chain_path": "so101-chain.json",
-  "chain_sha256": null,
   "joint_names": null,
   "tcp_offset_m": null,
   "table_to_base": null,
