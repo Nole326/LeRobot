@@ -24,11 +24,35 @@ The separate model services for GR00T N1.5/N1.6, SmolVLA and π₀.₅ share the
 
 ## 独立运行环境 / Separate runtime
 
-公开源码固定为LeIsaac0.4.0与IsaacLab2.3.0，身份见[依赖清单](DEPENDENCIES.md)。这不是LiftCube配套的4.5.0/2.1.1/0.1.2镜像。PickOrange包装脚本依赖独立Isaac Sim安装和Python3.11应用覆盖层，当前没有与LiftCube镜像同等完整的可移植镜像/安装锁；部署时需核实实际模拟器、Torch/CUDA、导入路径及原生依赖。
+### 已验证配置 / Verified configuration
 
-The pinned sources are LeIsaac0.4.0 and IsaacLab2.3.0, not the LiftCube image. Launchers require a separate Isaac Sim installation and Python3.11 application overlays. A portable matching image/install lock is not supplied; verify actual simulator and dependency identities before running.
+以下 Linux 容器配置已通过 PickOrange 的真实 `reset`、物理步进和前视／腕部双 RGB 更新检查。它与 [LiftCube 课程镜像](../course/liftcube/README.md) 分开使用。
 
-包装脚本的容器内布局 / Launcher layout inside the container:
+This Linux container setup has passed real PickOrange reset, physics stepping, and front/wrist RGB update checks. Keep it separate from the LiftCube course image.
+
+| 组件 / Component | 实测版本 / Observed version |
+| --- | --- |
+| NVIDIA 基础镜像 / Base image | [`nvcr.io/nvidia/isaac-lab:2.3.0`](https://catalog.ngc.nvidia.com/orgs/nvidia/-/containers/isaac-lab/2.3.0/layers) |
+| 镜像内系统 / Container OS | Ubuntu 24.04, glibc 2.39 |
+| Isaac Sim | `5.1.0-rc.19+release.26219.9c81211b.gl` |
+| Isaac Lab | `2.3.0`（镜像发行标签 / image release tag） |
+| LeIsaac 任务源码 / Task source | `0.4.0` · [`24d3bcd`](https://github.com/LightwheelAI/leisaac/tree/24d3bcd3f1e4585740fc79921782c41617237812) |
+| Python | `3.11.13` |
+| PyTorch / torchvision | `2.7.0+cu128` / `0.22.0+cu128`（CUDA 12.8 构建 / CUDA 12.8 builds） |
+| LeRobot（BC 应用层 / BC application layer） | `v0.4.2` · [`58f70b6`](https://github.com/huggingface/lerobot/tree/58f70b6bd370864139a3795ac3497a9eae8c42d5) |
+
+基础镜像不含 PickOrange 任务和场景资产。按[依赖清单](DEPENDENCIES.md)和[外部资产清单](../manifests/external_assets.json)补齐源码、`kitchen_with_orange.zip` 和 `so101_follower.usd`。仿真和 BC 使用独立的 `venv_sim`／`venv_bc` 应用层，保留镜像的 PyTorch/CUDA；各 VLA 后端按[运行指南](../course/pickorange/README.md)单独配置。仓库未提供完整的可移植安装锁。
+
+The base image does not include the PickOrange task or scene assets. Use the linked inventories for the task source, kitchen scene, and SO-101 USD. Keep simulator and BC dependencies in separate overlays without replacing the bundled PyTorch/CUDA. Configure each VLA backend separately. A complete portable install lock is not provided.
+
+### 待验证方案 / Not yet validated
+
+- **魔搭免费 Notebook 原生安装 / ModelScope Notebook without Docker.** [Isaac Sim 5.1 的 pip 安装](https://docs.isaacsim.omniverse.nvidia.com/5.1.0/installation/install_python.html)需要 Python 3.11，Linux 下要求 glibc ≥ 2.35。若预装的是 PyTorch 2.3.1+cu121，应新建独立 Python 环境，不覆盖 Notebook 的预装依赖。按 [LeIsaac 的版本配套](https://lightwheelai.github.io/leisaac/docs/getting_started/installation/)安装；pip 发布版 5.1.0 与上表实测镜像的 RC 构建不同。 / Use a separate environment with the documented prerequisites and matching packages. The 5.1.0 pip release is a different build from the tested image.
+- **PAI-DSW A10 自定义镜像 / PAI-DSW A10 with a custom image.** 如实例提供[自定义镜像入口](https://help.aliyun.com/zh/pai/create-and-manage-dsw-instances)，可尝试上表的 NGC 镜像；镜像能启动不代表相机已经可用。 / If custom images are available on the instance, try the pinned NGC image. An instance that starts is not yet a camera validation.
+
+两种方案都要先确认实例能提供 NVIDIA Vulkan/RTX 渲染，再在不加载策略模型的情况下检查 `reset`、`step` 和两路 RGB 更新。`nvidia-smi` 能看到显卡只说明设备可见。 / For either option, verify NVIDIA Vulkan/RTX access and run a reset/step smoke test with both cameras before loading a policy. `nvidia-smi` alone does not validate rendering.
+
+### 容器内路径 / Launcher layout
 
 ```text
 /workspace/course/
