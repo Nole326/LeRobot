@@ -1,0 +1,81 @@
+# Evo-1：PickOrange 小规模 VLA 基线实验记录 / Evo-1 small-scale baseline log
+
+本页记录 Evo-1（InternVL3-1B + flow-matching 动作头）在 PickOrange 上的 BC 基线实验，截至 **2026-11-13**。评测入口、双视角契约与成功判据见[PickOrange运行指南](../course/pickorange/README.md)与[检验摘要](PICKORANGE_VALIDATION.md)；本页结果来自独立实验，**不是课程正式评分**，也不与 GR00T、π₀.₅、SmolVLA 的历史成绩合并分母。
+
+This page records a small-scale Evo-1 behavioural-cloning baseline (frozen or unfrozen InternVL3-1B backbone plus a flow-matching action head). It reports a **negative result**: all completed evaluation episodes failed the full-task predicate. Numbers are experiment notes, not course scores.
+
+## 范围与数据 / Scope and data
+
+- 数据来自本仓库自研特权教师采集流程（[控制脚本说明](../course/pickorange/expert/README.md)），每条演示都经过独立回放准入；观测只含 front/wrist 两路 RGB 与实测六维，不回放物体真值。
+- 两套数据：**22 条 / 29,846 帧**（早期集合）与 **56 条 / 75,019 帧**（在 22 条基础上追加 34 条）。30 fps，480×640 双视角，六维 motor 动作，无成功标签。
+- 上游另有两套各 100 条的公开演示（30 Hz 与 60 Hz 两种动作时钟），混用前需对齐动作频率、关节坐标与时间戳，本页结果未使用。
+
+Dual-RGB, q6 and full task text are the only policy inputs. All demonstrations passed an independent replay admission step. Two local sets of 22 and 56 episodes were used; the published 30 Hz and 60 Hz collections were not mixed into these runs.
+
+## 训练配置 / Training setup
+
+| 项目 / Item | 取值 / Value |
+| --- | --- |
+| 策略 / Policy | Evo-1，InternVL3-1B，flow-matching 动作头 |
+| chunk / 推理去噪 / chunk and denoising | 50 / 32 |
+| stage1 | 冻结视觉语言主干，只训动作头，batch 8 |
+| stage2 | 解冻视觉语言主干（四个 `finetune_*` 全开），约 2.5 倍单步耗时 |
+| 学习率 / LR sweep | 5e-6、1e-5、3e-5、1e-4（含 warmup 与 cosine 衰减） |
+| 主要运行 / Main runs | A4：56 条、14,000 步、stage1；S2：从 A4 解冻再训 2,000 步；A6：56 条、1,000 步、lr 3e-5 |
+
+训练损失（归一化 chunk MSE）在 0.022–0.048 之间；换算成归一化 RMSE 约 0.15，相当于 7–8 个 motor 单位。单条 episode 过拟合实验（400 步、lr 1e-4）只看了约 0.1 个 epoch，损失反而升到 0.045–0.057，说明该预算下不足以拟合单条演示。
+
+## 评测协议 / Evaluation protocol
+
+- 完整回合、60 仿真秒、`hold_ticks=2`（50 步策略目标按 30 Hz 执行，与演示动作时钟一致），初始状态取全零关节位姿，成功判据为三颗入盘且机械臂回位。
+- 每回合约 225 次模型查询；单回合墙钟 128–202 秒（含仿真），模型查询均值约 0.12–0.15 秒。
+
+Full episodes only; each policy target is held for two physics ticks so the 30 Hz action clock matches the demonstrations. Success requires all three oranges on the plate plus the arm at rest.
+
+## 结果 / Results
+
+| 运行 / Run | 数据 / Data | 评测 seed | 完整成功 / Success |
+| --- | --- | --- | ---: |
+| A2 | 19 条 | 0 | 0/1 |
+| A3 | 22 条、3,000 步 | 0 | 0/1 |
+| A4 | 56 条、14,000 步 | 0,1,2 | 0/3 |
+| A4 中间存档 | 56 条、8k/12k 步 | 0 | 0/1、0/1 |
+| S2 | 56 条、解冻 500 步 | 0,1,2 | 0/3 |
+| S2 | 56 条、解冻 2,000 步 | 0,1,2 与 1123 | 0/3、0/1 |
+| A6 | 56 条、1,000 步、lr 3e-5 | 0 与 1123 | 0/2 |
+| 单条过拟合 | 1 条、400 步 | 1123 | 0/1 |
+
+合计约 20 个完整回合，**0 次成功**；最好的一次也只出现单颗橙子被短暂移动。所有回合都在 60 秒时限处 truncated，没有 terminated。
+
+Twenty complete episodes across eight checkpoints, three data sets, four learning rates and both training stages produced **zero** full-task successes. Partial object progress is not success and is not counted.
+
+## 现象 / Behaviour
+
+机械臂在开局 2 秒内抬起并移动到橙子上方，约 4.8 秒后停在某个姿态（肘关节接近限位），夹爪始终张开（motor 35–50，从未闭合），三颗橙子的世界坐标在整回合内不变。跟踪日志显示关节位置紧跟随动作命令，因此“手臂不动”是策略输出本身停住，而非执行器或通信问题。
+
+The arm lifts, aims above the oranges, then freezes near the elbow limit with the gripper open. Joint tracking follows the commanded actions closely, so the stall comes from the policy output, not from the actuator or the transport.
+
+## 诊断 / Diagnostics
+
+按序列排除的可能原因：
+
+1. **评测链路**：用同一脚本重放一条通过准入的教师演示，得到 `success=True`（3,103 ticks），动作换算、30 Hz 执行、成功判据与 reset 全部正常。
+2. **观测域**：导出仿真首帧与数据集帧对比，双相机画面一致（均值 111/144 对 108/160），无通道、缩放或单位问题。
+3. **动作单位**：rad 与 motor 的线性映射与课程 `joint_contract` 一致；动作管理器 `scale=1`、`offset=0`，直接发送 rad 正确。
+4. **首帧暗图**：强制首块使用全黑图像，失败模式不变。
+5. **指令文本**：修正策略服务中的任务文本使其与演示一致，失败模式不变。
+6. **采样噪声**：同一请求重复 6 次，逐关节标准差最高 13 个 motor 单位；取 4 次动作块平均后仍悬停，排除采样方差。
+7. **离线精度**：在通过准入的演示帧上，动作头预测的 chunk MAE 为 1.9–9.8 个 motor 单位，明显优于“保持当前动作”基线的一部分检查点，预测随观测变化，视觉通路正常。
+
+因此离线拟合并不算差（损失对应约 7–8 个单位误差），但闭环中前几块动作开始偏离演示流形后，flow-matching 头的输出收敛到“保持姿态”，误差随回合累积。
+
+A replay of an admitted demonstration through the same harness succeeds, so the evaluation path is sound. Camera domain, action units, the dark first frame, the task string and sampling noise were all ruled out. Offline chunk MAE on admitted demonstrations is 1.9–9.8 motor units, yet closed-loop rollouts collapse to a stationary pose after a few chunks — the classic compounding-error failure of a fine-tuned action head on few, long demonstrations.
+
+## 结论与后续 / Conclusion and next steps
+
+- 在当前演示规模（56 条、约 7.5 万帧）与训练预算下，Evo-1 动作头没有学到可闭环复现的抓取策略；失败不是评测脚本、图像通路、动作单位或指令文本造成的。
+- 数据侧的主要欠缺是抓取事件的多样性：每条演示约 1,500 步，大量帧是往返与悬停，真正闭合夹爪的片段很少。
+- 后续方向：使用上游两套各 100 条的演示（先对齐 30 Hz 与 60 Hz 动作时钟再混合）、改用 SmolVLA 双视角任务权重作为主基线、或在闭环中加入人工纠错式的补充数据。
+- 本仓库不含 Evo-1 训练器与权重；复现实验需要外部训练环境，评测按[运行指南](../course/pickorange/README.md)的协议执行。
+
+The negative result is a property of the policy, not of the harness. The next steps are larger and more diverse demonstrations, the dual-view SmolVLA baseline, and closed-loop correction data.
