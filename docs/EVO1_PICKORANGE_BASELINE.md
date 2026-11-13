@@ -79,3 +79,50 @@ A replay of an admitted demonstration through the same harness succeeds, so the 
 - 本仓库不含 Evo-1 训练器与权重；复现实验需要外部训练环境，评测按[运行指南](../course/pickorange/README.md)的协议执行。
 
 The negative result is a property of the policy, not of the harness. The next steps are larger and more diverse demonstrations, the dual-view SmolVLA baseline, and closed-loop correction data.
+
+## 数据与复现 / Data and reproduction
+
+演示数据不随仓库分发，按[控制脚本说明](../course/pickorange/expert/README.md)在仿真环境中重新采集；权重、数据集与运行日志留在外部存储，公开入口只写身份、参数与验收级别。
+
+### 采集 / Collection
+
+```bash
+python course/pickorange/expert/collect.py --run-simulation \
+  --out <demos_dir> --start-seed <first_seed> --count <episodes> --max-attempts <attempts>
+```
+
+- 本页使用的种子段：`18–34`、`35–50`、`51–54`、`61–65`、`1100–1118`、`1123–1142`、`2000–2014`；通过率约 55%–65%，单次尝试约 6–7 分钟，每次成功约 0.5 GB 无损双视角视频。
+- 每个种子先跑特权教师，再做一次独立回放；只有回放同样满足“三颗入盘且回位、55 秒内完成”的样本才进入演示集合。
+- 22 条集合对应 `18–54` 段，56 条集合追加 `61–1142` 段。仓库不保存原始视频，也不把它们当作 BC 标签直接使用。
+
+Each candidate seed is admitted only when an independent replay reproduces the full task within 55 seconds. Roughly 55%–65% of attempts pass; one accepted attempt yields about 0.5 GB of lossless dual-view video that is kept outside the repository.
+
+### 转换为 LeRobot v3 数据集 / LeRobot conversion
+
+原始回放录像是双视角无损视频加 `demonstration.npz`（`action`、`joints` 各 `(T, 6)`）。转换为 LeRobot v3 目录时保持：`fps=30`；`observation.images.front`、`observation.images.wrist` 为 `(480,640,3)` 视频，`observation.state`、`action` 为 `float32 (6,)` motor 归一化单位；任务文本 `Pick three oranges and place them on the plate, then return the arm to rest.`；`repo_id` 由使用者自定。转换脚本属于外部训练环境，不在本仓库内。
+
+Converted datasets keep 30 fps, the two 480×640 video streams, six-dimensional motor state/action and the full task string. The conversion utility lives with the external training environment, not in this repository.
+
+### 训练 / Training
+
+| 阶段 / Stage | 关键设置 / Settings |
+| --- | --- |
+| stage1 | 冻结视觉语言主干，只训 flow-matching 动作头；chunk 50、去噪 32、图像 448×448、batch 8 |
+| stage2 | 解冻视觉语言主干，学习率 1e-5、warmup 100 步，单步耗时约为 stage1 的 2.5 倍 |
+| 预算 / Budget | 56 条约 14,000 步（stage1）或 2,000 步（stage2）；多卡不在本页范围内 |
+
+Training uses the checkpoint and optimizer state of the previous stage; a new run resets the step counter. Learning rates above 3e-5 were unstable on the 56-episode set, losing accuracy compared with 5e-6–1e-5.
+
+### 评测 / Evaluation
+
+评测使用本仓库的完整回合运行器，模型侧通过 NPZ 请求/响应提供 `(chunk, 6)` motor 动作：
+
+```bash
+python course/pickorange/evaluate.py --run-simulation --run-dir <run_dir> \
+  --episodes <n> --wall-seconds <budget> --min-free-gib <gib>
+```
+
+- `episodes` 只取协议 `scene_seeds` 的前缀；动作按 30 Hz 保持两个物理步执行，与演示时钟一致。
+- 本页所有回合都保存逐回合轨迹与终态截图，失败结果同样保留；成功率只按完整回合统计。
+
+Evaluation follows the repository's full-episode runner; the policy service returns one chunk of six-dimensional motor actions per query, and each target is held for two physics ticks. Failed episodes are retained rather than replaced.
