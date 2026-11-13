@@ -14,8 +14,10 @@ PickOrange模型的成功率与显存需求见[检验摘要](PICKORANGE_VALIDATI
 | --- | --- | --- |
 | LiftCube | [azazdeaz/teleop_so101_leisaac_lift_cube](https://huggingface.co/datasets/azazdeaz/teleop_so101_leisaac_lift_cube/tree/08b442d9cc7db587d811e2ddace3e0a6c22d519e)，17回合、front+wrist、30fps | 六关节顺序、标定/动作单位、视角选择、全回合成功、当前环境重放；当前仅完成元数据/统计核对 / Metadata checks only so far |
 | PickOrange | [LightwheelAI/leisaac-pick-orange](https://huggingface.co/datasets/LightwheelAI/leisaac-pick-orange)，60回合、双RGB、30fps | 下载时固定实际revision；核对重力/辅助、动作、终态与数据划分，不能把episode结束标记当成功 / Pin the dataset revision and audit assistance, labels and outcomes |
+| PickOrange | [Aikwed/pick_orange_joint_limited](https://huggingface.co/datasets/Aikwed/pick_orange_joint_limited)，300 回合、双 RGB、30 Hz | 外部候选。公开数据缺少用于恢复原始场景的初态，当前环境的抽样回放未通过。 / External candidate. The release lacks original scene reset states, and sampled replays in the current environment did not pass. |
+| PickOrange | [本项目采集 / Project-collected demonstrations](https://huggingface.co/datasets/Nole326/LeIsaac-SO101-PickOrange)，控制脚本与 GR00T N1.5 各 100 条 | 均通过动作轨迹独立回放检验。两套数据的动作频率分别为 30 Hz 和 60 Hz，详见[专家演示说明](../course/pickorange/expert/README.md#专家演示数据集--demonstration-datasets)。 / Both passed independent replay. See the expert guide for the two action rates and formats. |
 
-历史`H2Ozone/lift_cube`动作范围问题属于另一候选数据，详见[状态表](TASKS.md)，不与上面17回合数据混用。所有候选均需经过数据准入；这里只提供来源，不承诺全部是合格训练样本。
+历史`H2Ozone/lift_cube`动作范围问题属于另一候选数据，详见[状态表](TASKS.md)，不与上面17回合数据混用。外部候选数据仍需经过本项目的数据准入检查。 / External candidates still require project-specific acceptance checks.
 
 ## 四种模型 / Four model families
 
