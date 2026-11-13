@@ -126,3 +126,9 @@ python course/pickorange/evaluate.py --run-simulation --run-dir <run_dir> \
 - 本页所有回合都保存逐回合轨迹与终态截图，失败结果同样保留；成功率只按完整回合统计。
 
 Evaluation follows the repository's full-episode runner; the policy service returns one chunk of six-dimensional motor actions per query, and each target is held for two physics ticks. Failed episodes are retained rather than replaced.
+
+### 服务接入 / Service adapter
+
+仓库补充了[`service_evo1.py`](../course/pickorange/service_evo1.py)：沿用 `service.py` 的 NPZ 请求/响应契约、请求白名单与原子写盘，加载 Evo-1 权重及其随训练保存的 normaliser 统计。任务权重不随仓库分发，因此它不核对公开 revision，`service-ready.json` 标记 `experimental: true` 并记录权重文件 SHA-256、代码 commit（或 `unpinned`）与数据集根目录；协议只接受 30 Hz／chunk 50 的动作时钟。该服务用于本地复现与接口审计，不作为协议基准成绩。
+
+The supplemental adapter reuses the shared NPZ contract and request validation but cannot verify a public revision; its ready file marks the run experimental and records weight digests, code commit and the data root.

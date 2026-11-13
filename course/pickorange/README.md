@@ -16,6 +16,7 @@ This directory contains PickOrange-specific execution code. It does not use the 
 | `service_n16.py` | wsagi GR00T N1.6独立后端；原生解码相对手臂动作、绝对夹爪动作 / Native relative-arm and absolute-gripper decoding |
 | `service_pi05.py` | Aikwed π₀.₅任务权重及其LeRobot处理器，30 Hz策略 / Task checkpoint and its saved processors at 30 Hz |
 | `service_smolvla.py` | Edge SmolVLA双视角任务权重、原统计与处理器，30 Hz；共享评测／审核，CPU验证 / Dual-view task service; CPU-validated integration |
+| `service_evo1.py` | 实验性补充：Evo-1原统计与处理器，30 Hz／50步；任务权重不随仓库分发，无固定revision / Experimental supplemental adapter; task weights are not distributed |
 | `openvla_oft.py` | 双相机、六关节OFT接口；需匹配的受训包，不是可运行的已受训策略 / Dual-view boundary; trained package required |
 | `evaluate.py` | 单持续仿真进程，显式seed序列、原生成功与超时、reset前终态、逐步轨迹与逐回合结果 / Full-episode development runner |
 | `audit.py` | CPU核对闭合轨迹、动作映射、连续性、查询索引和原生终态；不自动收入BC / Closed-trajectory audit |
@@ -118,6 +119,22 @@ python course/pickorange/service_smolvla.py --run-service \
 仿真侧沿上文`evaluate.py`命令，使用同一新目录和同一`--protocol`；审核仍用`audit.py`。新协议为完整任务文本、60秒时限、30 Hz／50步预测执行16步、原生夹爪辅助。**这是CPU验收的新集成，尚无该协议的GPU／成功率成绩**，不继承历史固定执行器单例。每次预测清空模型缓存，不重seed；公共评测器只执行chunk前缀，reset后从新观测预测。
 
 Use the same protocol and shared directory on the evaluator. This is a new CPU-validated integration, not a reproduction of the older fixed-actuator rollout. Both real views, original statistics and explicit chunk/reset handling are retained.
+
+### Evo-1（实验性补充 / Experimental supplement）
+
+`service_evo1.py`是[Evo-1基线记录](../../docs/EVO1_PICKORANGE_BASELINE.md)的本地适配器：沿用同一NPZ请求／响应契约与`common.py`的用量校验，但不属于上面的四个固定后端服务。它不核对模型revision，因为任务权重没有公开分发；`service-ready.json`因此写`experimental: true`并记录权重两个文件的SHA-256、代码commit（或`unpinned`）与数据集根目录。协议只接受30 Hz／chunk 50，与权重训练时的动作时钟一致；结果按实验性记录，不计入协议基准。
+
+It reuses the shared NPZ contract but is not one of the four pinned backends: it cannot verify a public revision, so its ready file marks the run experimental and records weight digests plus the code commit (or `unpinned`).
+
+```bash
+export HF_HUB_OFFLINE=1
+python course/pickorange/service_evo1.py --run-service \
+  --model /models/pickorange/evo1-export --dataset-root /data/pickorange-bc \
+  --code-root /src/evo1 --protocol course/pickorange/protocols/smolvla-native-assisted-30hz.json \
+  --run-dir /outputs/pickorange/evo1-new --device cuda:0 --wall-seconds 3600
+```
+
+`--dataset-root`必须指向训练时使用的LeRobot数据集快照，normaliser／unnormaliser统计从它的`meta/stats.json`读取；换数据集会改变动作尺度，不能只换权重。协议文件只借用30 Hz／50步的动作时钟，任务文本与夹爪辅助仍以该协议字段为准；若发布受管权重，应另建带固定revision的协议，而不是复用SmolVLA名称。
 
 OFT 包须声明 front+wrist 的训练顺序、六维绝对 motor 目标、30步与 BOUNDS 统计，并提供同源的训练后核心、连续动作头、本体投影和统计。使用固定 SO101 后端，须在导入前通过 `--robot_platform SO101` 选择常量。普通 OpenVLA 权重、单相机或其他机器人导出不适用。尚无确认满足合同的公开权重，不提供 OFT 闭环命令。
 
