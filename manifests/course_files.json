@@ -406,8 +406,8 @@
   },
   {
     "path": "course/pickorange/expert/README.md",
-    "bytes": 6868,
-    "sha256": "2967b1e68c0e4fb339c8a9786c4d77974d18de2c1766ae9a33c8f1c17c6334e0"
+    "bytes": 9137,
+    "sha256": "6dabdca665f5a656bfbce9672dd39db8b82c4e43c6a1193da96f39534412d7fb"
   },
   {
     "path": "course/pickorange/expert/adaptive_face_teacher.py",
