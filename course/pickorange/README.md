@@ -18,7 +18,7 @@ This directory contains PickOrange-specific execution code. It does not use the 
 | `service_smolvla.py` | Edge SmolVLA双视角任务权重、原统计与处理器，30 Hz；共享评测／审核，CPU验证 / Dual-view task service; CPU-validated integration |
 | `service_evo1.py` | 实验性 Evo-1 服务，使用配套训练统计和独立 30 Hz 协议 / Experimental service with matching statistics and a dedicated 30 Hz protocol |
 | `openvla_oft.py` | 双相机、六关节OFT接口；需匹配的受训包，不是可运行的已受训策略 / Dual-view boundary; trained package required |
-| [visual/evaluate.py](visual/README.md) | RGB规则抓放，显式标定与机器人模型辅助，独立55秒开发协议 / Calibrated visual rule baseline |
+| [视觉规则评测 / Visual-rule evaluation](visual/README.md) | 模型辅助版与双 RGB＋q6＋相机标定版，使用独立 55 秒开发协议 / Model-assisted and RGB/q6/calibration variants under separate 55-second protocols |
 | `evaluate.py` | 单持续仿真进程，显式seed序列、原生成功与超时、reset前终态、逐步轨迹与逐回合结果 / Full-episode development runner |
 | `audit.py` | CPU核对闭合轨迹、动作映射、连续性、查询索引和原生终态；不自动收入BC / Closed-trajectory audit |
 | [官方特权state控制脚本](../../third_party/leisaac/scripts/datagen/state_machine/generate.py) | 已收录上游状态机采集入口；采用不同物理/状态写入机制，使用限制见下文 / Upstream privileged generation, with explicit caveats |

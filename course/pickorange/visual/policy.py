@@ -184,5 +184,9 @@ class VisualPolicy:
                         np.r_[np.full(5, arm_step), .012 if phase == 'close' else .03])
         self.previous = self.previous+delta
         self.previous[:5] = np.clip(self.previous[:5], self.kin.limits[:, 0], self.kin.limits[:, 1])
-        self.previous[5] = np.clip(self.previous[5], -np.pi/18, np.deg2rad(100))
+        min_grip = -np.pi/18
+        if phase in ('close', 'lift', 'carry', 'lower'):
+            # A measured opening can invalidate the previous target immediately.
+            min_grip = max(min_grip, q[5]-.020)
+        self.previous[5] = np.clip(self.previous[5], min_grip, np.deg2rad(100))
         return self.previous.copy()

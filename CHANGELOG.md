@@ -6,13 +6,9 @@
 
 Add a dual-view PickOrange Evo-1 inference service and an experimental 30 Hz protocol. Use matching training statistics and native processing with the shared evaluator and audit. CPU interface checks passed. Checkpoint inference and simulator rollout are pending.
 
-新增 PickOrange `rgb-q-calibration` 输入协议：仅双RGB、实测q6与已知相机标定；从RGB匹配三角化支撑平面并估计目标尺寸，移除重力补偿量、桌面高度和物体尺寸输入。使用关节反馈PI与独立55秒协议，固定20个初始场景配对评测15/20（75%），成功耗时中位数42.47秒；保留模型辅助版16/20（80%）结果，不代表25秒或真机成绩。
+新增 PickOrange 视觉规则基线、原生评分与重置前终态记录。提供模型辅助版和仅双 RGB、实测 q6 与已知相机标定版。每次从名义外参施加前视相机扰动，在物理步为 0 时刷新双相机首帧。最终夹爪闭合指令在限速后限幅。调试图可显式启用，默认记录数值。视觉规则的 CPU 测试已纳入 CI。55 秒评测结果见[视觉规则指南](course/pickorange/visual/README.md#结果与审计--results-and-audit)。
 
-Add an RGB/q6/known-camera-calibration-only variant with visual support reconstruction and silhouette size estimation. It excludes gravity-model forces and fixed scene dimensions and uses a separately named evaluation protocol.
-
-新增 PickOrange 视觉规则策略：RGB检测与平面投影、机器人几何IK、反馈抓放控制及独立原生评分；明确相机标定／机器人模型辅助，禁用物体真值动态夹爪助手。提供55秒与25秒独立协议、终态采集、离线SwanLab、CPU检查及运行文档。冻结策略独立20回合实际仿真为16/20（80%），使用55秒预算；不代表25秒或真机成绩。
-
-Add calibrated PickOrange visual rules with geometric IK, joint feedback, isolated native scoring, pre-reset capture and offline scalar tracking. The 55-second development budget is separate from native 25-second evaluation.
+Add PickOrange visual-rule baselines with native scoring and terminal capture before reset. Both the model-assisted and RGB/q6/calibration variants refresh the first camera frames after applying each reset perturbation to the nominal front-camera pose. Limit the final jaw command after rate limiting, make debug images opt-in, and include visual-rule tests in CI.
 
 新增 PickOrange 特权state控制脚本、几何标定、控制脚本验证与脚本专家演示采集工具。明确区分 actor 的图像与本体输入和控制脚本使用的特权状态，补充运行说明、数据契约与 CPU 检查。已在实际仿真环境中完成控制执行、回放检验与采集流程的联合验证。不包含演示或模型权重。
 

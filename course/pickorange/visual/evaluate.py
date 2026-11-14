@@ -19,6 +19,7 @@ def arguments():
     parser.add_argument('--check', action='store_true', help='Check protocol without importing simulator')
     parser.add_argument('--run-simulation', action='store_true')
     parser.add_argument('--sim-camera-calibration', action='store_true', help='Explicit actual camera/base transform auxiliary')
+    parser.add_argument('--save-debug-images', action='store_true', help='Save periodic RGB and detection images')
     parser.add_argument('--out', type=Path)
     parser.add_argument('--seeds', type=int, nargs='+', default=[1])
     parser.add_argument('--horizon', type=int, choices=(25, 55), default=55)
@@ -49,7 +50,7 @@ def arguments():
 
 def protocol(args):
     if args.input_contract == 'rgb-q-calibration':
-        return dict(name=f'visual-rgb-q-calibration-fixed-{args.horizon}s-v1',
+        return dict(name=f'visual-rgb-q-calibration-fixed-{args.horizon}s-v2',
             actor_inputs=['front_rgb', 'wrist_rgb', 'measured_q6_rad', 'known_camera_intrinsics_and_mount_extrinsics'],
             excluded_inputs=['object_pose', 'object_mass', 'segmentation', 'depth', 'success', 'raycast',
                 'gravity_compensation_force', 'table_height_prior', 'object_size_prior'],
@@ -60,7 +61,7 @@ def protocol(args):
             dynamic_gripper_truth_helper=False, native_actuator_gains_gravity_collision=True,
             geometry='RGB_feature_triangulation_support_plane_and_silhouette_size_estimates',
             compression_command_bound_rad=.020, seeds=args.seeds, logging='shared_SwanLab_offline_scalars')
-    return dict(name=f'visual-calibrated-native-fixed-{args.horizon}s-v1',
+    return dict(name=f'visual-calibrated-native-fixed-{args.horizon}s-v2',
         actor_inputs=['front_rgb', 'measured_q6_rad', 'explicit_camera_intrinsics_extrinsics',
                       'calibrated_support_plane', 'robot_usd_geometry', 'robot_model_gravity_bias'],
         excluded_inputs=['object_pose', 'object_mass', 'segmentation', 'success', 'raycast'],
@@ -86,13 +87,15 @@ def main():
         app = launcher(args).app
         import gymnasium as gym
         import leisaac.tasks
-        from PIL import Image
+        if args.save_debug_images:
+            from PIL import Image
         from scipy.spatial.transform import Rotation
         from isaaclab.managers import RecorderTermCfg, DatasetExportMode
         from isaaclab.managers.recorder_manager import RecorderManagerBaseCfg, RecorderTerm
         from isaaclab.utils import configclass
         from isaaclab_tasks.utils import parse_env_cfg
         from perception import Calibration
+        from reset_capture import configure_front_reset, refresh_reset_observations
         from policy import VisualPolicy
         from strict_policy import StrictVisualPolicy
         from stereo import CameraModel
@@ -137,6 +140,7 @@ def main():
         cfg.episode_length_s = args.horizon
         cfg.dynamic_reset_gripper_effort_limit = False
         cfg.recorders = Recorder()
+        configure_front_reset(cfg)
         env = gym.make('LeIsaac-SO101-PickOrange-v0', cfg=cfg).unwrapped
         robot = env.scene['robot']
         ids, names = robot.find_joints(JOINTS, preserve_order=True)
@@ -146,6 +150,7 @@ def main():
         scales = torch.cat([torch.as_tensor(t._scale, device=env.device).expand(1, t.action_dim) for t in terms], 1)
         offsets = torch.cat([torch.as_tensor(t._offset, device=env.device).expand(1, t.action_dim) for t in terms], 1)
         manifest = protocol(args)
+        manifest['debug_images'] = args.save_debug_images
         manifest.update(robot_usd_sha256=hashlib.sha256(Path(cfg.scene.robot.spawn.usd_path).read_bytes()).hexdigest(),
             source_sha256={p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in Path(__file__).parent.glob('*.py')},
             robot_geometry_source_sha256={name:hashlib.sha256((Path(__file__).parents[1]/'expert'/name).read_bytes()).hexdigest()
@@ -163,16 +168,17 @@ def main():
             random.seed(seed)
             np.random.seed(seed)
             torch.manual_seed(seed)
-            obs, _ = env.reset(seed=seed)
+            env.reset(seed=seed)
+            obs = refresh_reset_observations(env, [0])
             env.visual_capture_enabled, env.visual_final = True, None
             camera = env.scene['front']
-            positions, orientations = camera._view.get_world_poses()
+            positions, orientations = camera.data.pos_w, camera.data.quat_w_ros
             base_id = list(robot.body_names).index('base')
             base = robot.data.body_pos_w[0, base_id].cpu().numpy()
             quat = robot.data.body_quat_w[0, base_id].cpu().numpy()
             base_r = Rotation.from_quat(quat[[1, 2, 3, 0]]).as_matrix()
             camera_q = orientations[0].cpu().numpy()
-            camera_r = Rotation.from_quat(camera_q[[1, 2, 3, 0]]).as_matrix() @ np.diag([1., -1., -1.])
+            camera_r = Rotation.from_quat(camera_q[[1, 2, 3, 0]]).as_matrix()
             transform = np.eye(4)
             transform[:3, :3] = base_r.T@camera_r
             transform[:3, 3] = base_r.T@(positions[0].cpu().numpy()-base)
@@ -180,10 +186,10 @@ def main():
             if args.input_contract == 'rgb-q-calibration':
                 # One-time hand-eye calibration only; no dynamic wrist-pose query.
                 wrist = env.scene['wrist']
-                wrist_p, wrist_q = wrist._view.get_world_poses()
+                wrist_p, wrist_q = wrist.data.pos_w, wrist.data.quat_w_ros
                 wq = wrist_q[0].cpu().numpy()
                 wt = np.eye(4)
-                wt[:3, :3] = base_r.T@(Rotation.from_quat(wq[[1, 2, 3, 0]]).as_matrix()@np.diag([1., -1., -1.]))
+                wt[:3, :3] = base_r.T@(Rotation.from_quat(wq[[1, 2, 3, 0]]).as_matrix())
                 wt[:3, 3] = base_r.T@(wrist_p[0].cpu().numpy()-base)
                 wk = wrist.data.intrinsic_matrices[0].cpu().numpy()
                 # Robot geometry is known calibration, not object/environment truth.
@@ -232,7 +238,7 @@ def main():
                             completed_episodes=len(results), scoring_only=current))
                         writer.log(dict(plate_count=current['plate_count'], at_rest=int(current['at_rest'])),
                             len(results)*args.horizon*60+step+1, prefix='control')
-                    if not done and (step % 300 == 299 or step == 149):
+                    if args.save_debug_images and not done and (step % 300 == 299 or step == 149):
                         Image.fromarray(obs['policy']['front'][0].cpu().numpy()).save(run/f'front-{step+1:04}.png')
                         Image.fromarray(obs['policy']['wrist'][0].cpu().numpy()).save(run/f'wrist-{step+1:04}.png')
                         detections = actor.detector.detect(obs['policy']['front'][0].cpu().numpy())

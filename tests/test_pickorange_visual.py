@@ -4,8 +4,9 @@ import json
 from pathlib import Path
 import subprocess
 import sys
+from types import SimpleNamespace
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 ROOT = Path(__file__).resolve().parents[1]
 VISUAL = ROOT/'course/pickorange/visual'
@@ -30,6 +31,64 @@ assert not any(k.startswith(('isaaclab','omni','torch','swanlab')) for k in sys.
         self.assertFalse(protocol['dynamic_gripper_truth_helper'])
         self.assertEqual(protocol['horizon_seconds'], 55)
         self.assertEqual(protocol['native_horizon_seconds'], 25)
+
+
+@unittest.skipUnless(importlib.util.find_spec('torch'), 'Torch required')
+class ResetCaptureTests(unittest.TestCase):
+    def load_helper(self, math=None):
+        spec = importlib.util.spec_from_file_location('visual_reset_capture', VISUAL/'reset_capture.py')
+        module = importlib.util.module_from_spec(spec)
+        with patch.dict(sys.modules, {'torch': importlib.import_module('torch'), 'isaaclab.utils.math': math or Mock()}):
+            spec.loader.exec_module(module)
+        return module
+
+    def test_repeated_front_resets_use_nominal_mount(self):
+        import torch
+
+        quaternion = torch.tensor([[1., 0., 0., 0.]])
+        delta = torch.tensor([[.02, 0., -.01, 0., 0., 0.]])
+        math = SimpleNamespace(combine_frame_transforms=lambda p, q, offset, rotation: (p + offset, q),
+            sample_uniform=Mock(return_value=delta), quat_from_euler_xyz=Mock(return_value=quaternion),
+            quat_mul=lambda q, update: q)
+        helper = self.load_helper(math)
+        front = SimpleNamespace(cfg=SimpleNamespace(offset=SimpleNamespace(pos=(.1, .2, .3), rot=(1., 0., 0., 0.),
+            convention='ros')), set_world_poses=Mock())
+        root = torch.tensor([[1., 2., 3., 1., 0., 0., 0.]])
+        robot = SimpleNamespace(data=SimpleNamespace(default_root_state=root))
+
+        class Scene(dict):
+            env_origins = torch.tensor([[10., 0., 0.]])
+
+        env = SimpleNamespace(scene=Scene(front=front, robot=robot), device='cpu')
+        event = SimpleNamespace(params={'asset_cfg': SimpleNamespace(name='front'), 'pose_range': {'x': (-.025, .025)}})
+        cfg = SimpleNamespace(events=SimpleNamespace(front=event), scene=SimpleNamespace(front=front.cfg, wrist=Mock()))
+        helper.configure_front_reset(cfg)
+        for _ in range(2):
+            event.func(env, [0], **event.params)
+            torch.testing.assert_close(front.set_world_poses.call_args.args[0], torch.tensor([[11.12, 2.2, 3.29]]))
+        self.assertEqual(math.sample_uniform.call_count, 2)
+        self.assertTrue(cfg.scene.front.update_latest_camera_pose)
+        self.assertTrue(cfg.scene.wrist.update_latest_camera_pose)
+
+    def test_refresh_returns_new_observations_without_physics(self):
+        helper = self.load_helper()
+        calls = []
+
+        class Camera:
+            def reset(self, indices):
+                calls.append(('reset', indices.tolist()))
+
+            @property
+            def data(self):
+                calls.append('camera-data')
+
+        env = SimpleNamespace(device='cpu', _sim_step_counter=91, scene={'front': Camera(), 'wrist': Camera()},
+            sim=SimpleNamespace(render=lambda: calls.append('render')),
+            observation_manager=SimpleNamespace(compute=Mock(return_value='fresh-observations')))
+        self.assertEqual(helper.refresh_reset_observations(env, [0]), 'fresh-observations')
+        self.assertEqual(calls, ['render']*4 + [('reset', [0]), 'camera-data']*2)
+        env.observation_manager.compute.assert_called_once_with(update_history=False)
+        self.assertEqual(env._sim_step_counter, 91)
 
 
 @unittest.skipIf(np is None, 'NumPy required')
@@ -83,6 +142,12 @@ class GeometryTests(unittest.TestCase):
         requested = actor.update(None, q, np.zeros(5))
         self.assertGreaterEqual(requested[5], q[5]-.020)
         self.assertLessEqual(np.max(np.abs(requested[:5]-q[:5])), .010)
+        # A jaw pushed open can leave the previous sent command below the new bound.
+        for phase in ('close', 'lift', 'carry', 'lower'):
+            with self.subTest(phase=phase):
+                actor.phase, actor.age, actor.stable = phase, 0, 0
+                actor.previous = np.r_[q[:5], .43]
+                self.assertGreaterEqual(actor.update(None, q, np.zeros(5))[5], q[5]-.020)
         np.testing.assert_array_equal(q, [0, 0, 0, 0, 0, .5])
         with self.assertRaisesRegex(ValueError, 'finite'):
             actor.update(None, np.full(6, np.nan), np.zeros(5))

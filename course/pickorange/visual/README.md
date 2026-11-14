@@ -2,11 +2,11 @@
 
 运行入口为 [evaluate.py](evaluate.py)，无需演示或模型权重。使用 front RGB 的 HSV/椭圆检测、已知桌面与尺寸先验、机器人 USD 几何 IK、实测关节反馈及抓放状态机。控制器没有环境句柄，不能读取物体真值或成功标记。
 
-**这是显式标定辅助协议。** 当前 runner 必须启用 `--sim-camera-calibration`，读取实际相机和机器人 base 的变换与相机内参；控制还使用机器人 articulation 的重力补偿力／17.8 作为位置伺服前馈。它不是免标定 RGB/q-only 策略。桌面默认 base Z=0.030 m，橙子中心高于桌面 0.026 m，盘面定位平面高于桌面 0.012 m；这些是显式静态先验，不随物体真值更新。
+模型辅助版通过 `--sim-camera-calibration` 读取相机内参和相机到机器人基座的变换。位置伺服使用机器人关节的重力补偿力除以 17.8 作为前馈。以基座坐标系计，桌面默认 Z 为 0.030 m，橙子中心和盘面定位平面分别高出桌面 0.026 m 和 0.012 m。
 
-The actor receives RGB, q6, explicit camera calibration, support/size priors and robot-model gravity bias. Object poses, segmentation, raycasts, object masses and native score are excluded. Simulator scoring is isolated in the runner.
+The model-assisted actor receives front RGB, six measured joint angles, explicit camera calibration, support and size priors, and robot-model gravity bias. The runner evaluates success with the native scoring function. During closure, lift, carry and lowering, the final jaw target can request at most 0.020 rad of closure from the latest measured angle. The bound is applied after rate limiting.
 
-策略复用 `expert/` 中 **DiameterKinematics / FingerGeometry** 的机器人几何函数，未构造任何特权 teacher，也不加载包含场景物体位置的标定文件。规划在图像估计的位置枚举夹持方向，检查手指网格与桌面间隙；这一几何代理不是接触传感器，也不保证路径完全无碰撞。夹爪闭合目标最多领先实测值 0.020 rad，接触判断仅由关节停滞推测。放置序列数不代表成功；回到扫描姿态后根据 RGB 检查盘外橙子并允许最多 5 次抓取。
+策略复用 `expert/` 中的 `DiameterKinematics` 和 `FingerGeometry`。规划在图像估计的位置枚举夹持方向，用手指网格检查与桌面的间隙，并根据关节停滞推测接触。闭爪、抬升、搬运和下放阶段，最终夹爪指令最多比当前实测角度再闭合 0.020 rad。该限制在指令限速后应用。每次放置后重新扫描盘外橙子，最多尝试抓取五次。
 
 ## 仅视觉＋本体＋相机标定 / RGB, q and camera calibration only
 
@@ -14,7 +14,9 @@ The actor receives RGB, q6, explicit camera calibration, support/size priors and
 
 此分支不调用重力补偿力接口，不输入桌面高度、橙子尺寸、盘子半径或深度图。先移动到固定高位扫描姿态，再由两路 RGB 的 SIFT 匹配、标定投影三角化和 RANSAC 拟合支撑平面。腕相机逐帧位姿由**关节角＋固定安装外参＋机器人 FK**推导，不读取逐帧相机或工具真值。HSV轮廓在视觉平面上推算尺寸；橙子采用球形接触近似，盘内区域和投放点按图像估计半径定义。这些是算法假设，不是给定的物体尺寸。控制使用关节误差积分修正，未改变原生执行器／物理。
 
-当前 runner 的 `--sim-camera-calibration` 在每次 reset 只读取相机内参、相机／机器人基座变换，生成已知 front 外参和 wrist 安装外参；这些值单独落盘。相机标定仍是允许且明确声明的辅助，不能称为免标定视觉策略。之后的控制路径不读取机器人模型重力项。
+两种协议都需要显式启用 `--sim-camera-calibration`。每次重置，前视相机从名义安装位姿施加本回合扰动。评测器在回合物理步为 0 时刷新双相机渲染与观测缓冲，再读取首帧及对应标定。两种协议都记录前视外参，双相机版同时记录腕部安装外参。
+
+The RGB, q and camera calibration variant reconstructs the support plane and estimates object size from the two cameras. Both variants require `--sim-camera-calibration`. At reset, each perturbation is applied to the nominal front-camera pose. The runner refreshes both cameras and their observation buffers before reading the first RGB frames and calibration, with zero episode physics steps elapsed.
 
 ```bash
 python course/pickorange/visual/evaluate.py --check --input-contract rgb-q-calibration
@@ -26,9 +28,7 @@ python course/pickorange/visual/evaluate.py \
   --horizon 55 --seeds 1001 1002 1003
 ```
 
-协议名为 `visual-rgb-q-calibration-fixed-55s-v1`，与模型辅助版结果分开；55秒和25秒仍分开报告。开发 seeds 1–3 为2/3。冻结策略后，固定 seeds 1001–1020 的20个完整配对回合为 **15/20（75%）**，Wilson 95%区间约53%–89%；成功耗时中位数42.47秒，范围40.77–43.77秒。与模型辅助版16/20使用相同初始场景：1014由失败变成功，1018、1020由成功变失败；失败1001、1006、1013、1018、1020全部计入分母。配对seed已用于旧版评测，不称为本版全新的未见测试集，评测期间未调参或替换seed。
-
-支持平面缺少足够视觉匹配时记录失败，不回退到固定高度或仿真真值。原生完整成功和 reset 前评分逻辑与模型辅助版共用。审计核对全部20回合的初始场景一致性、源码哈希、输入白名单、视觉平面恢复、有限动作及原生终态；物体真值仅存在于隔离评分记录中。上述75%仅适用于55秒仿真协议，不代表原生25秒或真机成绩。
+55 秒协议名为 `visual-rgb-q-calibration-fixed-55s-v2`。支撑平面缺少足够视觉匹配时记录失败。两种协议共用原生成功判定。
 
 ## 运行 / Run
 
@@ -39,7 +39,7 @@ python course/pickorange/visual/evaluate.py --check
 python course/pickorange/visual/evaluate.py --help
 ```
 
-真实闭环需要独立 PickOrange 仿真环境、官方机器人／厨房资产、NumPy、SciPy、OpenCV、Pillow，以及共享记录器要求的 `swanlab==0.10.3`。使用已配置的 **仿真解释器**，不要在普通 Python 中安装整套模拟器依赖。环境与资源来源见[任务指南](../../../docs/PICK_ORANGE.md)和[外部资产清单](../../../manifests/external_assets.json)。
+闭环评测使用独立 PickOrange 仿真环境、官方机器人与厨房资产、NumPy、SciPy、OpenCV 和 `swanlab==0.10.3`。保存调试图还需要 Pillow。环境与资源来源见[任务指南](../../../docs/PICK_ORANGE.md)和[外部资产清单](../../../manifests/external_assets.json)。
 
 ```bash
 python course/pickorange/visual/evaluate.py \
@@ -51,20 +51,27 @@ python course/pickorange/visual/evaluate.py \
 
 输出目录必须尚不存在；容器以 root 运行时可额外传 `--kit_args=--allow-root`。默认 30 Hz 更新关节绝对位置目标，两 tick 保持，物理 60 Hz。动作顺序为 shoulder_pan、shoulder_lift、elbow_flex、wrist_flex、wrist_roll、gripper，单位 rad；依据实际 action manager 的 scale/offset 转为原生动作，不把 motor 归一化值当弧度。
 
-协议 `visual-calibrated-native-fixed-55s-v1` 使用 **55 秒开发预算**；原生时限是 25 秒。`--horizon 25` 会产生独立的 `visual-calibrated-native-fixed-25s-v1`，不可混合成绩。保留原生重力、执行器增益／固定 effort、碰撞、关节限位和成功函数，显式禁用会读取物体位置／质量的动态夹爪辅助。成功仍要求 **三颗橙子全部满足原生 XYZ 盘区条件且机器人 home**，不是“完成三次抓放”。当前不提供真机标定／控制适配。
+模型辅助版默认使用 `visual-calibrated-native-fixed-55s-v2`，开发预算为 55 秒。使用 `--horizon 25` 可运行原生时限下的独立协议。两种输入协议都使用原生重力、执行器增益、固定夹爪力矩上限、碰撞、关节限位和成功判定，并关闭读取物体位置和质量的动态夹爪辅助。
 
-Each run stores its source hashes, robot USD hash, protocol, seeds, camera calibration, native action requests and measured q, stage events, RGB diagnostics and pre-reset terminal scores. The 55 s development budget is separate from the native 25 s protocol. Failed and timed-out episodes remain in the denominator.
+默认保存数值记录。需要检查画面时，显式添加 `--save-debug-images` 保存双相机 RGB 与检测图。 / Runs store numerical records by default. Pass `--save-debug-images` to save camera frames and detection overlays.
 
 ## 结果与审计 / Results and audit
 
-`manifest.json` 固定协议、seed、源码／机器人身份和执行器配置；`seed-*/commands.npz` 分开记录请求 rad 与实测 q、时间及阶段；`trace.jsonl` 中 `scoring_only` 真值仅用于诊断。`RecorderTerm.record_pre_reset` 捕获原生终态，缺失会拒绝统计，避免读取 auto-reset 后的新场景。`result.json` 只汇总已完成回合，`status=partial` 不能视作整批结束。共享 SwanLab 默认 offline、仅数值，先关闭 writer 再关闭环境和 SimulationApp。
+`manifest.json` 记录协议、seed、运行环境和执行器配置。`seed-*/commands.npz` 记录请求关节角、实测关节角、时间和控制阶段。`trace.jsonl` 的 `scoring_only` 字段记录评分真值。评分使用 `RecorderTerm.record_pre_reset` 捕获的原生终态。整批完成后，`result.json` 的 `status` 为 `completed`。SwanLab 以离线模式记录数值指标。
 
-模型辅助版开发 seeds 1–3 的实际完整回合为 **3/3**，约 38.6–40.5 仿真秒，使用 55 秒协议。该小样本仅证明闭环，不能估计泛化成功率。冻结策略后，独立固定 seeds 1001–1020 的实际整批结果为 **16/20（80%）**；全部按顺序完成，成功回合均满足原生三橙XYZ盘区＋home，4个超时失败仍计入分母。Wilson 95%区间约58%–92%，20回合样本有限；不将失败 seed 删除、替换或用于调参后仍称为 held-out。仅RGB/q6/相机标定版在相同20个初始场景为 **15/20（75%）**，详见前述独立输入协议。两版结果来自 Isaac Sim 5.1 / Isaac Lab 2.3.2 / LeIsaac 0.4.0 和官方资产；25 秒协议和真机均未由这些结果验收。
+初版使用 20 个固定场景（seed 1001–1020），修订版按原顺序复测至表中所列场次。每回合上限 55 仿真秒。成功要求三颗橙子均在原生 XYZ 盘区内且机械臂归位。成功率以完整回合数为分母。
 
-CPU 检查只验证软件边界与合成 RGB 几何，不代表仿真成功：
+The initial evaluation used 20 scenes (seeds 1001–1020). The retest reports the completed prefix of those seeds. Each episode runs for up to 55 simulated seconds. Success requires all three oranges inside the native XYZ region and the arm at home.
+
+| 输入协议 / Input protocol | 初版全量 / Full initial run | 初版同场景 / Initial on matched seeds | 修订版 / Retest | 复测成功耗时中位数 / Retest median successful duration |
+| --- | ---: | ---: | ---: | ---: |
+| 模型辅助 / Model-assisted | 16/20（80.0%） | 15/19（78.9%） | 16/19（84.2%） | 40.50 s |
+| 双 RGB＋q6＋相机标定 / RGB, q6 and camera calibration | 15/20（75.0%） | 14/17（82.4%） | 11/17（64.7%） | 42.63 s |
+
+运行软件接口与合成 RGB 几何的 CPU 检查。
 
 ```bash
 python -B -m unittest discover -s tests -p test_pickorange_visual.py -v
 ```
 
-主要限制：HSV 对光照／纹理改变敏感；平面投影不能定位空中果实，局部遮挡会使椭圆中心偏移；当前缺少腕部视觉纠偏和真实接触反馈。保留失败回合以评估这些影响。
+HSV 检测对光照和纹理变化敏感。平面投影用于桌面上的物体，局部遮挡会使椭圆中心偏移。抓取中的接触由关节反馈推测。
