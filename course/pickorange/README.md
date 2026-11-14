@@ -16,7 +16,7 @@ This directory contains PickOrange-specific execution code. It does not use the 
 | `service_n16.py` | wsagi GR00T N1.6独立后端；原生解码相对手臂动作、绝对夹爪动作 / Native relative-arm and absolute-gripper decoding |
 | `service_pi05.py` | Aikwed π₀.₅任务权重及其LeRobot处理器，30 Hz策略 / Task checkpoint and its saved processors at 30 Hz |
 | `service_smolvla.py` | Edge SmolVLA双视角任务权重、原统计与处理器，30 Hz；共享评测／审核，CPU验证 / Dual-view task service; CPU-validated integration |
-| `service_evo1.py` | 实验性补充：Evo-1原统计与处理器，30 Hz／50步；任务权重不随仓库分发，无固定revision / Experimental supplemental adapter; task weights are not distributed |
+| `service_evo1.py` | 实验性补充：Evo-1原统计与处理器，独立协议 30 Hz／chunk 50／整块执行；任务权重不随仓库分发，无固定revision / Experimental supplemental adapter; task weights are not distributed |
 | `openvla_oft.py` | 双相机、六关节OFT接口；需匹配的受训包，不是可运行的已受训策略 / Dual-view boundary; trained package required |
 | `evaluate.py` | 单持续仿真进程，显式seed序列、原生成功与超时、reset前终态、逐步轨迹与逐回合结果 / Full-episode development runner |
 | `audit.py` | CPU核对闭合轨迹、动作映射、连续性、查询索引和原生终态；不自动收入BC / Closed-trajectory audit |
@@ -122,7 +122,7 @@ Use the same protocol and shared directory on the evaluator. This is a new CPU-v
 
 ### Evo-1（实验性补充 / Experimental supplement）
 
-`service_evo1.py`是[Evo-1基线记录](../../docs/EVO1_PICKORANGE_BASELINE.md)的本地适配器：沿用同一NPZ请求／响应契约与`common.py`的用量校验，但不属于上面的四个固定后端服务。它不核对模型revision，因为任务权重没有公开分发；`service-ready.json`因此写`experimental: true`并记录权重两个文件的SHA-256、代码commit（或`unpinned`）与数据集根目录。协议只接受30 Hz／chunk 50，与权重训练时的动作时钟一致；结果按实验性记录，不计入协议基准。
+`service_evo1.py`是[Evo-1基线记录](../../docs/EVO1_PICKORANGE_BASELINE.md)的本地适配器：沿用同一NPZ请求／响应契约与`common.py`的用量校验，但不属于上面的四个固定后端服务。它不核对模型revision，因为任务权重没有公开分发；`service-ready.json`因此写`experimental: true`并记录权重两个文件的SHA-256、代码commit（或`unpinned`）与数据集根目录。协议只接受 Evo-1 专用协议（30 Hz／chunk 50／整块执行 50 步／32 步去噪，锁定任务文本），与权重训练时的动作时钟一致；结果按实验性记录，不计入协议基准。
 
 It reuses the shared NPZ contract but is not one of the four pinned backends: it cannot verify a public revision, so its ready file marks the run experimental and records weight digests plus the code commit (or `unpinned`).
 
@@ -130,7 +130,7 @@ It reuses the shared NPZ contract but is not one of the four pinned backends: it
 export HF_HUB_OFFLINE=1
 python course/pickorange/service_evo1.py --run-service \
   --model /models/pickorange/evo1-export --dataset-root /data/pickorange-bc \
-  --code-root /src/evo1 --protocol course/pickorange/protocols/smolvla-native-assisted-30hz.json \
+  --code-root /src/evo1 --protocol course/pickorange/protocols/evo1-native-assisted-30hz.json \
   --run-dir /outputs/pickorange/evo1-new --device cuda:0 --wall-seconds 3600
 ```
 

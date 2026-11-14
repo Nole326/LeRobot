@@ -20,7 +20,7 @@ import traceback
 
 import numpy as np
 
-from common import load_protocol, publish, rng_state, save_arrays, sha256, timing
+from common import load_protocol, publish, rng_state, save_arrays, sha256, timing, validate_request
 
 WEIGHT_FILES = ('config.json', 'model.safetensors')
 
@@ -67,25 +67,28 @@ def load_policy(model, code_root, dataset_root, device):
     return policy, preprocess, postprocess, torch
 
 
-def predict(loaded, data, instruction):
-    policy, preprocess, postprocess, torch = loaded
-    q = np.asarray(data['joint_motor'], dtype=np.float32).reshape(1, 6)
-    views = {}
-    for cam in ('front', 'wrist'):
-        image = np.asarray(data[cam][0])
-        if image.shape != (480, 640, 3):
-            raise ValueError('Expected two 480x640 RGB views')
-        if image.dtype != np.uint8:
-            raise ValueError('Views must be uint8 RGB')
-        views[cam] = torch.from_numpy(image).permute(2, 0, 1).float().div(255).unsqueeze(0)
-    batch = {'observation.images.front': views['front'], 'observation.images.wrist': views['wrist'],
-             'observation.state': torch.from_numpy(q), 'task': [instruction]}
-    with torch.inference_mode():
-        actions = postprocess(policy.predict_action_chunk(preprocess(batch)))[0].float().cpu().numpy()
-    actions = np.asarray(actions, dtype=np.float64).reshape(50, 6)
+def check_action_chunk(actions):
+    """Strict decoded-output contract: finite [50,6] motor targets only."""
+    actions = np.asarray(actions, dtype=np.float64)
+    if actions.shape != (50, 6):
+        raise ValueError(f'Expected a [50,6] action chunk, got {actions.shape}')
     if not np.isfinite(actions).all():
         raise ValueError('Non-finite model output')
     return actions
+
+
+def predict(loaded, data, instruction):
+    policy, preprocess, postprocess, torch = loaded
+    # Public request contract: whitelist, shapes, dtypes and finiteness only.
+    q = validate_request(data)
+    views = {}
+    for cam in ('front', 'wrist'):
+        views[cam] = torch.from_numpy(np.array(data[cam][0], copy=True)).permute(2, 0, 1).float().div(255).unsqueeze(0)
+    batch = {'observation.images.front': views['front'], 'observation.images.wrist': views['wrist'],
+             'observation.state': torch.from_numpy(q.astype(np.float32)), 'task': [instruction]}
+    with torch.inference_mode():
+        actions = postprocess(policy.predict_action_chunk(preprocess(batch)))[0].float().cpu().numpy()
+    return check_action_chunk(actions)
 
 
 def main(argv=None):
@@ -103,8 +106,12 @@ def main(argv=None):
     cfg = load_protocol(a.protocol)
     if not a.run_service or not np.isfinite(a.wall_seconds) or a.wall_seconds <= 0:
         p.error('Explicit --run-service and a positive wall budget are required')
-    if cfg['action_hz'] != 30 or cfg['chunk_length'] != 50:
-        p.error('Pick a 30 Hz / 50-step protocol so the action clock matches the checkpoint')
+    if cfg['name'] != 'pickorange-evo1-native-assisted-30hz-v1':
+        p.error('Pass the Evo-1 protocol; other model protocols do not match this service')
+    if cfg['action_hz'] != 30 or cfg['chunk_length'] != 50 or cfg['execute_steps'] != 50:
+        p.error('Use the 30 Hz / 50-step prediction and whole-chunk execution protocol')
+    if cfg['denoising_steps'] != 32:
+        p.error('The Evo-1 checkpoint was trained with 32 denoising steps')
     if a.code_root is not None and not a.allow_unpinned_code:
         commit = verify_code(a.code_root.resolve())
     elif a.code_root is not None:

@@ -376,8 +376,8 @@
   },
   {
     "path": "course/pickorange/README.md",
-    "bytes": 15771,
-    "sha256": "167b46003455d11820bc37f5ca04d355288e99327e34241f878523b1f5a076de"
+    "bytes": 15882,
+    "sha256": "fb613b7d93c6c758de598fa6c557dac84505c65e869d250468ae8cbfb1fa1cba"
   },
   {
     "path": "course/pickorange/audit.py",
@@ -391,8 +391,8 @@
   },
   {
     "path": "course/pickorange/common.py",
-    "bytes": 7579,
-    "sha256": "1f0fca22fdf9004504e01b2ea528299f758c1626b0288e91940226673173a0d7"
+    "bytes": 8088,
+    "sha256": "5c4ee1a1d020d6d608cf72abdff39b914deaf1fb0cd3d62dcaa807c3c408f533"
   },
   {
     "path": "course/pickorange/evaluate.py",
@@ -550,6 +550,11 @@
     "sha256": "0a4201591828e0b0a77bb096cbaa9fcfe98f750f2fdb2ff17bfa92727ac2d56a"
   },
   {
+    "path": "course/pickorange/protocols/evo1-native-assisted-30hz.json",
+    "bytes": 1009,
+    "sha256": "9ba89921f4f013ee2091363038e1f0bc7e5f15679fbc888310b9191fa182e39b"
+  },
+  {
     "path": "course/pickorange/protocols/groot-n16-native-assisted.json",
     "bytes": 1025,
     "sha256": "475a406e17f15bea90a4526046a39e4d000138f4ef819d4c5118472ddf7eb2e0"
@@ -576,8 +581,8 @@
   },
   {
     "path": "course/pickorange/service_evo1.py",
-    "bytes": 7521,
-    "sha256": "fc6a50c585f511fca298ab6f5ac19003e198c06879b4d9cd7d8a9166af0a3577"
+    "bytes": 7930,
+    "sha256": "16f3ad4da38d0a669276b4ef8fa7e36485bd70580bdcf3e2660f6f1ff812c79c"
   },
   {
     "path": "course/pickorange/service_n16.py",

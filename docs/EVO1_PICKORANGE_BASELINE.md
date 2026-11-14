@@ -6,7 +6,7 @@ This page records a small-scale Evo-1 behavioural-cloning baseline (frozen or un
 
 ## 范围与数据 / Scope and data
 
-- 数据来自本仓库自研特权教师采集流程（[控制脚本说明](../course/pickorange/expert/README.md)），每条演示都经过独立回放准入；观测只含 front/wrist 两路 RGB 与实测六维，不回放物体真值。
+- 数据来自本仓库的**特权 state 控制脚本（privileged state controller）**采集流程（[控制脚本说明](../course/pickorange/expert/README.md)），每条演示都通过**动作轨迹独立回放检验（independent action-trajectory replay）**；观测只含 front/wrist 两路 RGB 与实测六维，不回放物体真值。
 - 两套数据：**22 条 / 29,846 帧**（早期集合）与 **56 条 / 75,019 帧**（在 22 条基础上追加 34 条）。30 fps，480×640 双视角，六维 motor 动作，无成功标签。
 - 上游另有两套各 100 条的公开演示（30 Hz 与 60 Hz 两种动作时钟），混用前需对齐动作频率、关节坐标与时间戳，本页结果未使用。
 
@@ -21,33 +21,36 @@ Dual-RGB, q6 and full task text are the only policy inputs. All demonstrations p
 | stage1 | 冻结视觉语言主干，只训动作头，batch 8 |
 | stage2 | 解冻视觉语言主干（四个 `finetune_*` 全开），约 2.5 倍单步耗时 |
 | 学习率 / LR sweep | 5e-6、1e-5、3e-5、1e-4（含 warmup 与 cosine 衰减） |
-| 主要运行 / Main runs | A4：56 条、14,000 步、stage1；S2：从 A4 解冻再训 2,000 步；A6：56 条、1,000 步、lr 3e-5 |
+| 主要运行 / Main runs | 56 条 stage1（14,000 步）；联合训练（从 stage1 快照解冻再训 2,000 步）；学习率扫描（56 条、1,000 步、lr 3e-5） |
 
 训练损失（归一化 chunk MSE）在 0.022–0.048 之间；换算成归一化 RMSE 约 0.15，相当于 7–8 个 motor 单位。单条 episode 过拟合实验（400 步、lr 1e-4）只看了约 0.1 个 epoch，损失反而升到 0.045–0.057，说明该预算下不足以拟合单条演示。
 
 ## 评测协议 / Evaluation protocol
 
 - 完整回合、60 仿真秒、`hold_ticks=2`（50 步策略目标按 30 Hz 执行，与演示动作时钟一致），初始状态取全零关节位姿，成功判据为三颗入盘且机械臂回位。
-- 每回合约 225 次模型查询；单回合墙钟 128–202 秒（含仿真），模型查询均值约 0.12–0.15 秒。
+- 每回合约 36 次模型查询（整块 50 步执行，60 秒即 36 块）；单回合墙钟 128–202 秒（含仿真），模型查询均值约 0.12–0.15 秒。
 
-Full episodes only; each policy target is held for two physics ticks so the 30 Hz action clock matches the demonstrations. Success requires all three oranges on the plate plus the arm at rest.
+Full episodes only; each policy target is held for two physics ticks so the 30 Hz action clock matches the demonstrations. The whole 50-step chunk is executed, so a 60 s episode is 36 queries. Success requires all three oranges on the plate plus the arm at rest.
 
 ## 结果 / Results
 
 | 运行 / Run | 数据 / Data | 评测 seed | 完整成功 / Success |
 | --- | --- | --- | ---: |
-| A2 | 19 条 | 0 | 0/1 |
-| A3 | 22 条、3,000 步 | 0 | 0/1 |
-| A4 | 56 条、14,000 步 | 0,1,2 | 0/3 |
-| A4 中间存档 | 56 条、8k/12k 步 | 0 | 0/1、0/1 |
-| S2 | 56 条、解冻 500 步 | 0,1,2 | 0/3 |
-| S2 | 56 条、解冻 2,000 步 | 0,1,2 与 1123 | 0/3、0/1 |
-| A6 | 56 条、1,000 步、lr 3e-5 | 0 与 1123 | 0/2 |
+| 19 条基线 | 19 条 | 0 | 0/1 |
+| 22 条续训 | 22 条、3,000 步 | 0 | 0/1 |
+| 56 条 stage1 | 56 条、14,000 步 | 0,1,2 | 0/3 |
+| 56 条 stage1、重规划 | 同上、每 25 步重规划 | 0 | 0/1 |
+| 56 条 stage1、指令修正 | 同上、任务文本改为训练文本 | 0 | 0/1 |
+| 56 条 stage1 中间存档 | 56 条、8k/12k 步 | 0 | 0/1、0/1 |
+| 56 条联合训练 500 步 | 56 条、解冻主干 | 0,1,2 | 0/3 |
+| 56 条联合训练 2,000 步 | 56 条、解冻主干 | 0,1,2 与 1123 | 0/3、0/1 |
+| 56 条、lr 3e-5 | 56 条、1,000 步 | 0 与 1123 | 0/2 |
+| 19 条基线、集成 | 19 条、4 次采样平均 | 0 | 0/1 |
 | 单条过拟合 | 1 条、400 步 | 1123 | 0/1 |
 
-合计约 20 个完整回合，**0 次成功**；最好的一次也只出现单颗橙子被短暂移动。所有回合都在 60 秒时限处 truncated，没有 terminated。
+合计 20 个完整回合（逐场记录见附录 A），**0 次成功**；最好的一次也只出现单颗橙子被短暂移动。所有回合都在 60 秒时限处 truncated，没有 terminated。
 
-Twenty complete episodes across eight checkpoints, three data sets, four learning rates and both training stages produced **zero** full-task successes. Partial object progress is not success and is not counted.
+Twenty complete episodes across ten runs, three data sets, four learning rates and both training stages produced **zero** full-task successes. Partial object progress is not success and is not counted. Per-episode records are listed in Appendix A.
 
 ## 现象 / Behaviour
 
@@ -92,7 +95,7 @@ python course/pickorange/expert/collect.py --run-simulation \
 ```
 
 - 本页使用的种子段：`18–34`、`35–50`、`51–54`、`61–65`、`1100–1118`、`1123–1142`、`2000–2014`；通过率约 55%–65%，单次尝试约 6–7 分钟，每次成功约 0.5 GB 无损双视角视频。
-- 每个种子先跑特权教师，再做一次独立回放；只有回放同样满足“三颗入盘且回位、55 秒内完成”的样本才进入演示集合。
+- 每个种子先用特权 state 控制脚本跑一遍，再对动作轨迹做独立回放；只有回放同样满足“三颗入盘且回位、55 秒内完成”的样本才进入演示集合。
 - 22 条集合对应 `18–54` 段，56 条集合追加 `61–1142` 段。仓库不保存原始视频，也不把它们当作 BC 标签直接使用。
 
 Each candidate seed is admitted only when an independent replay reproduces the full task within 55 seconds. Roughly 55%–65% of attempts pass; one accepted attempt yields about 0.5 GB of lossless dual-view video that is kept outside the repository.
@@ -177,6 +180,37 @@ EVO_CKPT=<ckpt>/pretrained_model EVO_DATA=<dataset_root> EVO_PORT=5555 \
 
 ### 服务接入 / Service adapter
 
-仓库补充了[`service_evo1.py`](../course/pickorange/service_evo1.py)：沿用 `service.py` 的 NPZ 请求/响应契约、请求白名单与原子写盘，加载 Evo-1 权重及其随训练保存的 normaliser 统计。任务权重不随仓库分发，因此它不核对公开 revision，`service-ready.json` 标记 `experimental: true` 并记录权重文件 SHA-256、代码 commit（或 `unpinned`）与数据集根目录；协议只接受 30 Hz／chunk 50 的动作时钟。该服务用于本地复现与接口审计，不作为协议基准成绩。
+仓库补充了[`service_evo1.py`](../course/pickorange/service_evo1.py)：沿用 `service.py` 的 NPZ 请求/响应契约、请求白名单与原子写盘，加载 Evo-1 权重及其随训练保存的 normaliser 统计。任务权重不随仓库分发，因此它不核对公开 revision，`service-ready.json` 标记 `experimental: true` 并记录权重文件 SHA-256、代码 commit（或 `unpinned`）与数据集根目录。
 
-The supplemental adapter reuses the shared NPZ contract and request validation but cannot verify a public revision; its ready file marks the run experimental and records weight digests, code commit and the data root.
+它使用独立协议 [`protocols/evo1-native-assisted-30hz.json`](../course/pickorange/protocols/evo1-native-assisted-30hz.json)（30 Hz 动作、chunk 50、**整块 50 步执行**、32 步去噪、60 秒回合、固定任务文本），不再借用其它模型的协议；启动时必须显式传 `--protocol`。请求经公共 `validate_request` 校验（白名单、形状、dtype、有限性），解码结果必须是有限的 `50×6`，否则报错而不做 reshape 容错。该服务用于本地复现与接口审计，不作为协议基准成绩。
+
+The supplemental adapter reuses the shared NPZ transport but now runs under its own protocol (30 Hz, chunk 50, whole-chunk execution, 32 denoising steps, 60 s, fixed instruction), validates requests with the shared whitelist and requires a finite `50×6` decoded chunk. It cannot verify a public revision; its ready file marks the run experimental and records weight digests, code commit and the data root.
+
+## 附录 A：逐场记录 / Appendix A: per-episode records
+
+所有回合均为 `physics_steps=3600`、`truncated=true`、`terminated=false`、`success=false`；初始位姿为全零关节，`hold_ticks=2`，夹爪辅助开启，任务文本按对应运行设置。
+
+All episodes ran 3,600 physics steps and ended truncated without success; only the run-specific settings below differ.
+
+| # | 运行 / Run | 数据快照 / Data | seed | 备注意图 / Note |
+| ---: | --- | --- | ---: | --- |
+| 1 | 19 条基线、2,500 步 | 19 条 | 0 | 最早出现单颗橙子被短暂夹起/移动 |
+| 2 | 22 条续训、3,000 步 | 22 条 | 0 | 从 19 条基线的后续快照续训 |
+| 3 | 56 条 stage1、14,000 步 | 56 条 | 0 | 主结果 |
+| 4 | 56 条 stage1、14,000 步 | 56 条 | 1 | 同上 |
+| 5 | 56 条 stage1、14,000 步 | 56 条 | 2 | 同上 |
+| 6 | 56 条 stage1、每 25 步重规划 | 56 条 | 0 | 排除开环累积 |
+| 7 | 56 条 stage1、任务文本修正 | 56 条 | 0 | 排除指令文本影响 |
+| 8 | 56 条 stage1、8,000 步 | 56 条 | 0 | 中间存档 |
+| 9 | 56 条 stage1、12,000 步 | 56 条 | 0 | 中间存档 |
+| 10 | 联合训练 500 步 | 56 条、解冻主干 | 0 | 联合训练起点 |
+| 11 | 联合训练 500 步 | 同上 | 1 | 同上 |
+| 12 | 联合训练 500 步 | 同上 | 2 | 同上 |
+| 13 | 联合训练 2,000 步 | 同上 | 0 | 联合训练终点 |
+| 14 | 联合训练 2,000 步 | 同上 | 1 | 同上 |
+| 15 | 联合训练 2,000 步 | 同上 | 2 | 同上 |
+| 16 | 联合训练 2,000 步 | 同上 | 1123 | 在已见演示场景上重跑 |
+| 17 | 56 条、lr 3e-5、1,000 步 | 56 条 | 0 | 新学习率扫描 |
+| 18 | 56 条、lr 3e-5、1,000 步 | 56 条 | 1123 | 同上，已见场景 |
+| 19 | 19 条基线、4 次采样平均 | 19 条 | 0 | 排除采样噪声 |
+| 20 | 单条过拟合 400 步 | 1 条（ep36） | 1123 | 过拟合能力检验，预算约 0.1 epoch |
