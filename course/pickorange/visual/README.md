@@ -1,6 +1,6 @@
 # PickOrange 视觉规则基线 / Calibrated visual rules
 
-运行入口为 [evaluate.py](evaluate.py)，无需演示或模型权重。使用 front RGB 的 HSV/椭圆检测、已知桌面与尺寸先验、机器人 USD 几何 IK、实测关节反馈及抓放状态机。控制器没有环境句柄，不能读取物体真值或成功标记。
+运行入口为 [evaluate.py](evaluate.py)。两种协议都通过 RGB 检测、机器人几何 IK 和实测关节反馈执行抓放。准备仿真环境、机器人与场景资产即可运行。物体真值和成功标记由评测器记录，控制器只接收各自协议声明的输入。
 
 模型辅助版通过 `--sim-camera-calibration` 读取相机内参和相机到机器人基座的变换。位置伺服使用机器人关节的重力补偿力除以 17.8 作为前馈。以基座坐标系计，桌面默认 Z 为 0.030 m，橙子中心和盘面定位平面分别高出桌面 0.026 m 和 0.012 m。
 
@@ -67,6 +67,10 @@ The initial evaluation used 20 scenes (seeds 1001–1020). The retest reports th
 | --- | ---: | ---: | ---: | ---: |
 | 模型辅助 / Model-assisted | 16/20（80.0%） | 15/19（78.9%） | 16/19（84.2%） | 40.50 s |
 | 双 RGB＋q6＋相机标定 / RGB, q6 and camera calibration | 15/20（75.0%） | 14/17（82.4%） | 11/17（64.7%） | 42.63 s |
+
+表中分数适用于 55 秒仿真协议。25 秒协议和真机表现待验证。
+
+These scores apply to the 55-second simulation protocols. The 25-second protocols and hardware performance remain unvalidated.
 
 运行软件接口与合成 RGB 几何的 CPU 检查。
 

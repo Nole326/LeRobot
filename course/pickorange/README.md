@@ -1,8 +1,8 @@
 # PickOrange：模型评测与控制脚本采集
 
-本目录负责PickOrange独立运行入口；LiftCube走[另一目录](../liftcube/README.md)。环境安装与资产见[PickOrange环境指南](../../docs/PICK_ORANGE.md)，模型和演示链接见[资源清单](../../docs/RESOURCES.md)。
+本目录提供 PickOrange 模型评测、视觉规则评测和控制脚本采集入口。环境安装与资产见[环境指南](../../docs/PICK_ORANGE.md)，模型和演示见[资源清单](../../docs/RESOURCES.md)，LiftCube 入口见[任务指南](../liftcube/README.md)。
 
-This directory contains PickOrange-specific execution code. It does not use the LiftCube factory or its single-front model contract.
+This directory contains the PickOrange model evaluation, visual-rule evaluation and demonstration collection entry points. Use the PickOrange runtime and task-specific input and action contracts.
 
 模型能力、配对RL结果与显存需求见[检验摘要](../../docs/PICKORANGE_VALIDATION.md)。本目录提供推理与评测代码；实验RL训练器和学习参数尚未发布。 / See the validation summary for results and memory requirements. This directory provides inference and evaluation code; experimental RL trainers and learned artifacts have not been released.
 
@@ -149,9 +149,15 @@ OFT 包须声明 front+wrist 的训练顺序、六维绝对 motor 目标、30步
 
 The OFT boundary requires a matching trained dual-view package with six absolute motor targets, a 30-step continuous head and BOUNDS statistics. A vanilla backbone or single-view package cannot substitute for it.
 
+## 视觉规则评测 / Visual-rule evaluation
+
+[视觉规则指南](visual/README.md)给出模型辅助版和双 RGB＋关节角＋相机标定版的运行命令、输入边界及 55 秒仿真成绩。两种协议均在首次取图前同步相机外参与图像，默认只保存数值记录。
+
+The [visual-rule guide](visual/README.md) covers commands, inputs and 55-second results for both variants. The evaluator refreshes the first camera frames and their calibration after reset. Debug images require explicit opt-in.
+
 ## 特权state控制脚本采集 / Privileged state control script collection
 
-两个任务的视觉／state源码集中在[脚本指南](../../docs/SCRIPTED_POLICIES.md)；PickOrange包含自研控制脚本和官方状态机采集入口，尚无已验收的传统视觉规则策略。
+两个任务的视觉规则与控制脚本入口见[脚本指南](../../docs/SCRIPTED_POLICIES.md)。PickOrange 提供自研控制脚本和官方状态机采集入口。
 
 仓库已含官方[状态机](../../third_party/leisaac/source/leisaac/leisaac/datagen/state_machine/pick_orange.py)和生成脚本，无需另下载控制脚本模型。在匹配环境中，**仅作为辅助控制脚本原型**运行：
 
@@ -166,7 +172,7 @@ python third_party/leisaac/scripts/datagen/state_machine/generate.py \
 
 The upstream generator teleports/blends joint states and changes physics/termination. Its success flag is not BC acceptance under the fixed evaluation physics. Independently replay and score the original physical trajectory before admitting data. Do not merge control script-generator and model-assisted results.
 
-自研 [特权state控制脚本](expert/README.md)通过原生关节目标执行，保持任务物理与评分条件，并通过回放检验筛选演示。已完成控制执行、回放检验与采集流程的实际仿真联合验证；使用方法见[控制脚本说明](expert/README.md)。PickOrange 视觉规则脚本仍缺，特权state控制脚本不能作为无特权视觉基线。
+自研[特权state控制脚本](expert/README.md)通过原生关节目标执行，保持任务物理与评分条件，并通过回放检验筛选演示。控制执行、回放检验与采集流程已完成仿真联合验证。
 
 ## 训练与其他模型 / Training and other models
 

@@ -376,8 +376,8 @@
   },
   {
     "path": "course/pickorange/README.md",
-    "bytes": 15827,
-    "sha256": "e079d8ea07255829444af7bbe74fd65eaea13158253321bcec7b0fefc5825c6a"
+    "bytes": 16251,
+    "sha256": "897ee7586118af02874be5b4b05458c286ec0486c59866c58b32c8ede0257b03"
   },
   {
     "path": "course/pickorange/audit.py",
@@ -601,8 +601,8 @@
   },
   {
     "path": "course/pickorange/visual/README.md",
-    "bytes": 7297,
-    "sha256": "ad8218d721d0701cf9bf572572c5e1af89530466b25bbe436dab713f39375025"
+    "bytes": 7518,
+    "sha256": "e829083303ce4964e05588a806d865a6ff5680eba9ceaed1c82af6f6eda19557"
   },
   {
     "path": "course/pickorange/visual/evaluate.py",

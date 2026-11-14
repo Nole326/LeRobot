@@ -20,7 +20,7 @@ Choose a task in the comparison, obtain its resources and follow the execution g
 | --- | --- |
 | PickOrange接口与重放 / PickOrange interfaces and replay | [任务指南](PICK_ORANGE.md)；独立仿真/模型环境、真实动作offset与终态，诊断不作正式评测 / Separate runtime, native action mapping and terminal capture; diagnostics are not benchmarks |
 | PickOrange 模型选型 / Model selection | [ACT 权重与模型卡](RESOURCES.md#pickorange-act-权重--pickorange-act-checkpoints)提供推理配置与固定场景成绩。[VLA 检验摘要](PICKORANGE_VALIDATION.md)记录协议、任务成绩及 RL 资源需求 / ACT exports and held-out results, plus VLA and RL validation |
-| 视觉规则抓取 / Rule grasping | [规则指南](SCRIPTED_LIFTCUBE.md)；匹配标定与运动学，先`--check`再获准闭环，无需演示或权重 / Calibrated kinematics, offline check then authorized rollout; no dataset/weights |
+| 视觉规则抓放 / Visual-rule grasping | [LiftCube 规则指南](SCRIPTED_LIFTCUBE.md) · [PickOrange 规则指南](../course/pickorange/visual/README.md)。两者均可先运行 `--check`，实际闭环使用各自的仿真环境与标定。 / Check the entry point first, then use the task-specific simulator and calibration. |
 | 三维末端开发 / Planar EE development | [开发契约](PLANAR_EE_DEVELOPMENT.md)；独立标定、有效初始姿态及匹配策略，物理精度未验收 / Separate calibration, valid starting pose and compatible policy; tracking not accepted |
 | BC/PPO / Learning | [训练指南](../course/liftcube/TRAINING.md)；当前为六关节SmallCNN参考路径，BC先完成演示准入 / Six-joint SmallCNN reference path; BC requires accepted demonstrations |
 | VLA推理接口 / VLA inference interfaces | [VLA 接口](VLA_INTERFACES.md)；LiftCube 使用前视，PickOrange 使用前视与腕部双相机。核对六关节动作、预测与执行长度，以及配套权重和统计 / Check the task camera inputs, joint targets, prediction and execution lengths, and matching model export |
