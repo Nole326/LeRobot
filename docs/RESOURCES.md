@@ -6,7 +6,9 @@ PickOrange 自采可使用 [特权state控制脚本](../course/pickorange/expert
 
 Choose a task/backend in the [status matrix](TASKS.md). Git contains integration code, not model/data binaries. Store assets externally and respect each resource's access and redistribution terms.
 
-PickOrange模型的成功率与显存需求见[检验摘要](PICKORANGE_VALIDATION.md)。本页列出公开源权重；实验学习后的残差／LoRA／Adapter及DiT12参数尚未发布。 / See the validation summary for measured capability and memory. This page lists source checkpoints; learned experimental artifacts have not been released.
+PickOrange 的 VLA 结果与显存需求见[检验摘要](PICKORANGE_VALIDATION.md)。本项目发布的 ACT 权重及其评测口径见下方模型卡。实验残差、LoRA、Adapter 与 DiT12 权重尚未发布。
+
+See the [validation summary](PICKORANGE_VALIDATION.md) for PickOrange VLA results and memory requirements. The model card below provides the project's ACT checkpoints and their evaluation protocol. Experimental residual, LoRA, adapter, and DiT12 checkpoints remain unreleased.
 
 ## 专家演示 / Demonstrations
 
@@ -19,7 +21,13 @@ PickOrange模型的成功率与显存需求见[检验摘要](PICKORANGE_VALIDATI
 
 历史`H2Ozone/lift_cube`动作范围问题属于另一候选数据，详见[状态表](TASKS.md)，不与上面17回合数据混用。外部候选数据仍需经过本项目的数据准入检查。 / External candidates still require project-specific acceptance checks.
 
-## 四种模型 / Four model families
+## PickOrange ACT 权重 / PickOrange ACT checkpoints
+
+[PickOrange ACT 模型卡](https://huggingface.co/Nole326/LeIsaac-SO101-PickOrange)提供 ACT-1（动作块 30）与 ACT-2（动作块 15）的双视角权重。两者使用上表中 GR00T N1.5 采集的演示，按双倍间隔训练。模型卡列出访问条件、各检查点目录、归一化参数与固定场景成绩。
+
+The [PickOrange ACT model card](https://huggingface.co/Nole326/LeIsaac-SO101-PickOrange) provides dual-view ACT-1 (chunk length 30) and ACT-2 (chunk length 15) checkpoints trained on the GR00T N1.5 demonstrations listed above with stride-two sampling. It documents access, checkpoint paths, normalization, and held-out results.
+
+## VLA 模型 / VLA models
 
 表内链接指向已识别版本。下载完整导出时保留配置、处理器、统计、索引及全部权重分片；只有`.safetensors`或LoRA文件通常不够。
 

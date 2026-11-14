@@ -1,6 +1,8 @@
 # 按任务训练与评测 / Train and evaluate by task
 
-PickOrange 任务 BC 的自采入口见 [控制脚本与动作轨迹独立回放检验](../course/pickorange/expert/README.md)。只有控制脚本执行与原生回放检验均成功、同步双相机和标签校验通过的轨迹才入集。采集命令不会自动启动 BC；公开入口当前仅完成 CPU 检查。
+PickOrange 任务 BC 的自采入口见 [控制脚本与动作轨迹独立回放检验](../course/pickorange/expert/README.md)。只有控制脚本执行与原生回放检验均成功、同步双相机和标签校验通过的轨迹才入集。控制执行、回放检验和采集流程已完成仿真联合验证。使用[已发布演示](RESOURCES.md#专家演示--demonstrations)时，先核对两套数据的记录与动作频率。
+
+For PickOrange BC, use the control script and independent trajectory replay verification to collect demonstrations. The controller, replay, and collection workflow have been validated together in simulation. Check recording and action rates when using the linked published demonstrations.
 
 先读[任务与适配状态](TASKS.md)，再从[资源清单](RESOURCES.md)获取环境资产、演示与权重。以下是使用者在完成前提和取得计算资源后运行的命令说明；仓库检查或下载不会代为启动训练。
 
@@ -11,10 +13,10 @@ Start with the [status matrix](TASKS.md) and [resources](RESOURCES.md). Commands
 | 目标 / Goal | LiftCube | PickOrange |
 | --- | --- | --- |
 | 视觉脚本 / Visual rule | [已有规则基准](SCRIPTED_LIFTCUBE.md) | 暂未公开实现，可后续开发 / Not yet implemented |
-| 特权state控制脚本 / privileged state control scripts | 本页下一节，显式`--privileged-teacher` | [已收录官方状态机](../course/pickorange/README.md#特权state控制脚本采集--privileged-state-control-script-collection)，含物理/直接写状态限制 |
+| 特权state控制脚本 / privileged state control scripts | 本页下一节，显式`--privileged-teacher` | [自研控制脚本与回放检验](../course/pickorange/expert/README.md)。[官方状态机说明](../course/pickorange/README.md#特权state控制脚本采集--privileged-state-control-script-collection)列出物理和状态写入限制 / Project collection and replay tools, plus the upstream state-machine constraints |
 | 预训练VLA推理 / Pretrained inference | [单front包装](VLA_INTERFACES.md)，匹配本地适配描述；完整GPU闭环按模型验收 | [GR00T N1.5/N1.6、SmolVLA与π₀.₅双视角入口](../course/pickorange/README.md)，能力与限制见[检验摘要](PICKORANGE_VALIDATION.md) |
 | SmallCNN BC/PPO | [已有参考训练](../course/liftcube/TRAINING.md) | 当前不使用LiftCube训练器 / Not integrated |
-| ACT/SmolVLA训练 | 数据验收后复用下述上游离线训练；任务闭环单独接入 | 同理，保持双视角与本任务动作/统计 / Separate task adapter required |
+| ACT/SmolVLA训练 | 数据验收后复用下述上游离线训练；任务闭环单独接入 | 按任务双视角、动作和统计配置离线训练。现有 ACT 权重与推理配置见[资源清单](RESOURCES.md#pickorange-act-权重--pickorange-act-checkpoints) / Use task-specific dual-view inputs, action semantics, and statistics. Published ACT exports are linked in Resources. |
 | π₀.₅/GR00T/OFT微调 | 先冻结形态、输入/动作与数据合同，再按匹配版本原生训练器实现 / Backend-specific training integration pending | 同左；不得混用不同模型图、形态头和处理器 / Same boundary |
 
 推理包装只负责加载与执行，不能直接接入SmallCNN优化器。现有VLA CPU前向、上游训练脚本和本项目任务训练验收分别记录；没有一键完成四种模型训练的统一入口。
