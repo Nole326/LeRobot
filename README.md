@@ -37,7 +37,7 @@
 
 两任务的环境版本、专家脚本、演示数据及四种VLA的权重与验收进度见[任务与适配状态表](docs/TASKS.md)。同为SO-101不等于接口相同，配置、权重、统计与成绩分别管理。
 
-PickOrange模型结果、Residual SAC配对和显存需求见[检验摘要](docs/PICKORANGE_VALIDATION.md)。仓库提供推理与评测入口，实验RL训练器和学习后的参数尚未发布。
+PickOrange 的 VLA 结果、Residual SAC 配对和显存需求见[检验摘要](docs/PICKORANGE_VALIDATION.md)。ACT 权重、推理配置与评测成绩见[模型资源](docs/RESOURCES.md#pickorange-act-权重--pickorange-act-checkpoints)。实验 RL 训练器与残差权重尚未发布。
 
 从[资源清单](docs/RESOURCES.md)获取模型与演示，按[训练与评测指南](docs/TRAIN_AND_EVALUATE.md)选择任务入口。PickOrange原生辅助评测使用物体真值控制夹爪，与无特权视觉baseline分开报告。
 
