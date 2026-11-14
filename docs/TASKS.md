@@ -54,7 +54,7 @@ privileged state control scripts are data-generation tools, not visual baselines
 
 The older `H2Ozone/lift_cube` candidate has a separate action-range mismatch. Its pending mapping and replay checks must not be attributed to the 17-episode dataset above, or resolved by silently clipping labels.
 
-### 四种VLA / Four VLA families
+### VLA 模型 / VLA models
 
 | 任务 / Task | 模型与候选权重 / Model and checkpoint | 已有资产与验证 / Assets and validation | 公开仓库接入与缺口 / Public integration and remaining work |
 | --- | --- | --- | --- |
@@ -67,6 +67,7 @@ The older `H2Ozone/lift_cube` candidate has a separate action-range mismatch. It
 | PickOrange | **SmolVLA任务权重**：[edge-inference/smolvla-so101-pick-orange](https://huggingface.co/edge-inference/smolvla-so101-pick-orange)、[wsagi/SmolVLA-PickOrange](https://huggingface.co/wsagi/SmolVLA-PickOrange) | 两份完整权重及原统计已准备，GPU与双RGB闭环已有历史记录。Edge有一次整任务成功；Wsagi所测长回合超时。**没有这两份权重的完整100回合成绩。** / Task rollouts exist, not an accepted success-rate estimate. | [Edge双视角服务](../course/pickorange/service_smolvla.py)已接公共评测／审核，新增原生辅助协议通过CPU检查，GPU闭环待验；wsagi仍为独立候选。 / Edge service integrated; new protocol rollout pending. |
 | PickOrange | **π₀.₅任务权重**：[Aikwed/pi05_pick_orange_full](https://huggingface.co/Aikwed/pi05_pick_orange_full/tree/bf4a13ed9d2ce17a96be5d82939191fa7ccf9ed5) | 双视角物理闭环通过；30 Hz、16步重规划、60秒原生辅助开发组 **0/10**，不是可靠的完整任务基线。 / The interface ran; task completion was 0/10 under this protocol. | [独立LeRobot后端与30 Hz协议](../course/pickorange/README.md)；与VLASH图及统计不互换。 / Separate native processor and action clock. |
 | PickOrange | **OpenVLA-OFT**：未确认匹配的完整任务权重 | 已实现双视角软件合同，无匹配OFT策略的GPU或任务验收。历史普通OpenVLA短测**不属于OFT验证**。 / Interface only. | 缺匹配受训动作头、状态投影、统计及核心权重组合。 / A compatible trained package is still required. |
+| PickOrange | **Evo-1**：[实验性双相机接口](EVO1_PICKORANGE_BASELINE.md) | 已有 CPU 接口回归 / CPU interface tests passed. | 任务权重前向与仿真闭环待验 / Checkpoint inference and rollout pending. |
 
 单相机GR00T N1.5候选的局部投影/预处理检查，不等于上表LiftCube N1.6任务模型完整验收。通用SO101-OFT候选[Atabaku/so101-openvla-oft-5000](https://huggingface.co/Atabaku/so101-openvla-oft-5000)需要访问批准，尚无可验收的完整权重，也未确认与任一任务匹配。“未确认找到”不表示网络上绝对不存在。
 

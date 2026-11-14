@@ -5,6 +5,7 @@ from pathlib import Path
 import subprocess
 import sys
 import tempfile
+from threading import Thread
 import unittest
 from unittest.mock import patch
 
@@ -64,6 +65,7 @@ class PickOrangeTests(unittest.TestCase):
 
     def test_pinned_backends_checked_before_optional_imports(self):
         from common import verify_backend
+        import service_evo1
         import service_n16
         import service_pi05
         import service_smolvla
@@ -73,7 +75,7 @@ class PickOrangeTests(unittest.TestCase):
             with patch('common.subprocess.check_output', side_effect=outputs):
                 with self.assertRaisesRegex(ValueError, 'pinned model backend'):
                     verify_backend(Path('backend'), 'expected')
-        for module in (service_n16, service_pi05, service_smolvla):
+        for module in (service_n16, service_pi05, service_smolvla, service_evo1):
             with patch.object(module, 'verify_backend', side_effect=ValueError('rejected')) as check:
                 with self.assertRaisesRegex(ValueError, 'rejected'):
                     module.load_policy(Path('model'), Path('backend'), 'cpu')
@@ -122,6 +124,132 @@ class PickOrangeTests(unittest.TestCase):
         self.assertEqual(calls, ['reset', 'pre', 'predict', 'post'] * 2)
         with self.assertRaisesRegex(ValueError, 'whitelist'):
             predict((Policy(), pre, post), dict(data, object_positions=np.zeros(3)), 'test')
+
+    def test_evo1_protocol_has_an_independent_clock_and_identity(self):
+        from common import EVO1_PROTOCOL, load_protocol, timing, validate_protocol
+        from service import main as groot_main
+        from service_evo1 import main as evo1_main
+        cfg = load_protocol(EVO1_PROTOCOL)
+        self.assertEqual(timing(cfg), (2, 100, 3600))
+        self.assertTrue(cfg['experimental'])
+        result = subprocess.run([sys.executable, '-B', str(ROOT / 'course/pickorange/evaluate.py'),
+                                 '--check', '--protocol', str(EVO1_PROTOCOL)],
+                                capture_output=True, text=True, check=True)
+        self.assertEqual(json.loads(result.stdout)['protocol'], cfg)
+        for key, wrong in [('experimental', False), ('action_hz', 60), ('execute_steps', 16),
+                           ('chunk_length', 16), ('denoising_steps', 10)]:
+            with self.assertRaisesRegex(ValueError, key):
+                validate_protocol(dict(cfg, **{key: wrong}))
+        with tempfile.TemporaryDirectory() as tmp:
+            run = Path(tmp) / 'run'
+            args = ['--model', tmp, '--backend-root', tmp, '--run-dir', str(run), '--run-service']
+            smol = EVO1_PROTOCOL.with_name('smolvla-native-assisted-30hz.json')
+            for main, protocol in [(evo1_main, smol), (groot_main, EVO1_PROTOCOL)]:
+                with patch('sys.stderr') as err, self.assertRaises(SystemExit):
+                    main(args + ['--protocol', str(protocol)])
+                self.assertIn('Protocol and model entry point differ',
+                              ''.join(call.args[0] for call in err.write.call_args_list))
+                self.assertFalse(run.exists())
+
+    def test_evo1_requires_a_matched_export_and_six_finite_statistics(self):
+        from service_evo1 import load_stats, verify_model
+        good = dict(min=[-1]*6, max=[1]*6)
+        with tempfile.TemporaryDirectory() as tmp:
+            model = Path(tmp)
+            stats_path = model / 'meta' / 'stats.json'
+            stats_path.parent.mkdir()
+            (model / 'config.json').write_text('{}')
+            (model / 'model.safetensors').touch()
+            with self.assertRaisesRegex(ValueError, 'meta/stats.json'):
+                verify_model(model)
+            stats_path.write_text(json.dumps({'observation.state': good, 'action': good}))
+            self.assertIn('meta/stats.json', verify_model(model))
+            np.testing.assert_array_equal(load_stats(stats_path)['action']['max'], np.ones(6))
+            for action in ({}, dict(good, max=[1]*24), dict(good, max=[float('nan')]*6),
+                           dict(good, max=[-2]*6)):
+                stats_path.write_text(json.dumps({'observation.state': good, 'action': action}))
+                with self.assertRaisesRegex(ValueError, 'action'):
+                    load_stats(stats_path)
+
+    @unittest.skipUnless(importlib.util.find_spec('torch'), 'CPU Torch required for Evo-1 fixture')
+    def test_evo1_decodes_a_full_chunk_and_rejects_bad_input_and_output(self):
+        import torch
+        from service_evo1 import predict
+        data = dict(joint_motor=np.arange(6)[None], front=np.zeros((1,480,640,3), np.uint8),
+                    wrist=np.full((1,480,640,3), 255, np.uint8))
+
+        class Policy:
+            def reset(self):
+                self.is_reset = True
+
+            def predict_action_chunk(self, batch):
+                assert self.is_reset
+                return torch.arange(50 * 6).reshape(1,50,6).to(torch.bfloat16)
+
+        def pre(batch):
+            self.assertEqual(batch['task'], 'test')
+            np.testing.assert_array_equal(batch['observation.state'].numpy(), np.arange(6))
+            self.assertTrue(torch.all(batch['observation.images.front'] == 0))
+            self.assertTrue(torch.all(batch['observation.images.wrist'] == 1))
+            return batch
+
+        def post(actions):
+            self.assertEqual(actions.dtype, torch.float32)
+            return actions + 1
+
+        policy = Policy()
+        actions = predict((policy, pre, post), data, 'test')
+        self.assertEqual(actions.shape, (50,6))
+        np.testing.assert_array_equal(actions[0], np.arange(1,7))
+        with self.assertRaisesRegex(ValueError, 'whitelist'):
+            predict((policy, pre, post), dict(data, objects=np.zeros((3,3))), 'test')
+        with self.assertRaisesRegex(ValueError, 'finite ordered'):
+            predict((policy, pre, post), dict(data, joint_motor=np.full((1,6), np.nan)), 'test')
+        with self.assertRaisesRegex(ValueError, 'uint8 RGB'):
+            predict((policy, pre, post), dict(data, front=np.repeat(data['front'], 2, axis=0)), 'test')
+        with self.assertRaisesRegex(ValueError, 'finite decoded Evo-1 chunk'):
+            predict((policy, pre, lambda a: post(a).transpose(1,2)), data, 'test')
+        with self.assertRaisesRegex(ValueError, r'finite decoded Evo-1 chunk'):
+            predict((policy, pre, lambda a: post(a) * float('nan')), data, 'test')
+
+    @unittest.skipUnless(importlib.util.find_spec('torch'), 'CPU Torch required for Evo-1 IPC fixture')
+    def test_evo1_service_publishes_experimental_ready_and_native_response(self):
+        from common import EVO1_PROTOCOL, load_protocol, save_arrays, wait_file
+        from service_evo1 import main
+        with tempfile.TemporaryDirectory() as tmp:
+            run = Path(tmp) / 'run'
+            args = ['--model', tmp, '--backend-root', tmp, '--run-dir', str(run),
+                    '--run-service', '--device', 'cpu', '--wall-seconds', '5']
+            error = run / 'service-error.json'
+            summary = run / 'service-summary.json'
+            with (patch.dict('os.environ', {'HF_HUB_OFFLINE': '1'}),
+                  patch('service_evo1.verify_model', return_value={}),
+                  patch('service_evo1.load_policy'),
+                  patch('service_evo1.predict', return_value=np.ones((50,6))) as predict):
+                worker = Thread(target=main, args=(args,))
+                worker.start()
+                try:
+                    ready = run / 'service-ready.json'
+                    wait_file(ready, 5, error, summary)
+                    meta = json.loads(ready.read_text(encoding='utf-8'))
+                    cfg = load_protocol(EVO1_PROTOCOL)
+                    self.assertTrue(meta['experimental'])
+                    self.assertEqual(meta['protocol'], cfg)
+                    save_arrays(run / 'ipc/request-000000.npz', joint_motor=np.zeros((1,6)),
+                                front=np.zeros((1,480,640,3), np.uint8),
+                                wrist=np.zeros((1,480,640,3), np.uint8))
+                    response = run / 'ipc/response-000000.npz'
+                    wait_file(response, 5, error, summary)
+                    with np.load(response, allow_pickle=False) as result:
+                        np.testing.assert_array_equal(result['actions_motor'], np.ones((50,6)))
+                        self.assertEqual(result['query_id'].item(), 0)
+                    self.assertEqual(predict.call_args.args[2], cfg['instruction'])
+                finally:
+                    if run.exists():
+                        (run / 'STOP').touch()
+                    worker.join()
+            self.assertFalse(error.exists())
+            self.assertEqual(json.loads(summary.read_text(encoding='utf-8'))['requests'], 1)
 
     def test_tracking_closes_before_application_even_on_errors(self):
         from common import close_resources
