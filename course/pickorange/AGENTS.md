@@ -6,7 +6,7 @@
 - 各服务在构造模型前验证实际后端版本及受管工作树；不要仅凭协议版本声明放行。收尾须先关闭SwanLab writer再关闭环境／SimulationApp，保留错误但仍尝试释放资源；补测关闭顺序和失败分支，不伪造历史SDK状态。
 - `service_smolvla.py`复用同一IPC／评测／审核，固定Edge导出与LeRobot v0.4.2；完整front+wrist、原pre/post统计，不复用LiftCube缺槽配置。每次预测清缓存但不重seed，30 Hz动作只由评测器保持两tick。新增原生辅助协议只有CPU证据，不继承旧固定执行器成绩。
 - Evo-1 使用项目提供的 LeRobot 后端、配套训练统计和独立实验协议。相机顺序、六维绝对 motor 目标、整块 50 步执行与 30 Hz 时钟按协议校验，共用评测和轨迹审核。
-- 视觉／state脚本从[统一指南](../../docs/SCRIPTED_POLICIES.md)定位实际源码。上游控制脚本留在冻结第三方目录，勿复制成自研视觉脚本；PickOrange视觉规则实现仍缺。
+- 视觉／state脚本从[统一指南](../../docs/SCRIPTED_POLICIES.md)定位实际源码。上游控制脚本留在冻结第三方目录，勿复制成自研视觉脚本；PickOrange视觉规则入口为`visual/evaluate.py`，使用独立策略和评分边界；`--input-contract rgb-q-calibration`仅允许RGB、q6及已知相机标定，不读取重力补偿力、固定桌面高度或物体尺寸；运行与独立55秒协议见`visual/README.md`。
 - N1.6手臂相对量由原生处理器转为绝对motor，夹爪已为绝对量；不再加当前q。π₀.₅按checkpoint原统计解码，30 Hz动作保持两个60 Hz物理步。仿真和模型须使用同一协议，禁止为方便比较改变模型的预处理或执行节奏。
 - `openvla_oft.py`是待受训包的接口，不继承LiftCube单front入口；无匹配同源双RGB、六关节动作头/投影与统计时拒绝加载。不能把新初始化组件、通用OpenVLA或LIBERO结果当作PickOrange策略能力。
 - 默认`protocols/groot-native-assisted.json`明确允许上游物体真值夹爪辅助；不把真值发给网络，不称无特权视觉baseline或课程正式评分。换物理、辅助、相机、频率、限幅或时限须新命名协议，不能沿用历史结果。

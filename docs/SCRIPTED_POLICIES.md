@@ -10,7 +10,7 @@ Visual rules and privileged state control scripts serve different purposes. Link
 | LiftCube 特权state控制脚本 | [PrivilegedLiftCube](../course/liftcube/src/starter/privileged_liftcube.py)、[真值访问边界](../course/liftcube/src/starter/envs/lift_cube_privileged.py) | 共用[evaluate_scripted](../course/liftcube/src/starter/scripts/evaluate_scripted.py)，显式`--privileged-teacher`；CPU测试通过，真实抓取待验 |
 | PickOrange 自研控制脚本 | [控制与采集入口](../course/pickorange/expert/README.md) | 原生关节目标、独立回放检验与同步双相机采集；已完成控制执行、回放检验与采集流程的实际仿真联合验证 |
 | PickOrange 官方控制脚本 | LeIsaac官方[PickOrange状态机](../third_party/leisaac/source/leisaac/leisaac/datagen/state_machine/pick_orange.py)及[采集入口](../third_party/leisaac/scripts/datagen/state_machine/generate.py) | [运行与物理限制](../course/pickorange/README.md#特权state控制脚本采集--privileged-state-control-script-collection)。已收录；生成器改变物理并直接写关节状态，数据须独立验收 |
-| PickOrange视觉规则 | 尚无可发布且已验收的完整实现 / No accepted implementation | 官方特权state控制脚本不是视觉策略；VLA属于学习模型，也不作为传统视觉脚本 |
+| PickOrange视觉规则 | [RGB检测、几何IK与状态机](../course/pickorange/visual/README.md) | 提供模型辅助版与仅RGB＋q6＋已知相机标定版；后者由双RGB恢复支撑平面与尺寸，禁用重力真值；55秒开发协议与25秒分报 |
 | 上游抬升状态机参考 | Isaac Lab [lift_cube_sm.py](../third_party/isaaclab/scripts/environments/state_machine/lift_cube_sm.py) | 基于Franka与特权位姿，不可直接用于SO101；用于研究状态机分阶段设计 |
 
 ## LiftCube
