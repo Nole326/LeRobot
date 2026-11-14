@@ -10,23 +10,23 @@ Branch new work from current `main`; use `v0.1.x-baseline` only to reproduce the
 
 Use [AGENTS.md](AGENTS.md) as the repository entry point for agents, supplying task scope, applicable authority and acceptance criteria. Review its layout, contract boundaries, commands and conventions in each PR; update affected guidance alongside code or explain why no change is needed. Keep detailed rules in one place and link to them; runtime progress and private deployment records do not belong there.
 
-[AGENTS.md](AGENTS.md)负责任务分流与共同规则，[LiftCube](course/liftcube/AGENTS.md)和[独立诊断工具](course/scripts/AGENTS.md)的子级文件负责各自入口、运行前提与验收。它们是智能体指令，使用单份中文，不重复面向读者的双语介绍。[PR 模板](.github/pull_request_template.md)包含文档同步、验证范围和公开内容复核项；开发者或智能体复核根目录及受影响子级文件，无需为无关改动机械更新。
+[AGENTS.md](AGENTS.md)负责仓库导航与共同规则。[LiftCube](course/liftcube/AGENTS.md)、[PickOrange 模型评测与采集](course/pickorange/AGENTS.md)和[独立诊断工具](course/scripts/AGENTS.md)分别说明运行入口、依赖与验收条件。修改跨目录接口时，检查受影响目录的约定。[PR 模板](.github/pull_request_template.md)用于记录改动、验证与公开内容复核。
 
 这些指令面向所有使用者，不包含个人服务器、机构名称、设备绑定、账号或个人运维规则；使用者的平台专属配置留在仓库外。
 
-The [root guide](AGENTS.md) routes tasks and defines shared rules; nested guides for [LiftCube](course/liftcube/AGENTS.md) and [standalone diagnostics](course/scripts/AGENTS.md) define entry points, prerequisites and acceptance. These are agent instructions maintained in Chinese, not duplicate bilingual introductions. The [PR template](.github/pull_request_template.md) covers documentation, validation scope and publication checks. Review the root and applicable nested guides; unrelated edits do not require artificial instruction changes.
+The [root guide](AGENTS.md) covers repository navigation and shared conventions. The [LiftCube](course/liftcube/AGENTS.md), [PickOrange evaluation and collection](course/pickorange/AGENTS.md), and [standalone diagnostics](course/scripts/AGENTS.md) guides cover entry points, dependencies, and acceptance criteria. Review the applicable guides when a change crosses directory boundaries. Use the [PR template](.github/pull_request_template.md) to document changes, validation, and publication checks.
 
 These instructions apply to any user and exclude personal infrastructure, institutional identifiers, device bindings, accounts and individual operations policies. Keep platform-specific user configuration outside the repository.
 
-## LiftCube并行开发 / Parallel LiftCube development
+## 分支与评审 / Branches and review
 
-`feature/liftcube`用于导入公共起点，合入main后结束。ACT、SmolVLA、OpenVLA-OFT、π₀.₅和RL等工作从最新main分别创建短期功能分支，例如`feature/liftcube-act`、`feature/liftcube-smolvla`、`feature/liftcube-openvla-oft`、`feature/liftcube-pi05`、`feature/liftcube-rl`，通过PR将可复用实现合入main。这里只约定命名，不预先建立空分支。
+LiftCube、PickOrange 和共享工具的变更从最新 `main` 建立短期分支。PR 标题写明主要改动，描述列出受影响的入口、接口或文档，并说明实际运行的检查。新增运行入口时，说明公共入口、外部依赖和输入输出。可复用的启动方法写在对应的运行指南中。
 
-Use `feature/liftcube` to import shared foundations, then close it after merging into main. Start short-lived branches such as `feature/liftcube-act`, `feature/liftcube-smolvla`, `feature/liftcube-openvla-oft`, `feature/liftcube-pi05` and `feature/liftcube-rl` from current main, merging reusable implementations through PRs. These are naming examples, not pre-created branches.
+Start short-lived branches from current `main` for LiftCube, PickOrange, and shared tooling. Use the PR title to identify the primary change. In the description, list affected entry points, interfaces, or documents and the checks you ran. For a new runtime entry point, identify the public entry point, dependencies, and inputs and outputs. Put reusable launch instructions in the runtime guide.
 
-分支隔离开发中的代码改动，各模型实现合入后在main中共存。基线、SFT和RL微调通过配置与权重来源区分，seed和checkpoint不另开分支。公共数据读取、动作映射和评测修复尽早单独合入，其他模型分支及时同步。只有确实需要多项未合入改动联合验证时，才临时增加`dev/liftcube`集成分支。
+基线、SFT 和 RL 微调通过配置与权重来源区分。公共数据读取、动作映射和评测修复可以单独提交，便于其他开发分支同步。合并后清理已完成的开发分支。
 
-Branches isolate code under development; model implementations coexist on main after merging. Distinguish baselines, SFT and RL through configurations and weight provenance, not branches per seed or checkpoint. Merge shared data/action/evaluation fixes separately and synchronize model branches. Add a temporary `dev/liftcube` integration branch only when multiple pending changes require joint validation.
+Use configurations and checkpoint provenance to distinguish baselines, SFT, and RL fine-tuning. Shared data, action-mapping, and evaluation fixes can be submitted separately so other branches can adopt them. Retire completed development branches after merging.
 
 Git保存代码、配置、数据/权重清单。大镜像通过原渠道或获准的容器仓库分发，数据与权重使用有权限控制的存储或模型/数据仓库；记录固定版本、许可和获取方式，避免将运行产物加入Git历史。
 
@@ -34,9 +34,9 @@ Keep code, configurations and data/weight manifests in Git. Distribute large ima
 
 ## 版本记录 / Version history
 
-每次 commit 用简短标题说明改动，必要时在正文补充原因和验证结果。错字、格式等小修正通常只需提交说明；新增功能、重要修复、依赖升级和兼容性变化同时记入 [CHANGELOG.md](CHANGELOG.md) 的 `Unreleased`，替换其中的占位文字，按中文一段、英文一段记录。
+每次 commit 用简短标题说明改动，必要时在正文补充原因和验证结果。错字、格式等小修正通常只需提交说明；新增功能、重要修复、依赖升级和兼容性变化同时记入 [CHANGELOG.md](CHANGELOG.md) 的 `Unreleased`，按中文一段、英文一段记录。
 
-Give each commit a concise description, adding rationale and validation results in the body when needed. Typos and formatting fixes usually need only a commit message. Add features, significant fixes, dependency upgrades and compatibility changes to `Unreleased` in [CHANGELOG.md](CHANGELOG.md), replacing its placeholder with Chinese-then-English entries.
+Give each commit a concise description, adding rationale and validation results in the body when needed. Typos and formatting fixes usually need only a commit message. Add features, significant fixes, dependency upgrades and compatibility changes to `Unreleased` in [CHANGELOG.md](CHANGELOG.md), using Chinese-then-English entries.
 
 阶段性发布时，将 `Unreleased` 的内容整理到带版本号和日期的新条目下，再保留一个新的 `Unreleased`。同步 README 和相关版本文档，运行检查、提交后，在该提交上创建带说明的 Git tag，并推送提交和标签。已发布标签不覆盖；GitHub Release 可复用同一份版本摘要，无需每版另建 Markdown 文件。
 
@@ -62,7 +62,11 @@ For action, data, training or evaluation interface changes, update the [contract
 
 自动检查核验源码一致性、公开工具 Python 语法、通用 Markdown 的本地文件链接及海报尺寸。它不运行上游代码，不验证外部网页可用性，也不是完整安全审计或 GPU 测试。
 
-Automated checks validate source consistency, public utility Python syntax, local file links in generic Markdown and poster dimensions. They do not execute upstream code or verify external websites, and are not a complete security audit or GPU test.
+Automated checks validate source consistency, public utility Python syntax, local Markdown links, poster dimensions, and software tests. Report skipped tests and any simulator or hardware validation separately.
+
+PR 的 `source-check` 和 `vla-cpu` 见 [CI 工作流](.github/workflows/source-check.yml)。修改模型服务、控制脚本或日志时，按受影响目录的说明运行对应测试。历史实验应注明所用入口、模型与数据版本、动作时钟、场景集、时限和实际完成场数。通过 CPU 检查后，闭环仿真成绩仍以逐场记录为准。
+
+The [CI workflow](.github/workflows/source-check.yml) defines `source-check` and `vla-cpu`. Run the relevant checks for changes to model services, controllers, or logging. For historical results, identify the runner, model and data versions, action rate, scene set, time limit, and completed episode count. Use episode records as evidence for simulator results.
 
 根README分为中文 `README.md` 和英文 `README.en.md`，顶部互链；修改目标、用法、范围与文档入口时同步两版。GitHub中这是普通文档链接，不需要网页脚本或额外部署。其他新写项目说明仍按中文一段、英文一段组织。上游原文不强行翻译。提交说明应包含目的、受影响接口、检查结果与尚未验证的部分。
 

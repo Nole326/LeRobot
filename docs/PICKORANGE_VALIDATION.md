@@ -2,7 +2,11 @@
 
 本页汇总截至 **2026-11-05** 的PickOrange开发实验，供模型选择和计算预算参考。运行命令见[评测指南](../course/pickorange/README.md)，权重与固定版本见[资源清单](RESOURCES.md)，LiftCube状态见[任务对照](TASKS.md)。以下采用开发评测协议，不是课程正式评分。
 
-This snapshot covers PickOrange development experiments through **2026-11-05**, not course benchmark scores. Follow the linked guides for evaluation commands, pinned assets and the separate LiftCube track.
+This snapshot covers PickOrange development experiments through **2026-11-05**. Follow the linked guides for the developer evaluation commands, pinned assets, and LiftCube integration.
+
+ACT 固定场景评测成绩与推理配置随[已发布的 ACT 权重](RESOURCES.md#pickorange-act-权重--pickorange-act-checkpoints)更新。
+
+Current ACT fixed-scene results and inference settings are maintained with the [published ACT checkpoints](RESOURCES.md#pickorange-act-权重--pickorange-act-checkpoints).
 
 ## 协议与验收范围 / Protocol and acceptance scope
 

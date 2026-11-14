@@ -16,9 +16,9 @@ Put three oranges on the plate and return the arm to rest. This guide covers the
 | 轨迹/末帧/重放检查 / Trajectory diagnostics | [validate_rollout.py](../course/scripts/validate_rollout.py) |
 | ACT数据桥 / ACT data bridge | [validate_bridge.py](../course/scripts/validate_bridge.py)、[训练诊断说明](TRAINING_VALIDATION.md) |
 
-仓库另有`course/pickorange/`的GR00T N1.5／N1.6、SmolVLA与π₀.₅独立模型服务、原生辅助评测及CPU轨迹审核；OFT需匹配受训包。各模型验收状态见[任务对照](TASKS.md)。尚无通用PickOrange训练器、已训练ACT策略或完整视觉规则baseline；LiftCube工厂只创建LiftCube。
+`course/pickorange/` 提供 GR00T N1.5、N1.6、SmolVLA 与 π₀.₅ 的模型服务、原生辅助评测和 CPU 轨迹审核。OFT 需要匹配的受训包。ACT 任务权重与推理配置见[资源清单](RESOURCES.md#pickorange-act-权重--pickorange-act-checkpoints)。复现 ACT 的固定场景成绩需要对应的 ACT 评测入口，仓库内的 ACT 数据桥用于诊断。各模型的交付范围见[任务对照](TASKS.md)。
 
-The separate model services for GR00T N1.5/N1.6, SmolVLA and π₀.₅ share the native-assisted evaluator and CPU audit. See the status matrix for each model's validation level. OFT requires a matching trained package; a general trainer, trained ACT policy and visual rule baseline remain unavailable. The LiftCube factory is not a PickOrange runner.
+The GR00T N1.5, N1.6, SmolVLA, and π₀.₅ services share the native-assisted evaluator and CPU audit. OFT requires a matching trained package. See the [resource list](RESOURCES.md#pickorange-act-权重--pickorange-act-checkpoints) for ACT task checkpoints and inference settings. Reproducing the held-out ACT results requires the corresponding ACT evaluator. The ACT data bridge in this repository is a diagnostic tool. See the [status matrix](TASKS.md) for integration and validation details.
 
 模型成绩、Residual SAC配对和RL显存需求见[检验摘要](PICKORANGE_VALIDATION.md)。实验RL训练器与学习参数尚未发布。 / See the validation summary for task results, paired Residual SAC evaluation and memory requirements. Experimental RL trainers and learned artifacts have not been released.
 

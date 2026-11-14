@@ -37,7 +37,7 @@ The current stage covers LiftCube and PickOrange as separate policy, data and ev
 
 See the [task and adaptation matrix](docs/TASKS.md) for runtimes, expert scripts, demonstrations and checkpoint/validation status across the four VLA families. A shared SO-101 robot does not make the interfaces interchangeable; keep configurations, checkpoints, statistics and scores separate.
 
-See the [PickOrange validation summary](docs/PICKORANGE_VALIDATION.md) for model results, paired Residual SAC evaluation and memory requirements. Inference and evaluation code is available; experimental RL trainers and learned artifacts have not been released.
+See the [PickOrange validation summary](docs/PICKORANGE_VALIDATION.md) for VLA results, paired Residual SAC evaluation, and memory requirements. The [model resources](docs/RESOURCES.md#pickorange-act-权重--pickorange-act-checkpoints) link to ACT checkpoints, inference settings, and evaluation results. Experimental RL trainers and residual checkpoints remain unreleased.
 
 Obtain weights and demonstrations from [resources](docs/RESOURCES.md), then follow the [training and evaluation guide](docs/TRAIN_AND_EVALUATE.md). PickOrange's native-assisted evaluation uses object truth for gripper control and is reported separately from non-privileged visual baselines.
 

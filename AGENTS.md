@@ -19,7 +19,7 @@
 
 ## 按任务找入口
 
-两任务模型源码从[统一VLA导航](docs/VLA_INTERFACES.md)查找，视觉和state脚本从[统一脚本指南](docs/SCRIPTED_POLICIES.md)查找。共用实现只链接一次，不复制到两个任务目录。PickOrange SmolVLA已有独立双视角服务和CPU检查；其新协议尚待真实闭环，OFT仍缺受训包，PickOrange视觉规则脚本仍缺。
+两任务的 VLA 源码见[推理接口](docs/VLA_INTERFACES.md)，视觉规则和特权state控制脚本见[脚本指南](docs/SCRIPTED_POLICIES.md)。公开模型与数据从[资源清单](docs/RESOURCES.md)获取，各入口的验收状态以[任务对照](docs/TASKS.md)为准。
 
 | 任务 | 修改位置与必读入口 |
 | --- | --- |
@@ -29,8 +29,8 @@
 | LiftCube视觉规则基线 | `starter/scripted_liftcube.py`、`scripted_geometry.py`、`joint_chain.py`与`starter.scripts.evaluate_scripted`；[标定及验收](docs/SCRIPTED_LIFTCUBE.md)，实际相机标定辅助须显式启用，不得以合成标定启动仿真 |
 | 自研受限末端开发接口 | `starter/envs/planar_ee.py`、`envs/factory.py`、`tests/test_planar_ee.py`及[开发契约](docs/PLANAR_EE_DEVELOPMENT.md)；三维绝对XY/夹爪，非课程正式IK；旧关节策略不得自动接入 |
 | PickOrange任务与诊断 | [任务指南](docs/PICK_ORANGE.md)、`course/scripts/`及冻结上游任务源码；[目录AGENTS](course/scripts/AGENTS.md)、[部署边界](docs/REPRODUCIBILITY.md) |
-| PickOrange双视角评测 | `course/pickorange/`；[目录AGENTS](course/pickorange/AGENTS.md)、[运行指南](course/pickorange/README.md)；GR00T N1.5/N1.6与π₀.₅各用匹配后端和协议，原生物体真值夹爪辅助不当无特权或课程正式评分 |
-| PickOrange验收与RL资源选型 | [公开检验摘要](docs/PICKORANGE_VALIDATION.md)连接模型状态、资源测量与代码可用范围；不要为尚未发布的训练器或学习参数编造复现命令 |
+| PickOrange 双视角评测与数据采集 | `course/pickorange/`、`course/pickorange/expert/`。[目录 AGENTS](course/pickorange/AGENTS.md)、[模型运行指南](course/pickorange/README.md)、[脚本专家演示采集](course/pickorange/expert/README.md)。模型服务使用各自的后端、权重、归一化与评测协议 |
+| PickOrange 模型发布与验收 | [资源清单](docs/RESOURCES.md)列出公开权重与数据，[检验摘要](docs/PICKORANGE_VALIDATION.md)记录评测和资源需求。新增外部权重时核对模型包、运行入口及评测证据 |
 | 控制脚本、数据/权重获取、离线训练 | [资源清单](docs/RESOURCES.md)、[训练与评测](docs/TRAIN_AND_EVALUATE.md)；LiftCube显式`--privileged-teacher`，PickOrange自研[控制脚本](course/pickorange/expert/README.md)通过原生动作与回放检验采集；上游状态机的直接写状态不自动满足BC准入 |
 | 训练与评测曲线 | [SwanLab指南](docs/SWANLAB.md)、`starter/logging/swanlab.py`与`starter.scripts.train_lerobot`；共享数值记录，保留本地证据，不另造每模型日志器 |
 | ACT、SmolVLA、OpenVLA-OFT、π₀.₅、GR00T 接入 | 对应任务的策略包装；[架构](docs/ARCHITECTURE.md)、[接口契约](docs/INTERFACE_CONTRACTS.md)、该任务的子级 AGENTS |
@@ -45,7 +45,7 @@ LiftCube 已有 SmallCNN BC/PPO 参考训练与评测，`starter.utils.build_pol
 | --- | --- |
 | 根目录源码检查 | Git + Python 3.11+；不需要模拟器 |
 | LiftCube | 配套镜像：Isaac Sim 4.5.0 / Isaac Lab 2.1.1 / LeIsaac 0.1.2；Python 3.10.15 |
-| PickOrange | 独立仿真/BC环境；现有诊断包装含固定容器路径及Python3.11路径，无LiftCube同款可移植镜像锁 |
+| PickOrange | [已验证的运行环境](docs/PICK_ORANGE.md#独立运行环境--separate-runtime)给出仿真与 BC 版本。模型服务另按[运行指南](course/pickorange/README.md)准备各自后端 |
 | `third_party/` | 冻结参考：LeRobot v0.4.2 / LeIsaac 0.4.0 / IsaacLab v2.3.0；不等于 LiftCube 镜像内版本 |
 
 依赖、镜像、资产与权重获取入口见 [DEPENDENCIES](docs/DEPENDENCIES.md)。运行前核对解释器、实际导入路径、设备和数据/输出位置。不要把全部上游路径加入 `PYTHONPATH`，或为运行仓库检查升级模拟器的 Python/Torch/CUDA。可选模拟器与模型依赖应延迟到对应入口加载，保持纯配置与软件检查可独立运行。
@@ -87,7 +87,7 @@ git diff --cached --stat
 
 统一检查覆盖来源记录、项目 Python 语法、Markdown 本地链接、海报和软件单测；不启动模拟器。依赖缺失导致的 skip 必须披露，不能当相关功能通过。交付时写明实际命令、结果和未验证部分，不把合成测试写成真实仿真/真机成绩。
 
-修改VLA包装时，另在具备NumPy、CPU Torch和PyYAML的隔离环境运行`python -m unittest discover -s tests -p 'test_vla*.py' -v`；环境说明见[推理接口](docs/VLA_INTERFACES.md)。CI的`vla-cpu`专门执行这些测试，避免纯标准库检查将其全部skip；feature分支推送本身不触发此工作流，PR、main推送或手动触发才运行。
+修改 VLA 包装时，在具备 NumPy、CPU Torch 和 PyYAML 的隔离环境运行 `python -m unittest discover -s tests -p 'test_vla*.py' -v`。新增或修改 PickOrange 服务时，同时按[目录 AGENTS](course/pickorange/AGENTS.md)检查协议、输入白名单及响应。CI 的 `vla-cpu` 依赖与命令以[工作流](.github/workflows/source-check.yml)为准。
 
 修改日志接线时，另运行`tests/test_swanlab.py`和`tests/test_liftcube_training.py`；隔离环境需SwanLab 0.10.3、NumPy、CPU Torch、PyYAML。保持`--check`无SDK运行副作用，验证数值/配置白名单、RNG、计数/分段、原生logger挂钩及故障本地保全。真实SDK测试必须offline，不能把CPU QA写入团队正式云端项目。
 
