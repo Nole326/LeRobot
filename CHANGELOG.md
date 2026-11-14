@@ -6,15 +6,19 @@
 
 Add a dual-view PickOrange Evo-1 inference service and an experimental 30 Hz protocol. Use matching training statistics and native processing with the shared evaluator and audit. CPU interface checks passed. Checkpoint inference and simulator rollout are pending.
 
+新增 PickOrange 视觉规则基线、原生评分与重置前终态记录。提供模型辅助版和仅双 RGB、实测 q6 与已知相机标定版。每次从名义外参施加前视相机扰动，在物理步为 0 时刷新双相机首帧。最终夹爪闭合指令在限速后限幅。调试图可显式启用，默认记录数值。视觉规则的 CPU 测试已纳入 CI。55 秒评测结果见[视觉规则指南](course/pickorange/visual/README.md#结果与审计--results-and-audit)。
+
+Add PickOrange visual-rule baselines with native scoring and terminal capture before reset. Both the model-assisted and RGB/q6/calibration variants refresh the first camera frames after applying each reset perturbation to the nominal front-camera pose. Limit the final jaw command after rate limiting, make debug images opt-in, and include visual-rule tests in CI.
+
 新增 PickOrange 特权state控制脚本、几何标定、控制脚本验证与脚本专家演示采集工具。明确区分 actor 的图像与本体输入和控制脚本使用的特权状态，补充运行说明、数据契约与 CPU 检查。已在实际仿真环境中完成控制执行、回放检验与采集流程的联合验证。不包含演示或模型权重。
 
 Add a PickOrange privileged state control script, geometric calibration, demonstration collection, and independent action-trajectory replay verification tools. Document actor input boundaries, data contracts and CPU checks. Control execution, independent replay and demonstration collection have been jointly validated in simulation. Datasets and model weights are excluded.
 
 - 首页按LiftCube／PickOrange列出模型和脚本入口；新增视觉／state脚本导航，链接现有第一方实现与保留许可证的上游源码。
 - 增加PickOrange SmolVLA双相机服务，使用Edge固定导出及原处理器，复用IPC、评测、审核与SwanLab；新增协议仅完成CPU检查，实际闭环待验。
-- PickOrange视觉规则脚本尚缺；官方特权state控制脚本保留物理与直接写状态的限制。OFT仍需匹配受训包。
+- PickOrange新增显式标定辅助视觉规则脚本；官方特权state控制脚本保留物理与直接写状态的限制。OFT仍需匹配受训包。
 
-Add task-specific model/script navigation and a CPU-checked dual-view SmolVLA service. Shared evaluation and tracking remain single implementations; rollout validation and a PickOrange visual rule policy remain open.
+Add task-specific model/script navigation and a CPU-checked dual-view SmolVLA service. Shared evaluation and tracking remain single implementations; SmolVLA rollout validation remains open; calibrated visual rules have a separate entry point and protocol.
 
 整理PickOrange模型能力、Residual SAC配对与RL显存参考，连接任务／资源／训练指南并区分实验结果与公开代码交付；DiT12标记搁置，不打包其训练器或参数。补齐N1.6／π₀.₅真实后端版本拒绝检查；SwanLab先于仿真应用关闭，并覆盖关闭失败分支。只做CPU回归，不刷新历史GPU成绩。
 

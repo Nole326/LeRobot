@@ -371,13 +371,13 @@
   },
   {
     "path": "course/pickorange/AGENTS.md",
-    "bytes": 4972,
-    "sha256": "2833b0f6202d8de0797c6304fd48e15fc1d4dfc4e576d55255f4f132ea2f7461"
+    "bytes": 5319,
+    "sha256": "e1cb6425928317b78dd24d71f6c6836d4c616672b8fc20ff875b727db8c59188"
   },
   {
     "path": "course/pickorange/README.md",
-    "bytes": 15590,
-    "sha256": "cec5c0c570fbc1854cf181de5855275c2f0d73c0fe305c50f034f5fc843c4fd1"
+    "bytes": 16251,
+    "sha256": "897ee7586118af02874be5b4b05458c286ec0486c59866c58b32c8ede0257b03"
   },
   {
     "path": "course/pickorange/audit.py",
@@ -598,6 +598,41 @@
     "path": "course/pickorange/service_smolvla.py",
     "bytes": 4132,
     "sha256": "6268240851bd117c20c80043820bd260cbf6495f59f221372ca436d98b1d8070"
+  },
+  {
+    "path": "course/pickorange/visual/README.md",
+    "bytes": 7518,
+    "sha256": "e829083303ce4964e05588a806d865a6ff5680eba9ceaed1c82af6f6eda19557"
+  },
+  {
+    "path": "course/pickorange/visual/evaluate.py",
+    "bytes": 16824,
+    "sha256": "555573059d7a8413578019067616135ea9be060022dafc9ac5e03d13204053a1"
+  },
+  {
+    "path": "course/pickorange/visual/perception.py",
+    "bytes": 3992,
+    "sha256": "276dadf778bd6b73ddcd7da921d511a00d0a2e5d74f5c42ddb4b7d2976fae95f"
+  },
+  {
+    "path": "course/pickorange/visual/policy.py",
+    "bytes": 9579,
+    "sha256": "a5b1b2f65a80079453a2c22d224e5cd040b84eab311e0a9b29696315fca0c3c3"
+  },
+  {
+    "path": "course/pickorange/visual/reset_capture.py",
+    "bytes": 2555,
+    "sha256": "07caf5160e498628bb47dcbd516eb7c913adb2c4f92bae65c7a52b19d614b680"
+  },
+  {
+    "path": "course/pickorange/visual/stereo.py",
+    "bytes": 8540,
+    "sha256": "1f16fcc0b087196d314d4547aec85d1330c03bbbb409ede59404a39878443fe1"
+  },
+  {
+    "path": "course/pickorange/visual/strict_policy.py",
+    "bytes": 4829,
+    "sha256": "e84db4bb553bca8f8fcb9e7921fc22534cdafe135bfd39bc79043eae9e33d9a2"
   },
   {
     "path": "course/scripts/AGENTS.md",

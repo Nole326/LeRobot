@@ -13,6 +13,7 @@ Put three oranges on the plate and return the arm to rest. This guide covers the
 | 单臂观测 / Single-arm observations | [single_arm_env_cfg.py](../third_party/leisaac/source/leisaac/leisaac/tasks/template/single_arm_env_cfg.py) |
 | 控制器转换 / Action mapping | [action_process.py](../third_party/leisaac/source/leisaac/leisaac/devices/action_process.py)、[joint_contract.py](../course/scripts/joint_contract.py) |
 | 环境/RGB检查 / Environment smoke | [validate_sim.py](../course/scripts/validate_sim.py) |
+| 视觉规则评测 / Visual-rule evaluation | [运行命令、相机标定与 55 秒结果 / Commands, calibration and 55-second results](../course/pickorange/visual/README.md) |
 | 轨迹/末帧/重放检查 / Trajectory diagnostics | [validate_rollout.py](../course/scripts/validate_rollout.py) |
 | ACT数据桥 / ACT data bridge | [validate_bridge.py](../course/scripts/validate_bridge.py)、[训练诊断说明](TRAINING_VALIDATION.md) |
 

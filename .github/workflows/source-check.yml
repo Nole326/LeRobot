@@ -41,13 +41,14 @@ jobs:
       - name: Install isolated CPU test dependencies
         run: |
           python3 -m venv .local/vla-cpu
-          .local/vla-cpu/bin/python -m pip install numpy==1.26.4 PyYAML==6.0.3 scipy==1.14.1 h5py==3.12.1 swanlab==0.10.3
+          .local/vla-cpu/bin/python -m pip install numpy==1.26.4 PyYAML==6.0.3 scipy==1.14.1 opencv-python-headless==4.11.0.86 h5py==3.12.1 swanlab==0.10.3
           .local/vla-cpu/bin/python -m pip install torch==2.5.1 --index-url https://download.pytorch.org/whl/cpu
       - name: Test VLA, controller and tracking CPU contracts
         run: |
-          .local/vla-cpu/bin/python -c "import numpy, torch, yaml; assert torch.version.cuda is None"
+          .local/vla-cpu/bin/python -c "import cv2, numpy, torch, yaml; assert torch.version.cuda is None"
           .local/vla-cpu/bin/python -B -m unittest discover -s tests -p 'test_vla*.py' -v
           .local/vla-cpu/bin/python -B -m unittest discover -s tests -p test_pickorange.py -v
+          .local/vla-cpu/bin/python -B -m unittest discover -s tests -p test_pickorange_visual.py -v
           .local/vla-cpu/bin/python -B -m unittest discover -s tests -p test_evo1_service_contracts.py -v
           .local/vla-cpu/bin/python -B -m unittest discover -s tests -p test_scripted_liftcube.py -v
           .local/vla-cpu/bin/python -B -m unittest discover -s tests -p test_swanlab.py -v

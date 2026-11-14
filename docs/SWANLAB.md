@@ -52,6 +52,7 @@ Modes: `offline` stores locally, `online` explicitly uploads, and `disabled` is 
 | `starter.evaluation.evaluate` | `eval/*`，完整回合数；长度、return、sim秒、终止及完成前缀成功率 / Completed episodes |
 | `starter.scripts.evaluate_scripted` | 同上；标注视觉规则或特权state控制脚本 / Rule/control script identity kept separate |
 | `course/pickorange/evaluate.py` | `eval/*`完整回合，`inference/*`查询序号；原生辅助标记 / Episodes and query counters |
+| [`course/pickorange/visual/evaluate.py`](../course/pickorange/visual/README.md) | `control/*` 按仿真步记录盘内数量和归位状态，`eval/*` 按完整回合记录成功率。使用离线数值记录。 / Offline scalars for plate count and rest status by simulator step, and success rate by completed episode. |
 
 LiftCube评测入口同样覆盖已接入的VLA包装，不需要每个模型再建一个日志run。PickOrange仅evaluator写SwanLab，模型service不重复写。曲线中的完成前缀仍需本地逐回合审核，不能视为已发布的最终成绩。`--check`、数据检查、模型下载和单元测试不是策略实验，不隐式创建云端run。
 

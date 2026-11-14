@@ -21,6 +21,8 @@
 
 两任务的 VLA 源码见[推理接口](docs/VLA_INTERFACES.md)，视觉规则和特权state控制脚本见[脚本指南](docs/SCRIPTED_POLICIES.md)。公开模型与数据从[资源清单](docs/RESOURCES.md)获取，各入口的验收状态以[任务对照](docs/TASKS.md)为准。
 
+PickOrange 视觉规则入口为 `course/pickorange/visual/evaluate.py`，提供模型辅助版与 `--input-contract rgb-q-calibration` 版，分别按各自的协议验收。调试图需显式启用 `--save-debug-images`。修改后运行 `tests/test_pickorange_visual.py` 的 CPU 检查。
+
 | 任务 | 修改位置与必读入口 |
 | --- | --- |
 | 仓库检查、文档、来源清单 | `scripts/`、`tests/`、`manifests/`；[来源说明](docs/IMPORT_MANIFEST.md) |
