@@ -1,6 +1,5 @@
-"""Local GR00T N1.5 dual-view inference. No simulator, ports or training."""
+"""Local PickOrange dual-view inference, defaulting to GR00T N1.5."""
 import argparse
-import json
 from pathlib import Path
 import random
 import sys
@@ -47,9 +46,9 @@ def verify_model(model):
 
 
 def main(argv=None, *, model_loader=load_policy, model_verifier=verify_model,
-         predict=predict_groot, model_revision=None):
+         predict=predict_groot, model_revision=None, default_protocol=DEFAULT_PROTOCOL):
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument('--protocol', type=Path, default=DEFAULT_PROTOCOL)
+    p.add_argument('--protocol', type=Path, default=default_protocol)
     p.add_argument('--model', type=Path, required=True)
     p.add_argument('--backend-root', type=Path, required=True)
     p.add_argument('--run-dir', type=Path, required=True)
@@ -78,9 +77,12 @@ def main(argv=None, *, model_loader=load_policy, model_verifier=verify_model,
         np.random.seed(17)
         torch.manual_seed(17)
         torch.save(rng_state(torch, random), out / 'model-rng-initial.pt')
-        publish(out / 'service-ready.json', dict(status='model_loaded', protocol=cfg,
-            model_sha256=identity, service_sha256=sha256(__file__),
-            input_keys=['front', 'wrist', 'joint_motor', 'task_text']))
+        ready = dict(status='model_loaded', protocol=cfg, model_sha256=identity,
+                     service_sha256=sha256(__file__),
+                     input_keys=['front', 'wrist', 'joint_motor', 'task_text'])
+        if cfg.get('experimental'):
+            ready['experimental'] = True
+        publish(out / 'service-ready.json', ready)
         query = 0
         while time.monotonic()-started < a.wall_seconds and not (out / 'STOP').exists():
             request = out / 'ipc' / f'request-{query:06d}.npz'
@@ -94,7 +96,7 @@ def main(argv=None, *, model_loader=load_policy, model_verifier=verify_model,
                 if actions.shape != (cfg['chunk_length'], 6) or not np.isfinite(actions).all():
                     raise ValueError('Decoded policy chunk differs from protocol')
                 if str(a.device).startswith('cuda'):
-                    torch.cuda.synchronize()
+                    torch.cuda.synchronize(a.device)
             # RNG is durable before the response becomes visible to the evaluator.
             temporary = out / 'model-rng-latest.new'
             torch.save(rng_state(torch, random), temporary)

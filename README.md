@@ -31,7 +31,7 @@
 
 - **LiftCube**：提供环境适配、演示读取、BC、参考 PPO、视觉规则策略和公共评测入口。配套镜像与运行方法见 [LiftCube 指南](course/liftcube/README.md)。
 - **PickOrange**：提供冻结环境、双相机GR00T／SmolVLA／π₀.₅服务、公共评测与轨迹审核；新增SmolVLA入口已作CPU检查，实际闭环待验。见[运行指南](course/pickorange/README.md)。
-- **VLA接口**：[双任务接口导航](docs/VLA_INTERFACES.md)列出四类模型的源码与入口：LiftCube使用单front包装，PickOrange使用双相机服务；OFT还需匹配的受训动作头、投影与统计。
+- **VLA接口**：[双任务接口导航](docs/VLA_INTERFACES.md)列出各模型的源码与入口：LiftCube使用单front包装，PickOrange使用双相机服务；OFT还需匹配的受训动作头、投影与统计。
 - **规则与控制脚本**：[双任务脚本指南](docs/SCRIPTED_POLICIES.md)集中链接LiftCube视觉／state脚本、PickOrange [特权state控制脚本](course/pickorange/expert/README.md)、官方控制脚本及上游参考。PickOrange自研控制脚本已完成控制、回放与采集流程的实际仿真联合验证；纯视觉规则脚本尚缺。
 - **后续任务**：正式多物体抓放、跨物体泛化与真机部署；保留迁移设计，当前不以未发布环境的适配为前提。
 

@@ -17,7 +17,11 @@ PI05_REVISION = 'bf4a13ed9d2ce17a96be5d82939191fa7ccf9ed5'
 PI05_BACKEND = '30da8e687a6dfc617fcd94afc367ac7071c376ce'
 SMOL_REVISION = '71cf4a9d35ce317f6706efe1a9f9d4cbb2b8fb4d'
 SMOL_BACKEND = '58f70b6bd370864139a3795ac3497a9eae8c42d5'
-EVO1_REVISION = 'fb177e4add5c7d803715be3af721fb08b1fb3f0f'
+
+EVO1_PROTOCOL = Path(__file__).with_name('protocols') / 'evo1-native-assisted-30hz.json'
+EVO1_NAME = 'pickorange-evo1-native-assisted-30hz-v1'
+EVO1_BACKEND = 'fb177e4add5c7d803715be3af721fb08b1fb3f0f'
+EVO1_REVISION = 'local'
 EVO1_INSTRUCTION = 'Pick three oranges and place them on the plate, then return the arm to rest.'
 
 
@@ -52,10 +56,13 @@ def validate_protocol(cfg):
         required.update(name=cfg['name'], model_repo='edge-inference/smolvla-so101-pick-orange',
                         model_revision=SMOL_REVISION, backend_revision=SMOL_BACKEND,
                         action_hz=30, chunk_length=50, denoising_steps=10)
-    elif cfg.get('name') == 'pickorange-evo1-native-assisted-30hz-v1':
-        required.update(name=cfg['name'], model_repo='MINT-SJTU/Evo-1', instruction=EVO1_INSTRUCTION,
-                        model_revision=EVO1_REVISION, backend_revision=EVO1_REVISION,
-                        action_hz=30, chunk_length=50, execute_steps=50, denoising_steps=32)
+    elif cfg.get('name') == EVO1_NAME:
+        required.update(name=EVO1_NAME, model_repo='local/evo1-pickorange',
+                        model_revision=EVO1_REVISION, backend_revision=EVO1_BACKEND,
+                        instruction=EVO1_INSTRUCTION, action_hz=30, chunk_length=50,
+                        execute_steps=50, denoising_steps=32, experimental=True)
+    if 'experimental' in cfg and cfg.get('name') != EVO1_NAME:
+        raise ValueError('The experimental label requires the Evo-1 protocol')
     for key, value in required.items():
         if type(cfg.get(key)) is not type(value) or cfg[key] != value:
             raise ValueError(f'Unsupported protocol value: {key}')

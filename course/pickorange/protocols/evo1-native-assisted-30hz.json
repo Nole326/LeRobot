@@ -1,8 +1,8 @@
 {
   "name": "pickorange-evo1-native-assisted-30hz-v1",
   "task_id": "LeIsaac-SO101-PickOrange-v0",
-  "model_repo": "MINT-SJTU/Evo-1",
-  "model_revision": "fb177e4add5c7d803715be3af721fb08b1fb3f0f",
+  "model_repo": "local/evo1-pickorange",
+  "model_revision": "local",
   "backend_revision": "fb177e4add5c7d803715be3af721fb08b1fb3f0f",
   "instruction": "Pick three oranges and place them on the plate, then return the arm to rest.",
   "physics_hz": 60,
@@ -16,5 +16,6 @@
   "software_action_clipping": false,
   "robot_gravity_enabled": true,
   "formal_course_evaluation": false,
-  "automatic_bc_admission": false
+  "automatic_bc_admission": false,
+  "experimental": true
 }

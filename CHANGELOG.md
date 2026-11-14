@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+新增 PickOrange Evo-1 双相机推理服务及 30 Hz 实验协议。服务使用配套训练统计及原生处理器，复用评测器和轨迹审核。协议和输入输出已通过 CPU 接口检查，真实任务权重前向与仿真闭环待验。
+
+Add a dual-view PickOrange Evo-1 inference service and an experimental 30 Hz protocol. Use matching training statistics and native processing with the shared evaluator and audit. CPU interface checks passed. Checkpoint inference and simulator rollout are pending.
+
 新增 PickOrange 特权state控制脚本、几何标定、控制脚本验证与脚本专家演示采集工具。明确区分 actor 的图像与本体输入和控制脚本使用的特权状态，补充运行说明、数据契约与 CPU 检查。已在实际仿真环境中完成控制执行、回放检验与采集流程的联合验证。不包含演示或模型权重。
 
 Add a PickOrange privileged state control script, geometric calibration, demonstration collection, and independent action-trajectory replay verification tools. Document actor input boundaries, data contracts and CPU checks. Control execution, independent replay and demonstration collection have been jointly validated in simulation. Datasets and model weights are excluded.

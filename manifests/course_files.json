@@ -371,13 +371,13 @@
   },
   {
     "path": "course/pickorange/AGENTS.md",
-    "bytes": 4759,
-    "sha256": "eaddd6b26b74c3a6d6148d7364cc418d922f9a5e2c03ffa5cf8bb5149d9aaae1"
+    "bytes": 4972,
+    "sha256": "2833b0f6202d8de0797c6304fd48e15fc1d4dfc4e576d55255f4f132ea2f7461"
   },
   {
     "path": "course/pickorange/README.md",
-    "bytes": 15882,
-    "sha256": "fb613b7d93c6c758de598fa6c557dac84505c65e869d250468ae8cbfb1fa1cba"
+    "bytes": 15590,
+    "sha256": "cec5c0c570fbc1854cf181de5855275c2f0d73c0fe305c50f034f5fc843c4fd1"
   },
   {
     "path": "course/pickorange/audit.py",
@@ -391,8 +391,8 @@
   },
   {
     "path": "course/pickorange/common.py",
-    "bytes": 8088,
-    "sha256": "5c4ee1a1d020d6d608cf72abdff39b914deaf1fb0cd3d62dcaa807c3c408f533"
+    "bytes": 8411,
+    "sha256": "86f160af17ce95d58858b098106839aa92f90a126e31a27a37614399e83c4409"
   },
   {
     "path": "course/pickorange/evaluate.py",
@@ -551,8 +551,8 @@
   },
   {
     "path": "course/pickorange/protocols/evo1-native-assisted-30hz.json",
-    "bytes": 1009,
-    "sha256": "9ba89921f4f013ee2091363038e1f0bc7e5f15679fbc888310b9191fa182e39b"
+    "bytes": 1004,
+    "sha256": "4afbc39c1d202989fb427eb179422cc9cea1ba08690a4b2c237ce269581c1ff3"
   },
   {
     "path": "course/pickorange/protocols/groot-n16-native-assisted.json",
@@ -576,13 +576,13 @@
   },
   {
     "path": "course/pickorange/service.py",
-    "bytes": 5711,
-    "sha256": "22b317f9f00f767c834aac4aa2b14f52a2a98f9263e0789d462400fe88c000db"
+    "bytes": 5852,
+    "sha256": "d2e79cdb750725256aaf963a676283ebb5cfb9a478ec38a3b047a60f838f470a"
   },
   {
     "path": "course/pickorange/service_evo1.py",
-    "bytes": 7930,
-    "sha256": "16f3ad4da38d0a669276b4ef8fa7e36485bd70580bdcf3e2660f6f1ff812c79c"
+    "bytes": 4267,
+    "sha256": "133c4fb69bb80a249a2c0496e262b0951b6070d0c80f7066fda2c44b29e52715"
   },
   {
     "path": "course/pickorange/service_n16.py",

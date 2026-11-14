@@ -16,7 +16,7 @@ This directory contains PickOrange-specific execution code. It does not use the 
 | `service_n16.py` | wsagi GR00T N1.6独立后端；原生解码相对手臂动作、绝对夹爪动作 / Native relative-arm and absolute-gripper decoding |
 | `service_pi05.py` | Aikwed π₀.₅任务权重及其LeRobot处理器，30 Hz策略 / Task checkpoint and its saved processors at 30 Hz |
 | `service_smolvla.py` | Edge SmolVLA双视角任务权重、原统计与处理器，30 Hz；共享评测／审核，CPU验证 / Dual-view task service; CPU-validated integration |
-| `service_evo1.py` | 实验性补充：Evo-1原统计与处理器，独立协议 30 Hz／chunk 50／整块执行；任务权重不随仓库分发，无固定revision / Experimental supplemental adapter; task weights are not distributed |
+| `service_evo1.py` | 实验性 Evo-1 服务，使用配套训练统计和独立 30 Hz 协议 / Experimental service with matching statistics and a dedicated 30 Hz protocol |
 | `openvla_oft.py` | 双相机、六关节OFT接口；需匹配的受训包，不是可运行的已受训策略 / Dual-view boundary; trained package required |
 | `evaluate.py` | 单持续仿真进程，显式seed序列、原生成功与超时、reset前终态、逐步轨迹与逐回合结果 / Full-episode development runner |
 | `audit.py` | CPU核对闭合轨迹、动作映射、连续性、查询索引和原生终态；不自动收入BC / Closed-trajectory audit |
@@ -100,7 +100,7 @@ N1.6 与 π₀.₅ 各用[固定版本与权重](../../docs/RESOURCES.md)、独�
 
 Use the same protocol file for each service/evaluator pair. Keep the LeRobot v0.6.0 Python 3.12+ model environment separate from the simulator, and point `PI05_TOKENIZER_DIR` at the locally authorized PaliGemma tokenizer. Report the π₀.₅ action timing separately.
 
-四个服务均核对各自固定后端commit，后端受管文件有修改时拒绝加载。 / All four services require their pinned backend commit and an unchanged tracked working tree.
+各模型服务核对协议指定的后端，加载前检查受管源码。 / Model services verify the backend and its tracked sources before loading.
 
 ### SmolVLA双相机 / Dual-view SmolVLA
 
@@ -120,21 +120,29 @@ python course/pickorange/service_smolvla.py --run-service \
 
 Use the same protocol and shared directory on the evaluator. This is a new CPU-validated integration, not a reproduction of the older fixed-actuator rollout. Both real views, original statistics and explicit chunk/reset handling are retained.
 
-### Evo-1（实验性补充 / Experimental supplement）
+### Evo-1 实验性接入 / Experimental integration
 
-`service_evo1.py`是[Evo-1基线记录](../../docs/EVO1_PICKORANGE_BASELINE.md)的本地适配器：沿用同一NPZ请求／响应契约与`common.py`的用量校验，但不属于上面的四个固定后端服务。它不核对模型revision，因为任务权重没有公开分发；`service-ready.json`因此写`experimental: true`并记录权重两个文件的SHA-256、代码commit（或`unpinned`）与数据集根目录。协议只接受 Evo-1 专用协议（30 Hz／chunk 50／整块执行 50 步／32 步去噪，锁定任务文本），与权重训练时的动作时钟一致；结果按实验性记录，不计入协议基准。
+准备 [Evo-1 后端和本地任务导出](../../docs/EVO1_PICKORANGE_BASELINE.md)。`EVO1_ROOT` 指向后端 Git 根目录，`EVO1_EXPORT` 指向任务导出。先启动模型服务，再在仿真环境执行评测命令。两个终端使用同一 `PROTOCOL` 和由服务创建的共享 `RUN_DIR`。
 
-It reuses the shared NPZ contract but is not one of the four pinned backends: it cannot verify a public revision, so its ready file marks the run experimental and records weight digests plus the code commit (or `unpinned`).
+Set `EVO1_ROOT` to the backend checkout root and `EVO1_EXPORT` to the task export. Start the model service first, then run the evaluator in the simulator environment. Both terminals use the same protocol and shared run directory.
 
 ```bash
+PROTOCOL=course/pickorange/protocols/evo1-native-assisted-30hz.json
+python course/pickorange/evaluate.py --check --protocol "$PROTOCOL"
+
 export HF_HUB_OFFLINE=1
-python course/pickorange/service_evo1.py --run-service \
-  --model /models/pickorange/evo1-export --dataset-root /data/pickorange-bc \
-  --code-root /src/evo1 --protocol course/pickorange/protocols/evo1-native-assisted-30hz.json \
-  --run-dir /outputs/pickorange/evo1-new --device cuda:0 --wall-seconds 3600
+python course/pickorange/service_evo1.py --run-service --protocol "$PROTOCOL" \
+  --model "$EVO1_EXPORT" --backend-root "$EVO1_ROOT" --run-dir "$RUN_DIR"
+
+python course/pickorange/evaluate.py --run-simulation --protocol "$PROTOCOL" \
+  --run-dir "$RUN_DIR" --episodes 1 --headless --enable_cameras
 ```
 
-`--dataset-root`必须指向训练时使用的LeRobot数据集快照，normaliser／unnormaliser统计从它的`meta/stats.json`读取；换数据集会改变动作尺度，不能只换权重。协议文件只借用30 Hz／50步的动作时钟，任务文本与夹爪辅助仍以该协议字段为准；若发布受管权重，应另建带固定revision的协议，而不是复用SmolVLA名称。
+评测器执行完整 50 步动作块，结果使用 Evo-1 实验协议记录。轨迹审核沿用上文的 `audit.py`。接口 CPU 检查已通过，任务权重前向与仿真闭环待验收。
+
+The evaluator executes the full 50-step chunk and records the Evo-1 experimental protocol. Use the same trajectory audit command shown above. Checkpoint inference and simulator rollout remain pending.
+
+### OpenVLA-OFT
 
 OFT 包须声明 front+wrist 的训练顺序、六维绝对 motor 目标、30步与 BOUNDS 统计，并提供同源的训练后核心、连续动作头、本体投影和统计。使用固定 SO101 后端，须在导入前通过 `--robot_platform SO101` 选择常量。普通 OpenVLA 权重、单相机或其他机器人导出不适用。尚无确认满足合同的公开权重，不提供 OFT 闭环命令。
 

@@ -1,166 +1,96 @@
-"""Experimental Evo-1 dual-view adapter for local, unpublished checkpoints.
-
-Requires the Evo-1 code tree (``lerobot.policies.evo1``) and a local LeRobot
-dataset snapshot that provides the training normalisation statistics. The
-adapter speaks the same NPZ request/response contract as the other PickOrange
-services so inputs and outputs can be audited identically.
-
-It is deliberately *not* wired to a benchmark protocol: the task checkpoint is
-not distributed with this repository, so no pinned revision can be claimed.
-Use it for local integration only and report results as experimental.
-"""
-import argparse
+"""Experimental PickOrange inference with the Evo-1 project's native LeRobot backend."""
 import json
 from pathlib import Path
-import random
-import subprocess
 import sys
-import time
-import traceback
 
 import numpy as np
 
-from common import load_protocol, publish, rng_state, save_arrays, sha256, timing, validate_request
+from common import EVO1_BACKEND, EVO1_PROTOCOL, EVO1_REVISION, lerobot_batch, sha256, verify_backend
+from service import main as run_service
 
-WEIGHT_FILES = ('config.json', 'model.safetensors')
+VIEWS = ('front', 'wrist')
+EXPORT_FILES = ('config.json', 'model.safetensors', 'meta/stats.json')
+NORM_MODES = {'VISUAL': 'IDENTITY', 'STATE': 'MIN_MAX', 'ACTION': 'MIN_MAX'}
 
 
-def verify_weights(model):
-    if not model.is_dir():
-        raise ValueError('Use a directory holding the exported policy')
-    missing = [name for name in WEIGHT_FILES if not (model / name).is_file()]
+def verify_model(model):
+    missing = [name for name in EXPORT_FILES if not (model / name).is_file()]
     if missing:
-        raise ValueError(f'Missing policy files: {missing}')
-    identity = {name: sha256(model / name) for name in WEIGHT_FILES}
-    config = json.loads((model / 'config.json').read_text(encoding='utf-8'))
-    if config.get('type') != 'evo1':
-        raise ValueError('Expected an Evo-1 policy config')
-    if config.get('chunk_size') != 50 or config.get('n_action_steps') != 50:
-        raise ValueError('This adapter only supports the 50-step action chunk')
-    return identity
+        raise ValueError(f'Missing Evo-1 checkpoint files: {missing}')
+    return {name: sha256(model / name) for name in EXPORT_FILES}
 
 
-def verify_code(root):
-    head = subprocess.check_output(['git', '-C', str(root), 'rev-parse', 'HEAD'], text=True).strip()
-    dirty = subprocess.check_output(
-        ['git', '-C', str(root), 'status', '--porcelain', '--untracked-files=no'], text=True).strip()
-    if dirty:
-        raise ValueError('Use an unmodified policy code tree')
-    return head
+def validate_config(cfg):
+    if (cfg.n_obs_steps != 1 or cfg.chunk_size != 50 or cfg.n_action_steps != 50
+            or cfg.num_inference_timesteps != 32 or cfg.empty_cameras != 0 or cfg.max_views < 2
+            or min(cfg.max_state_dim, cfg.max_action_dim) < 6
+            or cfg.task_field != 'task' or cfg.embodiment_id_field is not None
+            or tuple(cfg.image_features) != tuple(f'observation.images.{cam}' for cam in VIEWS)
+            or any(tuple(feature.shape) != (3, 480, 640) for feature in cfg.image_features.values())
+            or tuple(getattr(cfg.input_features.get('observation.state'), 'shape', ())) != (6,)
+            or tuple(getattr(cfg.output_features.get('action'), 'shape', ())) != (6,)):
+        raise ValueError('Evo-1 checkpoint config differs from the PickOrange protocol')
+    if any(cfg.normalization_mapping.get(key) != mode for key, mode in NORM_MODES.items()):
+        raise ValueError('Expected Evo-1 MIN_MAX state/action and native visual preprocessing')
 
 
-def load_policy(model, code_root, dataset_root, device):
-    if code_root is not None:
-        sys.path.insert(0, str(code_root))
-    import torch
+def load_stats(path):
+    raw = json.loads(path.read_text(encoding='utf-8'))
+    stats = {}
+    for key in ('observation.state', 'action'):
+        fields = raw.get(key, {})
+        low = np.asarray(fields.get('min'), dtype=np.float32)
+        high = np.asarray(fields.get('max'), dtype=np.float32)
+        if any(x.shape != (6,) or not np.isfinite(x).all() for x in (low, high)):
+            raise ValueError(f'Expected six finite min/max statistics for {key}')
+        if (high < low).any():
+            raise ValueError(f'Invalid normalization range for {key}')
+        stats[key] = {'min': low, 'max': high}
+    return stats
+
+
+def load_policy(model, backend_root, device):
+    verify_backend(backend_root, EVO1_BACKEND)
+    source = backend_root / 'evo1_lerobot'
+    sys.path.insert(0, str(source))
     from lerobot.configs.policies import PreTrainedConfig
-    from lerobot.datasets.lerobot_dataset import LeRobotDataset
-    from lerobot.policies.evo1.modeling_evo1 import EVO1Policy
+    from lerobot.policies.evo1 import modeling_evo1
+    from lerobot.policies.evo1.configuration_evo1 import Evo1Config
     from lerobot.policies.evo1.processor_evo1 import make_evo1_pre_post_processors
 
+    if not Path(modeling_evo1.__file__).resolve().is_relative_to(source):
+        raise ValueError('Evo-1 import escaped the selected backend')
     cfg = PreTrainedConfig.from_pretrained(str(model), local_files_only=True)
+    if not isinstance(cfg, Evo1Config):
+        raise ValueError('Expected an Evo-1 checkpoint')
+    validate_config(cfg)
+    stats = load_stats(model / 'meta/stats.json')
     cfg.device = str(device)
-    policy = EVO1Policy.from_pretrained(str(model), config=cfg, local_files_only=True, strict=True)
-    policy.eval()
-    dataset = LeRobotDataset(repo_id='local/pickorange', root=str(dataset_root), video_backend='pyav')
-    preprocess, postprocess = make_evo1_pre_post_processors(cfg, dataset_stats=dataset.meta.stats)
-    return policy, preprocess, postprocess, torch
+    policy = modeling_evo1.EVO1Policy.from_pretrained(
+        str(model), config=cfg, local_files_only=True, strict=True)
+    pre, post = make_evo1_pre_post_processors(cfg, dataset_stats=stats)
+    return policy, pre, post
 
 
 def check_action_chunk(actions):
-    """Strict decoded-output contract: finite [50,6] motor targets only."""
-    actions = np.asarray(actions, dtype=np.float64)
-    if actions.shape != (50, 6):
-        raise ValueError(f'Expected a [50,6] action chunk, got {actions.shape}')
-    if not np.isfinite(actions).all():
-        raise ValueError('Non-finite model output')
+    if actions.shape != (50, 6) or not np.isfinite(actions).all():
+        raise ValueError('Expected a finite decoded Evo-1 chunk [50,6]')
     return actions
 
 
 def predict(loaded, data, instruction):
-    policy, preprocess, postprocess, torch = loaded
-    # Public request contract: whitelist, shapes, dtypes and finiteness only.
-    q = validate_request(data)
-    views = {}
-    for cam in ('front', 'wrist'):
-        views[cam] = torch.from_numpy(np.array(data[cam][0], copy=True)).permute(2, 0, 1).float().div(255).unsqueeze(0)
-    batch = {'observation.images.front': views['front'], 'observation.images.wrist': views['wrist'],
-             'observation.state': torch.from_numpy(q.astype(np.float32)), 'task': [instruction]}
-    with torch.inference_mode():
-        actions = postprocess(policy.predict_action_chunk(preprocess(batch)))[0].float().cpu().numpy()
-    return check_action_chunk(actions)
+    policy, pre, post = loaded
+    batch = lerobot_batch(data, instruction, VIEWS)
+    policy.reset()
+    actions = post(policy.predict_action_chunk(pre(batch)).float())
+    if actions.shape != (1, 50, 6):
+        raise ValueError('Expected a finite decoded Evo-1 chunk [1,50,6]')
+    return check_action_chunk(actions.detach().cpu().numpy()[0])
 
 
 def main(argv=None):
-    p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument('--protocol', type=Path, required=True)
-    p.add_argument('--model', type=Path, required=True)
-    p.add_argument('--dataset-root', type=Path, required=True)
-    p.add_argument('--code-root', type=Path)
-    p.add_argument('--run-dir', type=Path, required=True)
-    p.add_argument('--device', default='cuda:0')
-    p.add_argument('--wall-seconds', type=float, default=3600)
-    p.add_argument('--run-service', action='store_true')
-    p.add_argument('--allow-unpinned-code', action='store_true')
-    a = p.parse_args(argv)
-    cfg = load_protocol(a.protocol)
-    if not a.run_service or not np.isfinite(a.wall_seconds) or a.wall_seconds <= 0:
-        p.error('Explicit --run-service and a positive wall budget are required')
-    if cfg['name'] != 'pickorange-evo1-native-assisted-30hz-v1':
-        p.error('Pass the Evo-1 protocol; other model protocols do not match this service')
-    if cfg['action_hz'] != 30 or cfg['chunk_length'] != 50 or cfg['execute_steps'] != 50:
-        p.error('Use the 30 Hz / 50-step prediction and whole-chunk execution protocol')
-    if cfg['denoising_steps'] != 32:
-        p.error('The Evo-1 checkpoint was trained with 32 denoising steps')
-    if a.code_root is not None and not a.allow_unpinned_code:
-        commit = verify_code(a.code_root.resolve())
-    elif a.code_root is not None:
-        commit = 'unpinned'
-    else:
-        p.error('Pass --code-root, or --allow-unpinned-code to record an unpinned import path')
-        commit = 'unpinned'
-    out = a.run_dir.resolve()
-    out.mkdir(parents=True, exist_ok=False)
-    (out / 'ipc').mkdir()
-    started = time.monotonic()
-    try:
-        identity = verify_weights(a.model.resolve())
-        policy, preprocess, postprocess, torch = load_policy(
-            a.model.resolve(), a.code_root.resolve() if a.code_root else None,
-            a.dataset_root.resolve(), a.device)
-        random.seed(17)
-        np.random.seed(17)
-        torch.manual_seed(17)
-        torch.save(rng_state(torch, random), out / 'model-rng-initial.pt')
-        publish(out / 'service-ready.json', dict(status='model_loaded', protocol=cfg,
-            experimental=True, policy_sha256=identity, code_commit=commit,
-            dataset_root=str(a.dataset_root.resolve()), service_sha256=sha256(__file__),
-            input_keys=['front', 'wrist', 'joint_motor', 'task_text']))
-        hold, executed, horizon = timing(cfg)
-        query = 0
-        while time.monotonic()-started < a.wall_seconds and not (out / 'STOP').exists():
-            request = out / 'ipc' / f'request-{query:06d}.npz'
-            if not request.exists():
-                time.sleep(.1)
-                continue
-            with np.load(request, allow_pickle=False) as data:
-                begin = time.monotonic()
-                actions = predict((policy, preprocess, postprocess, torch), data, cfg['instruction'])
-                if str(a.device).startswith('cuda'):
-                    torch.cuda.synchronize()
-            temporary = out / 'model-rng-latest.new'
-            torch.save(rng_state(torch, random), temporary)
-            temporary.replace(out / 'model-rng-latest.pt')
-            save_arrays(out / 'ipc' / f'response-{query:06d}.npz', actions_motor=actions,
-                        inference_sec=np.asarray(time.monotonic()-begin), query_id=np.asarray(query),
-                        model_rng_sha256=np.asarray(sha256(out / 'model-rng-latest.pt')))
-            query += 1
-            publish(out / 'service-progress.json', dict(requests=query))
-        publish(out / 'service-summary.json', dict(status='exited', requests=query,
-            hold_ticks=hold, executed_ticks=executed, physics_horizon=horizon))
-    except BaseException:
-        publish(out / 'service-error.json', dict(status='failed', traceback=traceback.format_exc()))
-        raise
+    run_service(argv, model_loader=load_policy, model_verifier=verify_model,
+                predict=predict, model_revision=EVO1_REVISION, default_protocol=EVO1_PROTOCOL)
 
 
 if __name__ == '__main__':

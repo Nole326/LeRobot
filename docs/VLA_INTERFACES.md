@@ -1,12 +1,13 @@
 # VLA推理接口 / VLA inference interfaces
 
-先按任务选择入口。两个任务都提供四类VLA的接口代码，但相机和执行层不同；接口可用状态与模型任务成绩见[任务对照](TASKS.md)。
+先按任务选择入口。LiftCube 使用前视，PickOrange 使用前视与腕部双相机；接口可用状态与模型任务成绩见[任务对照](TASKS.md)。
 
-Choose the task first. Both tasks have interfaces for four VLA families, with separate camera and execution contracts. Interface availability is distinct from task capability.
+Choose the task first. LiftCube uses the front camera. PickOrange has a separate action runner and uses front and wrist views. Interface availability is distinct from task capability.
 
 | 模型 / Model | LiftCube：单front＋q6 | PickOrange：front＋wrist＋q6 |
 | --- | --- | --- |
 | SmolVLA | [SmolVLAFrontPolicy](../course/liftcube/src/starter/models/smolvla.py) | [service_smolvla.py](../course/pickorange/service_smolvla.py)，Edge固定任务导出；CPU检查，新增协议闭环待验 |
+| Evo-1 | — | [实验性双相机接口](EVO1_PICKORANGE_BASELINE.md)，需要配套任务权重和训练统计 / Experimental dual-view interface |
 | π₀.₅ | [PI05包装](../course/liftcube/src/starter/models/pi05.py)，SO101域基座 | [service_pi05.py](../course/pickorange/service_pi05.py)，Aikwed任务导出；不同模型图与处理器 |
 | GR00T | [N1.5包装](../course/liftcube/src/starter/models/gr00t.py)；LiftCube N1.6任务权重接入待补 | [N1.5服务](../course/pickorange/service.py)／[N1.6服务](../course/pickorange/service_n16.py)，各用匹配后端 |
 | OpenVLA-OFT | [单front包装](../course/liftcube/src/starter/models/openvla_oft.py) | [双相机接口](../course/pickorange/openvla_oft.py)；两任务均缺匹配受训完整包 |
@@ -15,7 +16,7 @@ LiftCube运行步骤见下文；PickOrange的下载、服务／仿真命令和�
 
 For LiftCube, continue below. For PickOrange, use the linked dual-view runner guide; visual rules and state control scripts have a separate script guide.
 
-共用的是模型加载辅助、动作单位工具及[SwanLab数值记录](SWANLAB.md)。PickOrange各服务共用`service.py`的IPC循环、`evaluate.py`与`audit.py`；SmolVLA与π₀.₅共用真实双RGB/q6打包。LiftCube的观测类、限幅执行与回合chunk管理仍由自身包装处理，不把两套环境强行合成一个工厂。
+共用的是模型加载辅助、动作单位工具及[SwanLab数值记录](SWANLAB.md)。PickOrange各服务共用`service.py`的IPC循环、`evaluate.py`与`audit.py`；SmolVLA、π₀.₅ 和 Evo-1 共用双 RGB 与六维关节状态打包。LiftCube的观测类、限幅执行与回合chunk管理仍由自身包装处理，不把两套环境强行合成一个工厂。
 
 Shared helpers cover model loading, unit conversion and scalar logging. PickOrange services reuse one IPC loop, evaluator and audit; LiftCube retains its own observation and bounded-action lifecycle.
 
@@ -25,7 +26,7 @@ Shared helpers cover model loading, unit conversion and scalar logging. PickOran
 
 These wrappers target the LiftCube single-front/q6 contract. PickOrange requires its own observation/action/terminal adapter; they are not universal task loaders. The GR00T loader is N1.5, not N1.6/N1.7.
 
-权重、演示与完整revision见[资源清单](RESOURCES.md)，训练/评测步骤见[指南](TRAIN_AND_EVALUATE.md)。PickOrange四类VLA接口在[独立目录](../course/pickorange/README.md)，不使用这里的单front类。 / See the separate PickOrange directory for dual-view model interfaces.
+权重、演示与完整revision见[资源清单](RESOURCES.md)，训练/评测步骤见[指南](TRAIN_AND_EVALUATE.md)。PickOrange VLA 接口在[独立目录](../course/pickorange/README.md)，不使用这里的单front类。 / See the separate PickOrange directory for dual-view model interfaces.
 
 PickOrange任务成功率和RL资源记录见[检验摘要](PICKORANGE_VALIDATION.md)。本页的单front CPU证据不能代替双视角任务验收，也不能从六维输出推断机械臂能力适配完成。 / Six-dimensional software output alone does not establish learned embodiment or task competence.
 
