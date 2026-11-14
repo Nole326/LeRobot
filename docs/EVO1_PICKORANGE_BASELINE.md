@@ -127,6 +127,54 @@ python course/pickorange/evaluate.py --run-simulation --run-dir <run_dir> \
 
 Evaluation follows the repository's full-episode runner; the policy service returns one chunk of six-dimensional motor actions per query, and each target is held for two physics ticks. Failed episodes are retained rather than replaced.
 
+### 后端与接口契约 / Backend and interface contract
+
+**后端版本与代码入口 / Backend and code entry**
+
+- 训练与推理使用 Evo-1 官方仓库 [`MINT-SJTU/Evo-1`](https://github.com/MINT-SJTU/Evo-1) 的 `evo1-lerobot` 分支（LeRobot 训练栈移植版）。记录时该分支最新提交为 `fb177e4add5c7d803715be3af721fb08b1fb3f0f`；本地代码根为 `<Evo-1>/evo1_lerobot/lerobot`，训练入口 `python -m lerobot.scripts.lerobot_train`。该分支把 LeRobot 源码随仓库分发（版本由 `importlib.metadata` 读取，未安装时显示 `unknown`），依赖清单见 `evo1_lerobot/requirements.txt`（`torch==2.5.1+cu124`、`transformers==4.53.3`、`flash-attn==2.8.3`、`torchcodec==0.1.1`）。
+- 实际训练机为 AMD ROCm 7.2 / Python 3.12 / `torch 2.12.0`，未安装 flash-attn（`use_flash_attn=false`）；本地对数据集视频解码加了 PyAV 兼容补丁（原路径依赖 torchcodec，ROCm 下缺 `libnvrtc.so.13`），补丁只影响读盘，不改变策略加载、预处理或动作解码。推理侧复用同一份 `evo1_lerobot` 代码与 `EVO1Policy.from_pretrained(..., strict=True)`。
+- 视觉主干为 `OpenGVLab/InternVL3-1B`（revision `4415a3b810e636d11dfa86b0e9ba40bb00535aa8`），动作头为 flow-matching（8 层、hidden 1024、chunk 50、去噪 32 步）。任务权重不随仓库分发；上传 Hugging Face 后在此补链接。
+
+**观测与动作接口 / Observation and action interface**
+
+| 项目 / Item | 约定 / Contract |
+| --- | --- |
+| 相机键 / Camera keys | `observation.images.front`、`observation.images.wrist`，均 480×640×3 RGB uint8；顺序固定 front→wrist，服务请求键名 `front`、`wrist` |
+| 关节顺序 / Joint order | `shoulder_pan, shoulder_lift, elbow_flex, wrist_flex, wrist_roll, gripper` |
+| 单位 / Units | 六维 motor 归一化单位：前五维 ±100，夹爪 0–100；与课程 `joint_contract.rad_to_motor` 一致 |
+| 动作类型 / Action type | 绝对关节目标（非增量），与 `observation.state` 同一 motor 坐标系；夹爪 0 为闭合、100 为张开 |
+| 任务文本 / Task text | `Pick three oranges and place them on the plate, then return the arm to rest.` |
+
+**归一化 / Normalization**
+
+- `configuration_evo1.py` 的 `normalization_mapping` 为 `VISUAL: IDENTITY`、`STATE: MIN_MAX`、`ACTION: MIN_MAX`；state/action 用训练数据集的 `meta/stats` 做 min–max 归一化与反归一化，推理时由 `service_evo1.py` 把 `LeRobotDataset(<dataset_root>).meta.stats` 传给 `make_evo1_pre_post_processors`，所以 `--dataset-root` 必须与训练快照一致。
+- 图像不做数值归一化（`VISUAL: IDENTITY`）；VLM 侧把输入转 PIL、缩放到 448×448，再按 ImageNet 均值/方差归一化并以 bf16 编码。
+- 动作在模型内零填充到 24 维，输出时截回 6 维；服务与仿真之间只传 motor 单位，rad↔motor 换算由课程 `joint_contract`/`robot_utils` 完成，动作管理器 `scale=1`、`offset=0`，没有额外缩放。
+
+**推理命令与执行节奏 / Inference command and cadence**
+
+训练（示例，路径为占位符）：
+
+```bash
+cd <Evo-1>
+PYTHONPATH=$PWD/evo1_lerobot python -m lerobot.scripts.lerobot_train \
+  --dataset.repo_id=local/pickorange_teacher --dataset.root=<dataset_root> --dataset.video_backend=pyav \
+  --policy.path=<previous_ckpt>/pretrained_model --policy.training_stage=stage1 --resume_pretrain=true \
+  --policy.finetune_action_head=true --policy.optimizer_lr=5e-6 --batch_size=8 --steps=14000 \
+  --output_dir=<output_dir>
+```
+
+推理服务（本页成绩使用外部服务进程 + 本地运行器；服务也可由 `service_evo1.py` 直接提供）：
+
+```bash
+EVO_CKPT=<ckpt>/pretrained_model EVO_DATA=<dataset_root> EVO_PORT=5555 \
+  python <Evo-1>/evo1_service.py &
+```
+
+- 模型每次查询预测 **chunk 50**，整块执行 **50 步**（开环）；每个目标保持 **2 个 60 Hz 物理步**，即 30 Hz；回合 **60 仿真秒 = 3,600 物理步 = 36 块**；单次查询均值 0.12–0.15 秒。
+- 初态为全零关节位姿，`warmup_ticks=10` 后重置再预测；夹爪辅助 `dynamic_reset_gripper_effort_limit_sim` **保持开启**（未加 `--no_dynamic_gripper`），与仓库协议一致，因此本页成绩属特权夹爪辅助设置。
+- 本页成功率由与 `evaluate.py` 同协议的本地运行器统计：完整回合、同一成功判据、失败回合保留；仓库 `service_evo1.py` 走同一 NPZ 契约，可由 `evaluate.py` 驱动。
+
 ### 服务接入 / Service adapter
 
 仓库补充了[`service_evo1.py`](../course/pickorange/service_evo1.py)：沿用 `service.py` 的 NPZ 请求/响应契约、请求白名单与原子写盘，加载 Evo-1 权重及其随训练保存的 normaliser 统计。任务权重不随仓库分发，因此它不核对公开 revision，`service-ready.json` 标记 `experimental: true` 并记录权重文件 SHA-256、代码 commit（或 `unpinned`）与数据集根目录；协议只接受 30 Hz／chunk 50 的动作时钟。该服务用于本地复现与接口审计，不作为协议基准成绩。
