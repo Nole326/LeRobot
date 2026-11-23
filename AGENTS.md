@@ -32,6 +32,7 @@ PickOrange 视觉规则入口为 `course/pickorange/visual/evaluate.py`，提供
 | 自研受限末端开发接口 | `starter/envs/planar_ee.py`、`envs/factory.py`、`tests/test_planar_ee.py`及[开发契约](docs/PLANAR_EE_DEVELOPMENT.md)；三维绝对XY/夹爪，非课程正式IK；旧关节策略不得自动接入 |
 | PickOrange任务与诊断 | [任务指南](docs/PICK_ORANGE.md)、`course/scripts/`及冻结上游任务源码；[目录AGENTS](course/scripts/AGENTS.md)、[部署边界](docs/REPRODUCIBILITY.md) |
 | PickOrange 双视角评测与数据采集 | `course/pickorange/`、`course/pickorange/expert/`。[目录 AGENTS](course/pickorange/AGENTS.md)、[模型运行指南](course/pickorange/README.md)、[脚本专家演示采集](course/pickorange/expert/README.md)。模型服务使用各自的后端、权重、归一化与评测协议 |
+| PickOrange 学习策略 | [ACT 训练与部署](course/pickorange/act/README.md)提供 qpos、分段 EE 和配套残差的输入输出、采样频率及检查点说明。 |
 | PickOrange 模型发布与验收 | [资源清单](docs/RESOURCES.md)列出公开权重与数据，[检验摘要](docs/PICKORANGE_VALIDATION.md)记录评测和资源需求。新增外部权重时核对模型包、运行入口及评测证据 |
 | 控制脚本、数据/权重获取、离线训练 | [资源清单](docs/RESOURCES.md)、[训练与评测](docs/TRAIN_AND_EVALUATE.md)；LiftCube显式`--privileged-teacher`，PickOrange自研[控制脚本](course/pickorange/expert/README.md)通过原生动作与回放检验采集；上游状态机的直接写状态不自动满足BC准入 |
 | 训练与评测曲线 | [SwanLab指南](docs/SWANLAB.md)、`starter/logging/swanlab.py`与`starter.scripts.train_lerobot`；共享数值记录，保留本地证据，不另造每模型日志器 |

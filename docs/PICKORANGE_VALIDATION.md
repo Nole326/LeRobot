@@ -113,9 +113,10 @@ DiT12 is deferred. Its training/deployment sampling mismatch and unchanged 7/10 
 ## 代码交付与下一步 / Code delivery and next steps
 
 - 本仓库提供GR00T N1.5／N1.6、π₀.₅及Edge SmolVLA独立推理服务，共用评测与CPU轨迹审核；OFT提供缺项拒绝接口。新增SmolVLA原生辅助协议仅通过CPU检查，不继承历史单例成绩。
-- 实验RL训练器、学习后的残差／LoRA／Adapter／DiT参数及完整恢复包**尚未发布**。仓库命令加载原公开基座；复现训练后结果还需要对应训练器与学习参数。
-- 模型与数据继续按[资源清单](RESOURCES.md)获取。后续公开学习参数需另有模型仓库、固定revision及许可审核；原始轨迹、机器配置和私人存储位置不随Git分发。
-- 新运行按[SwanLab指南](SWANLAB.md)记录数值与白名单配置。本文结果依据本地回合记录和离线曲线审核；云端同步不在本页验收范围内。
-- 后续优先做N1.5可归因的RL对照、SmolVLA统一协议基线、π₀.₅失败诊断，以及OFT受训包／BC方案选择。训练前按[数据与训练指南](TRAIN_AND_EVALUATE.md)完成准入；不通过改评分、裁剪标签或更换统计掩盖失败。
+- [公开学习策略](https://huggingface.co/Nole326/LeIsaac-SO101-PickOrange)提供双视角 ACT、ACT 残差和 GR00T 残差的权重、配置及评测记录。不同夹爪力矩、重置方式及动作幅度的成绩应按各自协议比较。
+- [训练和部署](../course/pickorange/act/README.md)说明 qpos 与 EE 的动作接口、时间聚合、段末重置及残差接入位置。
 
-Public code covers inference, protocols and audits. Reproducing post-training results also requires the unreleased trainers and learned artifacts. Reported results are backed by local episode audits and offline curves; cloud synchronization is not established here.
+- 新运行按[SwanLab指南](SWANLAB.md)记录数值与白名单配置。本文结果依据本地回合记录和离线曲线审核；云端同步不在本页验收范围内。
+- 其他后端的后续验收包括 SmolVLA 统一协议基线、π₀.₅ 失败诊断和 OFT 受训包核验。
+
+The model card records the base checkpoint and deployment profile for each released policy. For paired comparisons, keep the seed set, reset protocol and gripper settings aligned.

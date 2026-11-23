@@ -371,13 +371,58 @@
   },
   {
     "path": "course/pickorange/AGENTS.md",
-    "bytes": 5319,
-    "sha256": "e1cb6425928317b78dd24d71f6c6836d4c616672b8fc20ff875b727db8c59188"
+    "bytes": 5632,
+    "sha256": "28a9af4afcc79ed44ad6096e912c67a50961ed043975157a5384dc1b6f538bea"
   },
   {
     "path": "course/pickorange/README.md",
-    "bytes": 16251,
-    "sha256": "897ee7586118af02874be5b4b05458c286ec0486c59866c58b32c8ede0257b03"
+    "bytes": 16162,
+    "sha256": "e012ba586ff90fcc05b2df25e912a6a5b8316b6c36c01e3c7fd15eea64208edf"
+  },
+  {
+    "path": "course/pickorange/act/README.md",
+    "bytes": 7162,
+    "sha256": "c14e4692effa995b0788ffb15afebaec866a1d750a3fb255624a4646e8632386"
+  },
+  {
+    "path": "course/pickorange/act/act_policy.py",
+    "bytes": 3849,
+    "sha256": "299678c91bf0924f74c533df4c7f350db6a905d944440b811d24fe2bc2c388ce"
+  },
+  {
+    "path": "course/pickorange/act/data.py",
+    "bytes": 6061,
+    "sha256": "e10dd38786cb9a805d280e2302961464ee99c86a96fd10bd4631656658ad8c41"
+  },
+  {
+    "path": "course/pickorange/act/ee_command.py",
+    "bytes": 818,
+    "sha256": "9d43b4827deff55ab7682999456df30f3c5c535798dc474f9228f37a1b216429"
+  },
+  {
+    "path": "course/pickorange/act/ee_loss.py",
+    "bytes": 1110,
+    "sha256": "6dd1e783a0dc113d22e3c11184732f925013082b9fe9a3d4cc1ebe6acc7f2f03"
+  },
+  {
+    "path": "course/pickorange/act/ee_policy.py",
+    "bytes": 1039,
+    "sha256": "730b1747cfecd91a7b4922bf1ccd1bd585941f9e14e6bdeb3aca0bb152a5ff5e"
+  },
+  {
+    "path": "course/pickorange/act/residual.py",
+    "bytes": 8808,
+    "sha256": "0028c954de1070cc593c7be916d99726492fd32498a643faa78dcfd502544051"
+  },
+  {
+    "path": "course/pickorange/act/skill_execution.py",
+    "bytes": 1927,
+    "sha256": "0fdd201111361079db7130d182f99cbbb40ed36112298774c450e5b19efd6ac5"
+  },
+  {
+    "path": "course/pickorange/act/train.py",
+    "bytes": 5829,
+    "sha256": "8237b2ee754b4f14dbfed60a46673f8e39f699521f3877ffc81b06d564976388"
   },
   {
     "path": "course/pickorange/audit.py",
@@ -406,8 +451,8 @@
   },
   {
     "path": "course/pickorange/expert/README.md",
-    "bytes": 9137,
-    "sha256": "6dabdca665f5a656bfbce9672dd39db8b82c4e43c6a1193da96f39534412d7fb"
+    "bytes": 9027,
+    "sha256": "0305539a00c791be9e8bf54ed8dad95fae407286eb6ce5b7289b35b3f76772d1"
   },
   {
     "path": "course/pickorange/expert/adaptive_face_teacher.py",

@@ -48,6 +48,7 @@ jobs:
           .local/vla-cpu/bin/python -c "import cv2, numpy, torch, yaml; assert torch.version.cuda is None"
           .local/vla-cpu/bin/python -B -m unittest discover -s tests -p 'test_vla*.py' -v
           .local/vla-cpu/bin/python -B -m unittest discover -s tests -p test_pickorange.py -v
+          .local/vla-cpu/bin/python -B -m unittest discover -s tests -p 'test_pickorange_act*.py' -v
           .local/vla-cpu/bin/python -B -m unittest discover -s tests -p test_pickorange_visual.py -v
           .local/vla-cpu/bin/python -B -m unittest discover -s tests -p test_evo1_service_contracts.py -v
           .local/vla-cpu/bin/python -B -m unittest discover -s tests -p test_scripted_liftcube.py -v

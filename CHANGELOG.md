@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+新增 PickOrange 双相机 qpos 与分段 EE 的 ACT 训练入口，整理关节与末端残差的部署代码，并统一演示、权重和评测导航。
+
+Added ACT training for joint targets and segmented end-effector control, packaged the corresponding residual inference code, and updated the dataset and model guides.
+
 新增 PickOrange Evo-1 双相机推理服务及 30 Hz 实验协议。服务使用配套训练统计及原生处理器，复用评测器和轨迹审核。协议和输入输出已通过 CPU 接口检查，真实任务权重前向与仿真闭环待验。
 
 Add a dual-view PickOrange Evo-1 inference service and an experimental 30 Hz protocol. Use matching training statistics and native processing with the shared evaluator and audit. CPU interface checks passed. Checkpoint inference and simulator rollout are pending.

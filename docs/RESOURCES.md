@@ -6,9 +6,9 @@ PickOrange 自采可使用 [特权state控制脚本](../course/pickorange/expert
 
 Choose a task/backend in the [status matrix](TASKS.md). Git contains integration code, not model/data binaries. Store assets externally and respect each resource's access and redistribution terms.
 
-PickOrange 的 VLA 结果与显存需求见[检验摘要](PICKORANGE_VALIDATION.md)。本项目发布的 ACT 权重及其评测口径见下方模型卡。实验残差、LoRA、Adapter 与 DiT12 权重尚未发布。
+模型仓库提供 qpos 和 EE 的 ACT、配套残差及 GR00T 残差检查点。部署方法见[关节与末端 ACT、残差部署及固定场景评测](../course/pickorange/act/README.md)。
 
-See the [validation summary](PICKORANGE_VALIDATION.md) for PickOrange VLA results and memory requirements. The model card below provides the project's ACT checkpoints and their evaluation protocol. Experimental residual, LoRA, adapter, and DiT12 checkpoints remain unreleased.
+The model repository provides joint and end-effector ACT checkpoints, their residual policies, and GR00T residuals. Each residual specifies its frozen base and execution profile.
 
 ## 专家演示 / Demonstrations
 
@@ -17,15 +17,15 @@ See the [validation summary](PICKORANGE_VALIDATION.md) for PickOrange VLA result
 | LiftCube | [azazdeaz/teleop_so101_leisaac_lift_cube](https://huggingface.co/datasets/azazdeaz/teleop_so101_leisaac_lift_cube/tree/08b442d9cc7db587d811e2ddace3e0a6c22d519e)，17回合、front+wrist、30fps | 六关节顺序、标定/动作单位、视角选择、全回合成功、当前环境重放；当前仅完成元数据/统计核对 / Metadata checks only so far |
 | PickOrange | [LightwheelAI/leisaac-pick-orange](https://huggingface.co/datasets/LightwheelAI/leisaac-pick-orange)，60回合、双RGB、30fps | 下载时固定实际revision；核对重力/辅助、动作、终态与数据划分，不能把episode结束标记当成功 / Pin the dataset revision and audit assistance, labels and outcomes |
 | PickOrange | [Aikwed/pick_orange_joint_limited](https://huggingface.co/datasets/Aikwed/pick_orange_joint_limited)，300 回合、双 RGB、30 Hz | 外部候选。公开数据缺少用于恢复原始场景的初态，当前环境的抽样回放未通过。 / External candidate. The release lacks original scene reset states, and sampled replays in the current environment did not pass. |
-| PickOrange | [本项目采集 / Project-collected demonstrations](https://huggingface.co/datasets/Nole326/LeIsaac-SO101-PickOrange)，控制脚本与 GR00T N1.5 各 100 条 | 均通过动作轨迹独立回放检验。两套数据的动作频率分别为 30 Hz 和 60 Hz，详见[专家演示说明](../course/pickorange/expert/README.md#专家演示数据集--demonstration-datasets)。 / Both passed independent replay. See the expert guide for the two action rates and formats. |
+| PickOrange | [项目演示 / Project demonstrations](https://huggingface.co/datasets/Nole326/LeIsaac-SO101-PickOrange)，每组 100 条 | GR00T qpos 60 Hz、脚本 qpos 30 Hz、GR00T EE 30 Hz。双相机、动作字段和分段见[演示说明](../course/pickorange/expert/README.md#专家演示数据集--demonstration-datasets)。 / Each collection contains 100 replay-verified episodes. |
 
 历史`H2Ozone/lift_cube`动作范围问题属于另一候选数据，详见[状态表](TASKS.md)，不与上面17回合数据混用。外部候选数据仍需经过本项目的数据准入检查。 / External candidates still require project-specific acceptance checks.
 
 ## PickOrange ACT 权重 / PickOrange ACT checkpoints
 
-[PickOrange ACT 模型卡](https://huggingface.co/Nole326/LeIsaac-SO101-PickOrange)提供 ACT-1（动作块 30）与 ACT-2（动作块 15）的双视角权重。两者使用上表中 GR00T N1.5 采集的演示，按双倍间隔训练。模型卡列出访问条件、各检查点目录、归一化参数与固定场景成绩。
+[模型卡](https://huggingface.co/Nole326/LeIsaac-SO101-PickOrange)列出关节与末端 ACT、各残差对应的基座、部署配置及 60 秒和 120 秒整任务成绩。
 
-The [PickOrange ACT model card](https://huggingface.co/Nole326/LeIsaac-SO101-PickOrange) provides dual-view ACT-1 (chunk length 30) and ACT-2 (chunk length 15) checkpoints trained on the GR00T N1.5 demonstrations listed above with stride-two sampling. It documents access, checkpoint paths, normalization, and held-out results.
+The [model card](https://huggingface.co/Nole326/LeIsaac-SO101-PickOrange) lists checkpoints by control mode, the base required by each residual, and whole-task success within 60 and 120 seconds.
 
 ## VLA 模型 / VLA models
 
