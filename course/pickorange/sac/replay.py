@@ -7,16 +7,16 @@ import torch
 
 
 class DeviceReplay:
-    def __init__(self, capacity):
+    def __init__(self, capacity, *, gpu_slots=80000, device="cuda"):
         self.capacity = capacity
         self.records = deque()
         self.obs = {}
         self.refs = {}
         self.serial = 0
         self.slots = capacity + 4
-        self.gpu_slots = min(self.slots, 80000)
+        self.gpu_slots = min(self.slots, gpu_slots)
         self.images = torch.empty(
-            (self.gpu_slots, 2, 3, 96, 128), device="cuda", dtype=torch.uint8
+            (self.gpu_slots, 2, 3, 96, 128), device=device, dtype=torch.uint8
         )
         self.host = torch.empty(
             (self.slots - self.gpu_slots, 2, 3, 96, 128),
@@ -43,7 +43,7 @@ class DeviceReplay:
         rows = [self.records[int(i)] for i in rng.integers(len(self.records), size=n)]
 
         def batch(values):
-            return torch.as_tensor(np.asarray(values), device="cuda")
+            return torch.as_tensor(np.asarray(values), device=self.images.device)
 
         def states(column):
             ids = [row[column] for row in rows]
@@ -53,17 +53,17 @@ class DeviceReplay:
             if not remote.any():
                 images = self.images[batch(slots)]
             elif remote.all():
-                images = self.host[torch.from_numpy(slots - self.gpu_slots)].to("cuda")
+                images = self.host[torch.from_numpy(slots - self.gpu_slots)].to(self.images.device)
             else:
                 images = torch.empty(
-                    (len(ids), *self.images.shape[1:]), device="cuda", dtype=torch.uint8
+                    (len(ids), *self.images.shape[1:]), device=self.images.device, dtype=torch.uint8
                 )
                 images[batch(np.flatnonzero(~remote))] = self.images[
                     batch(slots[~remote])
                 ]
                 images[batch(np.flatnonzero(remote))] = self.host[
                     torch.from_numpy(slots[remote] - self.gpu_slots)
-                ].to("cuda")
+                ].to(self.images.device)
             return images, batch([v[0] for v in values]), batch([v[1] for v in values])
 
         return (

@@ -90,7 +90,7 @@ from course.pickorange.act.ee_policy import EEPolicy
 from course.pickorange.act.residual import EEResidual
 
 act = EEPolicy("models/pickorange/ACT/ACT-2/80k", device="cuda")
-residual = EEResidual("models/pickorange/Residual/Residual-8/56k", device="cuda")
+residual = EEResidual("models/pickorange/Residual/Residual-8/56k", device=act.device, base_control=act.control)
 act.reset_scene()
 residual.reset_scene()
 ee_target, segment_end = act.predict(front_rgb, wrist_rgb, joint_motor)

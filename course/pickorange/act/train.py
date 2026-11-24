@@ -60,7 +60,7 @@ def train(args, data, log_update):
     if data.single:
         from .ee_loss import segmented_loss
 
-        execution.update(skill_end=True, skill_end_encoding="logit")
+        execution["skill_end_encoding"] = "logit"
     data.cache()
     milestones = {10_000, 20_000, 30_000, 40_000, 50_000, 65_000, 80_000, 100_000, 120_000, 160_000, args.updates}
     with ThreadPoolExecutor(max_workers=args.microbatch) as pool:

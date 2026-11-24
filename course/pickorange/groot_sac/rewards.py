@@ -142,16 +142,12 @@ def feedback_reward(feedback, variant):
         for a, b in zip(samples, samples[1:])
     ]
     totals = {key: sum(p[key] for p in parts) for key in parts[0]}
-    # Preserve the learner's finite 60 s episode and action-chunk discount convention.
+    # Time limits retain the next-state value; task termination sets it to zero.
     discount = 0.0 if feedback["terminated"] else 0.99 ** (steps / 16)
     if variant == "hybrid":
-        # User-selected external time-limit truncation retains the continuation
-        # value and next potential. True task termination settles both to zero.
         totals["progress"] = PARAMETERS["progress"] * (
             discount * samples[-1]["potential"] - samples[0]["potential"]
         )
-        # Success wins if success and the time limit coincide.
-        totals["timeout"] = 0.0  # v7: no separate deadline penalty
         totals["total"] = sum(value for key, value in totals.items() if key != "total")
     return totals, discount
 

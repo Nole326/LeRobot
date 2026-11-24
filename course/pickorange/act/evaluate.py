@@ -19,7 +19,7 @@ def run(args):
     policy = None
     if args.residual:
         if ee:
-            policy = EEResidual(args.residual, base.device, args.arm_fraction)
+            policy = EEResidual(args.residual, base.device, args.arm_fraction, base_control=base.control)
         else:
             policy = qpos_controller(base, args.residual, args.arm_fraction)
     args.out.mkdir(parents=True, exist_ok=False)

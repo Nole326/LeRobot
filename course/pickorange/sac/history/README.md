@@ -28,7 +28,7 @@ python -m course.pickorange.sac.history.cohort_sim --outs \
   "$root/residual-edges-count" "$root/residual-edges-hybrid" --headless --enable_cameras
 ```
 
-四组私有阶段结束后，保留各自的输出目录。在另一个终端启动共享池，单独启动采集模型与对应的仿真进程。采集器读取同一父目录下的四份训练存档，每条转移记录两种奖励。
+四组私有阶段结束后，保留各自的输出目录。下面三条命令各占用一个终端。先在模型环境启动共享池，再在另一模型终端启动采集器，最后在仿真环境启动场景。采集器读取同一父目录下的四份训练存档，每条转移记录两种奖励。
 
 ```bash
 python -m course.pickorange.sac.history.pool runs/cohort/replay.sock
@@ -37,7 +37,7 @@ python -m course.pickorange.sac.history.cohort --profile rgb-count --shared-coll
 python -m course.pickorange.sac.history.cohort_sim --outs runs/cohort/collector --headless --enable_cameras
 ```
 
-每个来源累计至少 5,000 条后，在采集目录创建 `stop-request` 空文件，让采集器在回合结束时退出。保持共享池运行，按下面的命令恢复模型，然后重新启动上面的四场景仿真进程。共享池总容量为 500,000，每批一半来自本组，另一半分配给其余三组。训练进程接手写入。回放在内存中，四组私有池的旧转移不随模型存档迁移。
+每个来源累计至少 5,000 条后，在采集目录创建 `stop-request` 空文件，让采集器在回合结束时退出。保持共享池运行，按下面的命令恢复模型。四个输出目录的 `ready.json` 都显示续训的 `start_cursor`（大于零）后，再启动四场景仿真进程。共享池总容量为 500,000，每批一半来自本组，另一半分配给其余三组。训练进程接手写入。回放在内存中，四组私有池的旧转移不随模型存档迁移。
 
 ```bash
 root=runs/cohort
@@ -50,7 +50,7 @@ done
 
 ## Residual-4
 
-[放置归位配置](placement.json)列出随机种子、回放和训练预算。每次场景最多 2,700 个物理步；单次抓放和归位阶段分别最多 1,200 和 270 步。放置触发使用双相机与夹爪观测，物体真值用于训练奖励和评分。预收集 1,024 条，Critic 预热 10,000 次，batch 为 128，回放容量 150,000。双路 128×96 的 uint8 回放图像保存在 GPU 上，仅图像存储约占 10.3 GiB。模型端与仿真端分别运行：
+[放置归位配置](placement.json)列出随机种子、回放和训练预算。每个场景最多 2,700 个物理步；单次抓放和归位阶段分别最多 1,200 和 270 步。放置触发使用双相机与夹爪观测，物体真值用于训练奖励和评分。预收集 1,024 条，Critic 预热 10,000 次，batch 为 128，回放容量 150,000。双路 128×96 的 uint8 回放图像保存在 GPU 上，仅图像存储约占 10.3 GiB。模型端与仿真端分别运行：
 
 ```bash
 python -m course.pickorange.sac.history.skill --base models/pickorange/ACT/ACT-1/100k --updates 100000 --out runs/placement

@@ -68,6 +68,6 @@ python -m course.pickorange.sac.simulate --runs runs/eval-ee --robot-usd "$SO101
 | EE 训练幅度 | Residual-6、7、8 分别以 1、0.5、0.25 训练 | 各取 56k，评测系数 1 保留各自训练上限 |
 | EE 仅部署缩幅 | Residual-6 56k | 同一权重再测 `--arm-fraction 0.25` |
 
-EE 原实验使用同进程的两个场景，完整轨迹策略在第一个槽位，分段策略在第二个槽位。完整轨迹基座可用同一份 EE 数据训练，命令与上面的 EE BC 相同，将模式改为 `ee-full` 并选择其 80k 检查点。重建该布局时，分别启动两个 EE 模型进程，再按原顺序将两个目录传给 `--runs`。单槽位也可运行；物理和渲染调度可能改变逐场结果。
+EE 原实验使用同进程的两个场景，完整轨迹策略在第一个槽位，分段策略在第二个槽位。残差策略使用带段末信号的 ACT-2 80k 基座。第一槽的完整轨迹 ACT 独立执行，可用同一份 EE 数据训练，命令与上面的 EE BC 相同，将模式改为 `ee-full` 并选择其 80k 检查点。重建该布局时，分别启动两个 EE 模型进程，再按原顺序将两个目录传给 `--runs`。单槽位也可运行；物理和渲染调度可能改变逐场结果。
 
 The learner and simulator run in separate Python environments on the same Linux host. The training arm fraction sets the learned bounds. At evaluation the fraction multiplies the stored bounds for the five arm joints only. Use the episode journal for paired comparisons. For the GR00T reward experiment and its feature replay, see the [GR00T guide](../groot_sac/README.md).

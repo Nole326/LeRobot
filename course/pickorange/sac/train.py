@@ -11,7 +11,7 @@ from torch.nn import functional as F
 
 from ..act.act_policy import QposPolicy
 from ..act.ee_policy import EEPolicy
-from ..act.residual import BOUNDS, CENTER, SCALE
+from ..act.residual import BOUNDS, CENTER, SCALE, validate_ee_residual_base
 from ..common import publish
 from . import transport
 from .learner import Learner
@@ -93,6 +93,7 @@ def export(out, learner, bounds, ee):
             action_mode="joint_motor_correction_after_absolute_ee_ik"
             if ee
             else "absolute_joint_motor",
+            base_subfolder="ACT/ACT-2/80k" if ee else "ACT/ACT-1/100k",
             residual_limit_motor=bounds.tolist(),
             deployment_arm_fractions=[0.25, 0.5, 1.0],
             actor_updates=learner.updates,
@@ -109,7 +110,9 @@ def run(args):
     torch.manual_seed(config["seed"])
     rng = np.random.default_rng(config["seed"])
     frozen = (EEPolicy if ee else QposPolicy)(args.base)
-    if frozen.control.get("optimizer_updates") != config["base_updates"]:
+    if ee:
+        validate_ee_residual_base(frozen.control)
+    elif frozen.control.get("optimizer_updates") != config["base_updates"]:
         raise ValueError(
             "ACT checkpoint update count does not match the selected experiment"
         )

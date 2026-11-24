@@ -381,8 +381,8 @@
   },
   {
     "path": "course/pickorange/act/README.md",
-    "bytes": 9676,
-    "sha256": "e86f0237281d6a34f58d2556c9ea07337378ab531935ec05e156ab7d4e29f2f7"
+    "bytes": 9706,
+    "sha256": "f84a54bfc00fc52c86ae557596f158b20314fa2b80917d9676a98365579e9f76"
   },
   {
     "path": "course/pickorange/act/act_policy.py",
@@ -411,8 +411,8 @@
   },
   {
     "path": "course/pickorange/act/evaluate.py",
-    "bytes": 9071,
-    "sha256": "87f86386d15afb30e26727c2754c75dbc137fadab710c97e3e8312077eb96cd8"
+    "bytes": 9098,
+    "sha256": "b5a2f3adc9ef3c096e366b39ff830e6845e9338827bd1893de79e953559db3c3"
   },
   {
     "path": "course/pickorange/act/evaluation_profiles.json",
@@ -426,8 +426,8 @@
   },
   {
     "path": "course/pickorange/act/residual.py",
-    "bytes": 9539,
-    "sha256": "a43b554d506cddd71c0557a68c9122f2fbb3bc7bf398b80ae33ca3eedc732cd4"
+    "bytes": 9917,
+    "sha256": "9f90881e10d4e852fe042390aa21003b1070aaf0e57d394967f6f965ead06765"
   },
   {
     "path": "course/pickorange/act/rgb_residual.py",
@@ -441,8 +441,8 @@
   },
   {
     "path": "course/pickorange/act/train.py",
-    "bytes": 6537,
-    "sha256": "08022b982bf0eccf2faee98f967d2be2d9e4f458acd3d52f0c81c9f0aafe425b"
+    "bytes": 6518,
+    "sha256": "4e89a2335ef25b1eb7d8de3c0e29b1c5618dbc59b55510988c07272b102cc607"
   },
   {
     "path": "course/pickorange/audit.py",
@@ -626,8 +626,8 @@
   },
   {
     "path": "course/pickorange/groot_sac/rewards.py",
-    "bytes": 7399,
-    "sha256": "b3c36930b407043e46c2af50c55ab1cba86613935a784784e2b766e7fcda7d2a"
+    "bytes": 7102,
+    "sha256": "9b10ce24e0eae5c101ba1f805b42ff6f202b87606d9f60f218fe99b7d425dd5f"
   },
   {
     "path": "course/pickorange/groot_sac/sac_core.py",
@@ -676,8 +676,8 @@
   },
   {
     "path": "course/pickorange/sac/README.md",
-    "bytes": 6760,
-    "sha256": "fad26319aded69243892ae1bb9a0821ce08b584b6456caf0624c78661ecaa353"
+    "bytes": 6842,
+    "sha256": "fe3934a34877c66d5371a8102c25b56e4679c2841546b9800756dfc5534dca75"
   },
   {
     "path": "course/pickorange/sac/ee.json",
@@ -686,8 +686,8 @@
   },
   {
     "path": "course/pickorange/sac/history/README.md",
-    "bytes": 5887,
-    "sha256": "d0a04174245224f959a39119b676bd2da18c948e4fe46d7bf721f4f7a25f17f2"
+    "bytes": 6027,
+    "sha256": "fbbe1e9a389fb4b9d32abcc019d2fd898cb8613d8ab16c32292034fbf2270cd2"
   },
   {
     "path": "course/pickorange/sac/history/cohort.py",
@@ -736,13 +736,8 @@
   },
   {
     "path": "course/pickorange/sac/history/skill.py",
-    "bytes": 15689,
-    "sha256": "fdd51eae45219947bc64cefc715814c2ab6c18b833befc874075fc9a2ebf6d1b"
-  },
-  {
-    "path": "course/pickorange/sac/history/skill_replay.py",
-    "bytes": 1970,
-    "sha256": "51a95ddbf96505daff670e6d1dffaa6e45efbaccbd9735b30cac3991a144e955"
+    "bytes": 15708,
+    "sha256": "2cb3d45302b8b7069a587d035db6123f540a6b2c36c3e6e63bf8f31b1012b00c"
   },
   {
     "path": "course/pickorange/sac/history/skill_reward.py",
@@ -776,8 +771,8 @@
   },
   {
     "path": "course/pickorange/sac/replay.py",
-    "bytes": 2971,
-    "sha256": "e22fb00687e805579376727f4225fec46ff66711b7c7304c8a6cb6b41deb0fe0"
+    "bytes": 3058,
+    "sha256": "64af654ffc6e06799b782f0bae3fc5da483b9e477c53b79d7f6a0340b71959ff"
   },
   {
     "path": "course/pickorange/sac/reward.py",
@@ -791,8 +786,8 @@
   },
   {
     "path": "course/pickorange/sac/train.py",
-    "bytes": 12725,
-    "sha256": "4c1ed44a6b83cb4c2c63312367b846b1bd140137658b5130ab16b29a2d6c7089"
+    "bytes": 12887,
+    "sha256": "1c2052ba461e092ca487824135a95fd2d0b7bc4479210cdc17da5dc1a1cb11f7"
   },
   {
     "path": "course/pickorange/sac/transport.py",

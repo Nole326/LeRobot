@@ -126,6 +126,40 @@ class TrainingProfiles(unittest.TestCase):
                 self.assertFalse(torch.equal(actor, model.actor.mean[-1].weight))
                 self.assertEqual((model.updates, model.q_updates), (1, 2))
 
+    @unittest.skipUnless(importlib.util.find_spec("torch") and importlib.util.find_spec("safetensors"), "requires torch and safetensors")
+    def test_ee_residual_requires_segmented_80k_base(self):
+        from course.pickorange.act.residual import validate_ee_residual_base
+        control = dict(mode="absolute_ee_robot_base", optimizer_updates=80000, skill_end=True)
+        validate_ee_residual_base(control)
+        for change in (dict(skill_end=False), dict(optimizer_updates=100000), dict(mode="stride2")):
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                validate_ee_residual_base(control | change)
+
+    @unittest.skipUnless(importlib.util.find_spec("torch"), "requires PyTorch")
+    def test_pixel_replay_storage_preserves_identical_samples_after_wraparound(self):
+        import numpy as np
+        import torch
+        from course.pickorange.sac.replay import DeviceReplay
+
+        # Force host-only, mixed and device-only sampling on a CPU runner.
+        for gpu_slots in (0, 3, 10):
+            replay = DeviceReplay(6, gpu_slots=gpu_slots, device="cpu")
+            numeric = np.zeros(18, dtype=np.float32)
+            previous = None
+            for step in range(15):
+                action = np.full(6, step, dtype=np.float32)
+                current = replay.observe(torch.full((2, 3, 96, 128), step, dtype=torch.uint8), numeric, action)
+                if previous is not None:
+                    replay.append(previous, action, float(step), current, 0.99)
+                previous = current
+            indices = np.random.default_rng(2).integers(6, size=12)
+            before, actions, rewards, after, _ = replay.sample(np.random.default_rng(2), 12)
+            np.testing.assert_array_equal(rewards.numpy(), indices + 9)
+            torch.testing.assert_close(actions[:, 0], rewards)
+            torch.testing.assert_close(after[2][:, 0], rewards)
+            torch.testing.assert_close(before[0][:, 0, 0, 0, 0].float(), rewards - 1)
+            torch.testing.assert_close(after[0][:, 1, 2, 95, 127].float(), rewards)
+
     def test_terminal_score_bands(self):
         row = dict(
             step=0,

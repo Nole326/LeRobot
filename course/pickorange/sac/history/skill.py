@@ -35,7 +35,7 @@ def run(args):
     frozen, stats = (base.model, base.stats)
     mean = torch.tensor([0.485, 0.456, 0.406], device="cuda")[None, :, None, None]
     std = torch.tensor([0.229, 0.224, 0.225], device="cuda")[None, :, None, None]
-    from .skill_replay import DeviceReplay
+    from ..replay import DeviceReplay
     from ..learner import SpatialEncoder
     from .skill_reward import TieredReward
 
@@ -43,7 +43,7 @@ def run(args):
     learner.bound.copy_(torch.as_tensor(BOUNDS / SCALE, device="cuda"))
     capacity = PROFILE["replay_capacity"]
     warmup = PROFILE["critic_warmup"]
-    replay = DeviceReplay(capacity)
+    replay = DeviceReplay(capacity, gpu_slots=capacity + 4)
     out = args.out
     (out / "episodes").mkdir(parents=True)
     first = PROFILE["first_scene_seed"]

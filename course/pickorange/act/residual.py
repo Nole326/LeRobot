@@ -91,6 +91,13 @@ def check_views(front, wrist):
             raise ValueError("Expected two HWC 640 by 480 uint8 RGB images")
 
 
+def validate_ee_residual_base(control):
+    if (control.get("mode"), control.get("optimizer_updates"), control.get("skill_end")) != (
+        "absolute_ee_robot_base", 80000, True
+    ):
+        raise ValueError("EE residuals require the segmented ACT-2 80k base")
+
+
 def checkpoint_config(directory, expected_mode):
     path = Path(directory) / "config.json"
     config = json.loads(path.read_text(encoding="utf-8"))
@@ -174,7 +181,9 @@ def make_policy(frozen, normalization, weights, device="cpu", arm_fraction=0.5, 
 class EEResidual:
     """Apply a learned correction to the EE controller's IK joint target, in motor coordinates."""
 
-    def __init__(self, directory, device="cpu", deployment_arm_fraction=1.0):
+    def __init__(self, directory, device="cpu", deployment_arm_fraction=1.0, *, base_control=None):
+        if base_control is not None:
+            validate_ee_residual_base(base_control)
         directory = Path(directory)
         cfg = checkpoint_config(directory, "joint_motor_correction_after_absolute_ee_ik")
         if deployment_arm_fraction not in cfg["deployment_arm_fractions"]:
