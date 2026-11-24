@@ -17,11 +17,11 @@ Put three oranges on the plate and return the arm to rest. This guide covers the
 | 轨迹/末帧/重放检查 / Trajectory diagnostics | [validate_rollout.py](../course/scripts/validate_rollout.py) |
 | ACT数据桥 / ACT data bridge | [validate_bridge.py](../course/scripts/validate_bridge.py)、[训练诊断说明](TRAINING_VALIDATION.md) |
 
-`course/pickorange/` 提供 GR00T N1.5、N1.6、SmolVLA 与 π₀.₅ 的模型服务、原生辅助评测和 CPU 轨迹审核。OFT 需要匹配的受训包。ACT 任务权重与推理配置见[资源清单](RESOURCES.md#pickorange-act-权重--pickorange-act-checkpoints)。复现 ACT 的固定场景成绩需要对应的 ACT 评测入口，仓库内的 ACT 数据桥用于诊断。各模型的交付范围见[任务对照](TASKS.md)。
+双相机 VLA 服务、原生辅助评测和轨迹审核见 [PickOrange运行指南](../course/pickorange/README.md)。OpenVLA-OFT 的双视角接口需要配套的受训权重。各模型的适配状态见[任务对照](TASKS.md)。
 
-The GR00T N1.5, N1.6, SmolVLA, and π₀.₅ services share the native-assisted evaluator and CPU audit. OFT requires a matching trained package. See the [resource list](RESOURCES.md#pickorange-act-权重--pickorange-act-checkpoints) for ACT task checkpoints and inference settings. Reproducing the held-out ACT results requires the corresponding ACT evaluator. The ACT data bridge in this repository is a diagnostic tool. See the [status matrix](TASKS.md) for integration and validation details.
+The [PickOrange run guide](../course/pickorange/README.md) covers dual-camera VLA services, native-assisted evaluation and trajectory auditing. The OpenVLA-OFT interface requires a matching trained export. See the [task matrix](TASKS.md) for model support.
 
-训练或部署双相机学习策略见[关节与末端 ACT、残差部署及固定场景评测](../course/pickorange/act/README.md)。VLA 任务权重的依赖和原生启动命令见下文。 / See the learned policy guide for ACT and residual policies, and the sections below for native VLA services.
+学习策略的训练、加载及固定场景评测分别见 [ACT](../course/pickorange/act/README.md)、[ACT 残差 SAC](../course/pickorange/sac/README.md) 和 [GR00T 残差 SAC](../course/pickorange/groot_sac/README.md)。 / Follow the corresponding policy guide for training, loading and fixed-seed evaluation.
 
 ## 独立运行环境 / Separate runtime
 
@@ -67,9 +67,9 @@ The base image does not include the PickOrange task or scene assets. Use the lin
 /data/course/validation/     # 诊断产物 / diagnostic outputs
 ```
 
-这是脚本接口路径，不是个人服务器绑定。资产来源见[外部资产清单](../manifests/external_assets.json)；`prepare_assets.py`会下载/解压并写文件，不能当只读检查。`constraints-isaac51.txt`明确记载历史安装冲突，不是可直接复现的环境锁；不要据其文件名推断已安装的Isaac Sim版本。
+将本地目录挂载到上述容器路径。`prepare_assets.py` 下载并解压[外部资产](../manifests/external_assets.json)。历史文件 `constraints-isaac51.txt` 记录安装冲突，运行版本以本页环境表为准。
 
-These are launcher paths, not personal infrastructure. Asset preparation downloads and writes files. The historical `constraints-isaac51.txt` is not an installation lock or evidence of the deployed simulator version.
+Mount local directories at the paths above. Asset preparation downloads and extracts the files in the manifest. The runtime table lists simulator versions. The historical constraints file records dependency conflicts.
 
 ## 观测、动作与评分 / Observation, action and scoring
 
@@ -103,8 +103,8 @@ bash scripts/course_bc_python.sh scripts/validate_bridge.py \
 
 Do not batch-run or import diagnostics as probes: some create applications or files at module scope. Preserve existing fixed-path outputs.
 
-## 补齐任务方法 / Completing the task pipeline
+## 复现策略评测 / Reproducing a policy evaluation
 
-先验收[已整理的GR00T原生辅助入口](../course/pickorange/README.md)，再接其他后端与完整训练流程。模型后端与模拟器依赖分离；数据、任务提示、统计、视角和评分按PickOrange冻结。使用[公共单front包装](VLA_INTERFACES.md)需要显式任务适配，不能把LiftCube配置换成PickOrange名称即运行。权重/演示见[资源清单](RESOURCES.md)，训练见[使用指南](TRAIN_AND_EVALUATE.md)。
+从[资源清单](RESOURCES.md)选择权重，并按[训练与评测指南](TRAIN_AND_EVALUATE.md)启动对应的模型端和仿真端。复现已有成绩时，核对控制模式、双相机顺序、动作频率、夹爪设置、场景种子和时限。残差策略还需匹配冻结基座与部署幅度。
 
-Build the task observation/action/timing boundary and terminal capture first, then reuse model/chunk components in a full-episode runner. Keep model and simulator dependencies separate, with PickOrange-specific data, prompts, normalization and evaluation identities.
+Choose a checkpoint from [Resources](RESOURCES.md) and follow the [training and evaluation guide](TRAIN_AND_EVALUATE.md) for its model and simulator. Match the control mode, camera order, action rate, gripper settings, seeds and time limit to the published evaluation. For residual policies, also match the frozen base and deployment scale.

@@ -17,7 +17,7 @@ Current ACT fixed-scene results and inference settings are maintained with the [
 
 Policies receive dual RGB, measured q6 and task text, not object truth. The upstream gripper-effort helper does use truth, so these are **oracle-actuator-assisted** results. Native physics, limits and full-task success remain unchanged. GR00T and PI05 have different action clocks. Complete-episode audits do not by themselves admit trajectories for BC.
 
-本页成绩来自已关闭并审核的独立实验。仓库中的可移植入口是对应接口的整理版本；后端版本检查及SwanLab收尾修正另做CPU回归，**尚未重新运行修正后代码的GPU整组评测**。不要把历史成绩归到一次未执行的新运行。
+下列成绩来自已完成并审核的逐场记录。后续对后端版本校验和 SwanLab 关闭流程的修改通过了 CPU 回归检查，整组 GPU 评测沿用原实验结果。
 
 Results below come from completed independent runs. The portable source includes CPU-checked backend guards and tracking cleanup fixes; the revised code has not been re-benchmarked on GPU.
 

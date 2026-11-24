@@ -371,13 +371,13 @@
   },
   {
     "path": "course/pickorange/AGENTS.md",
-    "bytes": 5865,
-    "sha256": "219c173add6a07ff4a70c6bc84cd89f7435daba3f74af800b73dc910eda3ac49"
+    "bytes": 5570,
+    "sha256": "f09344215f814cebe633f7b9636cd5337a86734180d740bf0d7975da59438955"
   },
   {
     "path": "course/pickorange/README.md",
-    "bytes": 16231,
-    "sha256": "4b07adbbfb1e698116216c222f8a470bd71b9f9c22364cb5694722a58dcc734c"
+    "bytes": 16346,
+    "sha256": "00c79223abd96414a8931d87c339580f0b100ee4092120d4fc4d23cd417c07bb"
   },
   {
     "path": "course/pickorange/act/README.md",
@@ -856,8 +856,8 @@
   },
   {
     "path": "course/scripts/AGENTS.md",
-    "bytes": 7460,
-    "sha256": "80883e6d722ec8f31cc330071c5cc40c44432186b96a310064579414915e3db5"
+    "bytes": 7411,
+    "sha256": "97c20f4eb6cca4b088176587016f6e78577080c25b6d11cba9c14c18dc73d719"
   },
   {
     "path": "course/scripts/analyze_ee_motion.py",
