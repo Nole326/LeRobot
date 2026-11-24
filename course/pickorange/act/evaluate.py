@@ -4,13 +4,11 @@ import argparse
 import json
 from pathlib import Path
 
-import numpy as np
-
-from ..common import publish
-from ..sac import transport
-
 
 def run(args):
+    import numpy as np
+    from ..common import publish
+    from ..sac import transport
     from .act_policy import QposPolicy
     from .ee_policy import EEPolicy
     from .residual import EEResidual, make_policy
