@@ -21,11 +21,13 @@ python -m course.pickorange.act.train qpos datasets/pickorange/vla-gr00t-qpos/da
 python -m course.pickorange.act.train ee datasets/pickorange/vla-gr00t-ee/dataset.json --output outputs/act-ee
 ```
 
-qpos 从 60 Hz 的偶数记录取观测，以其后第 2、4、…、30 个物理步的动作作为监督。EE 直接使用 30 Hz 记录，从当前记录开始预测，动作块在单颗片段末尾截断并掩码。训练用位置、旋转矩阵前两列和夹爪角度表达运动；另一个输出预测段末。每条整轨包含三个单颗片段，最后两条记录的段末标签为正。
+qpos 从 60 Hz 的偶数记录取观测，以其后第 2、4、…、30 个物理步的动作作为监督。EE 直接使用 30 Hz 记录，从当前记录开始预测，动作块在单颗片段末尾截断并掩码。训练用位置、旋转矩阵前两列和夹爪角度表达运动；另一个输出预测段末。每条完整演示包含三个单颗搬运片段。每个片段的最后两个记录时刻标为段末。
 
-默认有效 batch 为 64，每个 microbatch 为 8，共执行 100k 次优化器更新。主网络和视觉骨干的学习率分别为 0.0001 和 0.00001。输出目录包含损失日志和按更新次数命名的 `checkpoint-<更新次数>/`。每个检查点包含模型配置、权重、归一化统计和执行配置，可直接加载推理。优化器和随机采样状态未保存，训练中断后无法从里程碑原样续训。再次启动训练需指定新的输出目录。可用 `--updates 1 --batch-size 2 --microbatch 1` 验证一次更新及检查点导出。
+默认有效 batch 为 64，每个 microbatch 为 8，共执行 100k 次优化器更新。主网络和视觉骨干的学习率分别为 0.0001 和 0.00001。输出目录包含 `loss.jsonl` 和按更新次数命名的 `checkpoint-<更新次数>/`。每个检查点包含模型配置、权重、归一化统计和执行配置，可直接加载推理。优化器和随机采样状态未保存，训练中断后无法从里程碑原样续训。再次启动训练需指定新的输出目录。可用 `--updates 1 --batch-size 2 --microbatch 1` 验证一次更新及检查点导出。
 
-Training uses the original camera frames, calibrated joint positions and aligned action labels. For qpos, sample every second observation and supervise the next 15 stride-two targets. EE supervision stays inside one single-orange segment. Checkpoints support inference. Exact training resumption would also require the optimizer and random sampling states, which the trainer does not export.
+训练在前 3 次更新、之后每 25 次更新及最后一次更新记录损失。SwanLab 的 `train/loss` 与 `loss.jsonl` 使用相同的优化器更新次数和损失值。默认离线记录，`--check-data` 只检查数据。[SwanLab 配置](../../../docs/SWANLAB.md)
+
+Training uses the original camera frames, calibrated joint positions and aligned action labels. For qpos, sample every second observation and supervise the next 15 stride-two targets. EE supervision stays within each single-orange segment. Its final two observations carry the segment-end label. SwanLab and `loss.jsonl` record the same loss at the same optimizer steps. Data checks do not create a run. Checkpoints support inference. Exact training resumption would also require the optimizer and random sampling states, which the trainer does not export.
 
 ## 部署 / Deployment
 

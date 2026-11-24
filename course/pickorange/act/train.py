@@ -2,7 +2,9 @@
 
 import argparse
 import json
+import sys
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import closing
 from pathlib import Path
 
 import numpy as np
@@ -10,7 +12,7 @@ import numpy as np
 from .data import Episodes, decode
 
 
-def train(args, data):
+def train(args, data, log_update):
     import torch
     from lerobot.configs.types import FeatureType, PolicyFeature
     from lerobot.policies.act.configuration_act import ACTConfig
@@ -57,13 +59,9 @@ def train(args, data):
         from .ee_loss import segmented_loss
 
         execution.update(skill_end=True, skill_end_encoding="logit")
-    args.output.mkdir(parents=True, exist_ok=False)
     data.cache()
     milestones = {10_000, 20_000, 30_000, 40_000, 50_000, 65_000, 80_000, 100_000, args.updates}
-    with (
-        ThreadPoolExecutor(max_workers=args.microbatch) as pool,
-        (args.output / "loss.jsonl").open("w") as metrics,
-    ):
+    with ThreadPoolExecutor(max_workers=args.microbatch) as pool:
         for step in range(1, args.updates + 1):
             samples = data.choose(rng, args.batch_size)
             optimizer.zero_grad(set_to_none=True)
@@ -89,8 +87,7 @@ def train(args, data):
             )
             optimizer.step()
             if step <= 3 or step % 25 == 0 or step == args.updates:
-                metrics.write(json.dumps({"step": step, "loss": total_loss}) + "\n")
-                metrics.flush()
+                log_update(step, total_loss)
             if step in milestones:
                 path = args.output / f"checkpoint-{step}"
                 tmp = path.with_suffix(".partial")
@@ -129,8 +126,27 @@ def main():
             for path in paths:
                 decode(path, len(q), cache=False)
         print(f"{len(data.rows)} episodes, {len(data.intervals)} sampling intervals")
-    else:
-        train(args, data)
+        return
+
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "liftcube/src"))
+    from starter.logging.swanlab import ScalarWriter
+
+    args.output.mkdir(parents=True, exist_ok=False)
+    tracking = {
+        "seed": args.seed,
+        "data": {"batch_size": args.batch_size},
+        "logging": {"dir": str(args.output), "swanlab": {"name": f"pickorange-act-{args.mode}"}},
+    }
+    with (
+        closing(ScalarWriter(tracking, "pickorange-act")) as writer,
+        (args.output / "loss.jsonl").open("x", encoding="utf-8") as metrics,
+    ):
+        def log_update(step, loss):
+            metrics.write(json.dumps({"step": step, "loss": loss}) + "\n")
+            metrics.flush()
+            writer.log({"loss": loss}, step, prefix="train")
+
+        train(args, data, log_update)
 
 
 if __name__ == "__main__":

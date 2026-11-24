@@ -381,8 +381,8 @@
   },
   {
     "path": "course/pickorange/act/README.md",
-    "bytes": 9261,
-    "sha256": "fa2f8b73aec3aade825798417a41ce81cfb8343358f1a79ac424d73ee355e534"
+    "bytes": 9728,
+    "sha256": "d3afc79a27c1f8e2c0c6a4257ba3625653ef622e903a1b58d40fbcac369b3171"
   },
   {
     "path": "course/pickorange/act/act_policy.py",
@@ -421,8 +421,8 @@
   },
   {
     "path": "course/pickorange/act/train.py",
-    "bytes": 5829,
-    "sha256": "8237b2ee754b4f14dbfed60a46673f8e39f699521f3877ffc81b06d564976388"
+    "bytes": 6451,
+    "sha256": "c4c28d6ca87e9ae1fd7b3da7b313d8e7f34e6e69fdda0aee716f7a2d6866cf33"
   },
   {
     "path": "course/pickorange/audit.py",

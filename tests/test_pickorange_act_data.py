@@ -77,6 +77,7 @@ class TestPickOrangeAct(unittest.TestCase):
     def test_segment_boundary_and_encoding(self):
         with tempfile.TemporaryDirectory() as td:
             data = self.dataset(Path(td), "ee")
+            np.testing.assert_array_equal(data.rows[0][1][:, -1], [0, 0, 1, 1, 0, 1, 1, 0, 1, 1])
             _, a, pad, *_ = data.sample((0, 1, 4))
             targets = a * data.astd + data.amu
             np.testing.assert_allclose(targets[:4, 0], [1, 2, 3, 3], atol=1e-6)
