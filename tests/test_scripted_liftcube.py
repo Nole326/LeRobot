@@ -296,6 +296,7 @@ class ScriptedLiftCubeTests(unittest.TestCase):
         np.testing.assert_array_equal(p.act(self.obs(q)), q)
         self.assertIn("below", p.failure_reason)
 
+    @unittest.skipUnless(importlib.util.find_spec("yaml"), "Evaluator requires PyYAML")
     def test_evaluation_hold_native_success_and_terminal_recording(self):
         from starter.scripts.evaluate_scripted import RecordedEnv
         from starter.evaluation.evaluate import run_episode

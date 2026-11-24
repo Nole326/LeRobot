@@ -67,7 +67,7 @@ LiftCube本地数据检查入口见[数据指南](../course/liftcube/TRAINING.md
 
 ## 4. ACT与SmolVLA离线训练 / Offline training
 
-**PickOrange ACT**　在仓库根目录运行 `python -m course.pickorange.act.train`，依次传入控制模式（`qpos` 或 `ee`）和对应的 `dataset.json`。先用 `--check-data` 检查动作标签与双相机视频，再用 `--output` 指定新目录开始训练。里程碑检查点可加载推理；训练器不保存优化器和随机采样状态，中断后无法精确续训。[数据下载、完整命令与部署示例](../course/pickorange/act/README.md)
+**PickOrange ACT**　在仓库根目录运行 `python -m course.pickorange.act.train`，依次传入训练模式和对应的 `dataset.json`。关节目标使用 `qpos`，末端目标按单颗片段或完整轨迹训练时分别使用 `ee` 和 `ee-full`。先用 `--check-data` 核对动作标签与双相机视频，再用 `--output` 指定新目录开始训练。里程碑检查点可加载推理；精确续训还需要优化器和采样状态。[数据下载、完整命令与部署示例](../course/pickorange/act/README.md)
 
 Run the PickOrange ACT module from the repository root with the control mode and matching manifest. Use `--check-data` to validate the demonstrations and `--output` to start a new run. Milestone checkpoints support inference only.
 

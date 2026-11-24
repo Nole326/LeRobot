@@ -32,6 +32,13 @@ python -m course.pickorange.groot_sac.evaluate --model "$GROOT_MODEL" --backend 
 python -m course.pickorange.groot_sac.simulate --mode eval --out runs/groot-eval --robot-usd "$SO101_USD" --headless --enable_cameras
 ```
 
-纯 GR00T 省略 `--weights`。计数 20k、混合 20k 选择对应训练的 milestone 或完整 checkpoint；混合 32k 也可使用[发布的 Actor 权重](https://huggingface.co/Nole326/LeIsaac-SO101-PickOrange/tree/main/VLA/VLA-2/32k)。只加载自己生成或信任的 PyTorch checkpoint。默认同测 731000–731049，按 3,600、7,200 步统计成功。原始逐场记录保存在 `episodes.jsonl`。
+纯 GR00T 省略 `--weights`。评测已发布策略时，将 `ACTOR_WEIGHTS` 指向以下目录中的 `residual_actor.safetensors`。三组都需要同一份 GR00T N1.5 PickOrange 基座。
+
+| 模型 / Model | 训练奖励 / Training reward | 已发布检查点 / Published checkpoints |
+| --- | --- | --- |
+| VLA-1 | 计数 / Count | [12k](https://huggingface.co/Nole326/LeIsaac-SO101-PickOrange/tree/main/VLA/VLA-1/12k) |
+| VLA-2 | 混合 / Hybrid | [12k](https://huggingface.co/Nole326/LeIsaac-SO101-PickOrange/tree/main/VLA/VLA-2/12k)、[32k](https://huggingface.co/Nole326/LeIsaac-SO101-PickOrange/tree/main/VLA/VLA-2/32k) |
+
+复现两组 20k 对照时，分别加载对应训练的里程碑或完整存档。只加载自己生成或信任的 PyTorch 存档。默认使用种子 731000–731049，分别统计 3,600 和 7,200 个物理步内完成任务的场数。逐场记录写入 `episodes.jsonl`。
 
 Each training or evaluation command pairs a model process with the Isaac simulator. The base uses native 16-step execution. The 32k run continues the hybrid 20k experiment with a larger replay. Retain both its numeric feature files and its training checkpoint to resume. Evaluation accepts the released actor without a training replay.
