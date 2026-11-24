@@ -376,13 +376,13 @@
   },
   {
     "path": "course/pickorange/README.md",
-    "bytes": 16162,
-    "sha256": "e012ba586ff90fcc05b2df25e912a6a5b8316b6c36c01e3c7fd15eea64208edf"
+    "bytes": 16334,
+    "sha256": "371cd3fb2f92bfce0e5ac958650e7ee90b639c713b2ebec414963e30d76d03c9"
   },
   {
     "path": "course/pickorange/act/README.md",
-    "bytes": 9728,
-    "sha256": "d3afc79a27c1f8e2c0c6a4257ba3625653ef622e903a1b58d40fbcac369b3171"
+    "bytes": 9906,
+    "sha256": "2e6b8bf45db6c08e04276b17a10fcc86c92c5599c139149cf5989dff2a0dc7b7"
   },
   {
     "path": "course/pickorange/act/act_policy.py",
@@ -391,8 +391,8 @@
   },
   {
     "path": "course/pickorange/act/data.py",
-    "bytes": 6061,
-    "sha256": "e10dd38786cb9a805d280e2302961464ee99c86a96fd10bd4631656658ad8c41"
+    "bytes": 6242,
+    "sha256": "ef2d01b7ca8d1d0ff9431bebe7a452cbcfd463ebd6d4e460a4e102b541f2ecde"
   },
   {
     "path": "course/pickorange/act/ee_command.py",
@@ -410,6 +410,11 @@
     "sha256": "730b1747cfecd91a7b4922bf1ccd1bd585941f9e14e6bdeb3aca0bb152a5ff5e"
   },
   {
+    "path": "course/pickorange/act/evaluate.py",
+    "bytes": 4864,
+    "sha256": "452d8add6b8cb3ff8f5752cf783b014f9ad6aa9cd29740db2687f3e9c185ffed"
+  },
+  {
     "path": "course/pickorange/act/residual.py",
     "bytes": 9218,
     "sha256": "523eb8d0525691919ec2fdf89eab6199b234c4ab80f0d5e1f002061ba4716abf"
@@ -421,8 +426,8 @@
   },
   {
     "path": "course/pickorange/act/train.py",
-    "bytes": 6451,
-    "sha256": "c4c28d6ca87e9ae1fd7b3da7b313d8e7f34e6e69fdda0aee716f7a2d6866cf33"
+    "bytes": 6537,
+    "sha256": "08022b982bf0eccf2faee98f967d2be2d9e4f458acd3d52f0c81c9f0aafe425b"
   },
   {
     "path": "course/pickorange/audit.py",
@@ -441,8 +446,8 @@
   },
   {
     "path": "course/pickorange/evaluate.py",
-    "bytes": 17965,
-    "sha256": "2f9a899fb7fbbdfe1949f13ad6919645c43718094b85ae456cba84cc79a39193"
+    "bytes": 18146,
+    "sha256": "79ebd34dd3645d36d5afe9fd8b8792965e9b4bf0595079c06eac7e403210bf89"
   },
   {
     "path": "course/pickorange/expert/.gitignore",
@@ -516,8 +521,8 @@
   },
   {
     "path": "course/pickorange/expert/geometric_teacher.py",
-    "bytes": 16290,
-    "sha256": "7f2c775e1c8ffeb6a9de50b4970c3dc75b2d82ccb0431acdd88e72e0017f0eed"
+    "bytes": 16371,
+    "sha256": "8550f8782699d33c2d13952ec9092a36a65eda1bc4008102073324ee49e00969"
   },
   {
     "path": "course/pickorange/expert/grasp_quality.py",
@@ -527,7 +532,7 @@
   {
     "path": "course/pickorange/expert/integrity.json",
     "bytes": 1738,
-    "sha256": "13407e68097c0286ff8573eed9d2c3121bdc7ffccf7444db9462ac3c11a96a4f"
+    "sha256": "4a30daf57710bec5849bd13246c5ee83a731d6a1a02f794605bc27a56a4ebfa1"
   },
   {
     "path": "course/pickorange/expert/joint_contract.py",
@@ -590,6 +595,41 @@
     "sha256": "dec9f96b0a59f4212baf41cc67e21a433b1f12f637182876aae5a6d58f9d604c"
   },
   {
+    "path": "course/pickorange/groot_sac/README.md",
+    "bytes": 3459,
+    "sha256": "2f652b4e536997c66e91fa28a416e35fb8fd45351a51fa4cbd0e07afd3aff9d5"
+  },
+  {
+    "path": "course/pickorange/groot_sac/evaluate.py",
+    "bytes": 6108,
+    "sha256": "3c30d671fe24c631537b49b18c1d5b70368d9dfe5be41d06c2f191627bc5b847"
+  },
+  {
+    "path": "course/pickorange/groot_sac/memory_rgb.py",
+    "bytes": 3341,
+    "sha256": "555f1fdfd16450d6fdf1ea01fb0b99bd6dec9d250ab457bb0d2807f5ec709753"
+  },
+  {
+    "path": "course/pickorange/groot_sac/rewards.py",
+    "bytes": 7399,
+    "sha256": "b3c36930b407043e46c2af50c55ab1cba86613935a784784e2b766e7fcda7d2a"
+  },
+  {
+    "path": "course/pickorange/groot_sac/sac_core.py",
+    "bytes": 12121,
+    "sha256": "68e63ed31fd634c87043de7a2e840168a2e3f9b22d2b24a253908ae01ca3b6d5"
+  },
+  {
+    "path": "course/pickorange/groot_sac/simulate.py",
+    "bytes": 14515,
+    "sha256": "bd7a9d4c4e1c2de075c04265585d9ccef305e7c01ee8c95bc258bbfadacc8517"
+  },
+  {
+    "path": "course/pickorange/groot_sac/train.py",
+    "bytes": 21981,
+    "sha256": "cf825e3b9f13b10f3ff626b0a22f0e9fbe86eb13e4099fd0226492d58d3b1fc5"
+  },
+  {
     "path": "course/pickorange/openvla_oft.py",
     "bytes": 6201,
     "sha256": "0a4201591828e0b0a77bb096cbaa9fcfe98f750f2fdb2ff17bfa92727ac2d56a"
@@ -620,9 +660,59 @@
     "sha256": "afcb5c38dcc885c901300dd43c51ff49df0709a144e1a9c456e3c494ad8f3b9b"
   },
   {
+    "path": "course/pickorange/sac/README.md",
+    "bytes": 6065,
+    "sha256": "4d88ac9042a9067a80f48d13558a446ec73175c133c6491509971f9bbc793368"
+  },
+  {
+    "path": "course/pickorange/sac/ee.json",
+    "bytes": 315,
+    "sha256": "04c9c8e39fd9e2933dd112dae12c480920ad2f73c930a09e92e743091f2aa31c"
+  },
+  {
+    "path": "course/pickorange/sac/ik.py",
+    "bytes": 1308,
+    "sha256": "595931e3cca72d43593f2ed5a95f490420e039d10304db50fe860a076773eb5f"
+  },
+  {
+    "path": "course/pickorange/sac/learner.py",
+    "bytes": 9849,
+    "sha256": "15b6c189c52ef6ed336bce296362384622ec516b6613a0444ecf343c3d3b42eb"
+  },
+  {
+    "path": "course/pickorange/sac/qpos.json",
+    "bytes": 321,
+    "sha256": "46b8ad41fd714bdc1e5579e10ce7174c0fe063c28d05c69db4392930d33e8dc8"
+  },
+  {
+    "path": "course/pickorange/sac/replay.py",
+    "bytes": 2971,
+    "sha256": "e22fb00687e805579376727f4225fec46ff66711b7c7304c8a6cb6b41deb0fe0"
+  },
+  {
+    "path": "course/pickorange/sac/reward.py",
+    "bytes": 8462,
+    "sha256": "7a1e84b8ddb1e007100b5f62b499df1a9b4ec35e5f0146550db139420c1574c3"
+  },
+  {
+    "path": "course/pickorange/sac/simulate.py",
+    "bytes": 13454,
+    "sha256": "809b07dba98644e96313fac591d45bdb2dd32d306e8c3ce72b8999a33f628a0d"
+  },
+  {
+    "path": "course/pickorange/sac/train.py",
+    "bytes": 12455,
+    "sha256": "9f0256f6b822ef36d2febce936a60bd23fd03f5659816288809b5e1fd2ebdefa"
+  },
+  {
+    "path": "course/pickorange/sac/transport.py",
+    "bytes": 3010,
+    "sha256": "fa744e1f642c148e374829dcca279a0bcd10465e3c7f57d63852106ae7af9959"
+  },
+  {
     "path": "course/pickorange/service.py",
-    "bytes": 5852,
-    "sha256": "d2e79cdb750725256aaf963a676283ebb5cfb9a478ec38a3b047a60f838f470a"
+    "bytes": 6046,
+    "sha256": "b62788ec639e63fbb0b91e0c1347ab6579543f23154fd26d2720134a30dcdd49"
   },
   {
     "path": "course/pickorange/service_evo1.py",

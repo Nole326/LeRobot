@@ -17,7 +17,11 @@ import traceback
 
 import numpy as np
 
-from common import (DEFAULT_PROTOCOL, close_resources, load_protocol, publish, rng_state,
+if __package__:
+    from .common import (DEFAULT_PROTOCOL, close_resources, load_protocol, publish, rng_state,
+                    save_arrays, sha256, timing, wait_file)
+else:
+    from common import (DEFAULT_PROTOCOL, close_resources, load_protocol, publish, rng_state,
                     save_arrays, sha256, timing, wait_file)
 
 

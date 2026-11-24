@@ -8,7 +8,11 @@ import traceback
 
 import numpy as np
 
-from common import (BACKEND_REVISION, DEFAULT_PROTOCOL, load_protocol, predict_groot,
+if __package__:
+    from .common import (BACKEND_REVISION, DEFAULT_PROTOCOL, load_protocol, predict_groot,
+                    publish, rng_state, save_arrays, sha256, verify_backend)
+else:
+    from common import (BACKEND_REVISION, DEFAULT_PROTOCOL, load_protocol, predict_groot,
                     publish, rng_state, save_arrays, sha256, verify_backend)
 
 

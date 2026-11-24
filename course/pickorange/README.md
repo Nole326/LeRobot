@@ -1,5 +1,7 @@
 # PickOrange：模型评测与控制脚本采集
 
+PickOrange 在线训练与固定场景评测 / Online training and fixed-seed evaluation · [ACT residual SAC](sac/README.md) · [GR00T residual SAC](groot_sac/README.md)
+
 本目录提供 PickOrange 模型评测、视觉规则评测和控制脚本采集入口。环境安装与资产见[环境指南](../../docs/PICK_ORANGE.md)，模型和演示见[资源清单](../../docs/RESOURCES.md)，LiftCube 入口见[任务指南](../liftcube/README.md)。
 
 This directory contains the PickOrange model evaluation, visual-rule evaluation and demonstration collection entry points. Use the PickOrange runtime and task-specific input and action contracts.

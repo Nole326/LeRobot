@@ -1,5 +1,7 @@
 # PickOrange 双相机 ACT 与残差策略
 
+PickOrange 在线训练与固定场景评测 / Online training and fixed-seed evaluation · [ACT residual SAC](../sac/README.md) · [GR00T residual SAC](../groot_sac/README.md)
+
 [模型卡与固定场景成绩](https://huggingface.co/Nole326/LeIsaac-SO101-PickOrange) · [原始演示](https://huggingface.co/datasets/Nole326/LeIsaac-SO101-PickOrange) · [仿真与规则基线](../README.md)
 
 部署观测为前视和腕部两路 640×480 的 RGB 图像（HWC、uint8）及六维实测关节位置（SO-101 标定电机坐标）。物理仿真为 60 Hz。策略每两步接收一次新观测，预测 15 步动作块，按系数 0.001 做时间聚合，当前目标保持两个物理步。

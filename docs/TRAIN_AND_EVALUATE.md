@@ -1,5 +1,7 @@
 # 按任务训练与评测 / Train and evaluate by task
 
+PickOrange 在线训练与固定场景评测 / Online training and fixed-seed evaluation · [ACT residual SAC](../course/pickorange/sac/README.md) · [GR00T residual SAC](../course/pickorange/groot_sac/README.md)
+
 PickOrange 任务 BC 的自采入口见 [控制脚本与动作轨迹独立回放检验](../course/pickorange/expert/README.md)。只有控制脚本执行与原生回放检验均成功、同步双相机和标签校验通过的轨迹才入集。控制执行、回放检验和采集流程已完成仿真联合验证。使用[已发布演示](RESOURCES.md#专家演示--demonstrations)时，按控制模式选择原始归档和动作频率。学习策略训练与部署见[关节与末端 ACT、残差部署及固定场景评测](../course/pickorange/act/README.md)。
 
 For PickOrange BC, use the control script and independent trajectory replay verification to collect demonstrations. The controller, replay, and collection workflow have been validated together in simulation. Check recording and action rates when using the linked published demonstrations.
