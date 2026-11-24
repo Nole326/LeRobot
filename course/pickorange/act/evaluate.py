@@ -11,7 +11,8 @@ def run(args):
     from ..sac import transport
     from .act_policy import QposPolicy
     from .ee_policy import EEPolicy
-    from .residual import EEResidual, make_policy
+    from .residual import EEResidual
+    from .historical_policy import qpos_controller
 
     ee = args.mode == "ee"
     base = (EEPolicy if ee else QposPolicy)(args.base)
@@ -20,13 +21,7 @@ def run(args):
         if ee:
             policy = EEResidual(args.residual, base.device, args.arm_fraction)
         else:
-            policy = make_policy(
-                base.model,
-                base.stats,
-                args.residual / "model.safetensors",
-                base.device,
-                args.arm_fraction,
-            )
+            policy = qpos_controller(base, args.residual, args.arm_fraction)
     args.out.mkdir(parents=True, exist_ok=False)
     seeds = range(args.first_seed, args.first_seed + args.episodes)
     with transport.listener(args.out) as server:
@@ -38,11 +33,23 @@ def run(args):
                 physics_limit=7200,
                 first_scene_seed=seeds.start,
                 arm_fraction=1.0,
+                deployment_multiplier=args.arm_fraction,
+                profile=args.profile,
+                gripper_effort=args.gripper_effort,
+                synchronized_reset=args.synchronized_reset,
+                required_slots=args.required_slots,
+                check_actions=args.check_actions,
             ),
         )
         peer, _ = server.accept()
         rows = []
-        with peer, (args.out / "episodes.jsonl").open("x", buffering=1) as journal:
+        with (
+            peer,
+            (
+                args.out
+                / ("action-check.jsonl" if args.check_actions else "episodes.jsonl")
+            ).open("x", buffering=1) as journal,
+        ):
             peer.settimeout(900)
             query = 0
             for seed in seeds:
@@ -82,6 +89,17 @@ def run(args):
                         raise ValueError("Out-of-order simulation response")
                     query += 1
                     steps += reply["steps"]
+                    if args.check_actions:
+                        if not np.isfinite(action).all():
+                            raise ValueError("Nonfinite policy action")
+                        journal.write(
+                            json.dumps(
+                                dict(seed=seed, steps=steps, action=action.tolist())
+                            )
+                            + "\n"
+                        )
+                        if reply.get("check_complete") or reply["done"]:
+                            break
                     if reply["done"]:
                         success = reply["native_success"]
                         row = dict(
@@ -94,6 +112,12 @@ def run(args):
                         rows.append(row)
                         break
             transport.send_feedback(peer, {"stop": True})
+    if args.check_actions:
+        publish(
+            args.out / "action-check.json",
+            dict(profile=args.profile, decisions=query, steps=steps),
+        )
+        return
     publish(
         args.out / "result.json",
         dict(
@@ -119,12 +143,34 @@ def main():
     parser.add_argument("--arm-fraction", type=float, choices=(0, 0.25, 0.5, 1))
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--episodes", type=int, default=50)
+    parser.add_argument(
+        "--check-actions",
+        type=int,
+        help="Check the first N decisions of one scene without scoring it",
+    )
     parser.add_argument("--first-seed", type=int, default=731000)
+    parser.add_argument("--gripper-effort", choices=("dynamic", "fixed-10Nm"))
+    parser.add_argument(
+        "--synchronized-reset", action=argparse.BooleanOptionalAction, default=None
+    )
+    parser.add_argument("--required-slots", type=int)
     args = parser.parse_args()
+    if args.check_actions is not None:
+        if args.check_actions < 1:
+            parser.error("Action check count must be positive")
+        args.episodes = 1
     if args.profile:
         if any(
             value is not None
-            for value in (args.mode, args.base, args.residual, args.arm_fraction)
+            for value in (
+                args.mode,
+                args.base,
+                args.residual,
+                args.arm_fraction,
+                args.gripper_effort,
+                args.synchronized_reset,
+                args.required_slots,
+            )
         ):
             parser.error("Choose a named profile or supply individual policy settings")
         profile = profiles[args.profile]
@@ -134,10 +180,39 @@ def main():
             args.model_root / profile["residual"] if "residual" in profile else None
         )
         args.arm_fraction = profile.get("deployment_multiplier", 1)
+        args.gripper_effort = profile.get("gripper_effort", "dynamic")
+        args.synchronized_reset = profile.get("synchronized_reset", args.mode == "ee")
+        args.required_slots = profile.get("required_slots")
     if args.mode is None or args.base is None:
         parser.error("Specify --profile or supply mode and --base")
     if args.arm_fraction is None:
         args.arm_fraction = 1
+    if args.residual and not args.profile:
+        config = json.loads((args.residual / "config.json").read_text(encoding="utf8"))
+        protocol = config.get("evaluation", {})
+        if args.gripper_effort is None:
+            args.gripper_effort = (
+                "fixed-10Nm"
+                if protocol.get("fixed_gripper_effort_nm") == 10
+                or protocol.get("gripper_effort") == "fixed_10_Nm"
+                else "dynamic"
+            )
+        if args.synchronized_reset is None:
+            args.synchronized_reset = protocol.get(
+                "synchronized_reset",
+                protocol.get("protocol") == "synchronized_reset" or args.mode == "ee",
+            )
+        if args.required_slots is None:
+            args.required_slots = protocol.get(
+                "num_envs",
+                1 if protocol.get("protocol") == "independent_single_scene" else None,
+            )
+    if args.gripper_effort is None:
+        args.gripper_effort = "dynamic"
+    if args.synchronized_reset is None:
+        args.synchronized_reset = args.mode == "ee"
+    if args.required_slots is not None and args.required_slots < 1:
+        parser.error("Scene count must be positive")
     if args.episodes < 1 or (not args.residual and args.arm_fraction != 1):
         parser.error(
             "Specify a positive episode count and a residual checkpoint for scaling"

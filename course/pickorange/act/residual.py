@@ -100,9 +100,14 @@ def checkpoint_config(directory, expected_mode):
     return config
 
 
-def make_policy(frozen, normalization, weights, device="cpu", arm_fraction=0.5):
+def make_policy(frozen, normalization, weights, device="cpu", arm_fraction=0.5, *, placement=False):
     """Attach the residual to a loaded ACT-1 100k policy. Returns a per-episode controller."""
-    checkpoint_config(Path(weights).parent, "absolute_joint_motor")
+    if placement:
+        cfg = json.loads(Path(weights).with_name("config.json").read_text(encoding="utf8"))
+        if cfg.get("model") != "Residual-4" or cfg.get("encoder") != "dual_rgb_resblocks":
+            raise ValueError("Expected a Residual-4 placement controller checkpoint")
+    else:
+        checkpoint_config(Path(weights).parent, "absolute_joint_motor")
     if arm_fraction not in (0.0, 0.25, 0.5, 1.0):
         raise ValueError("Expected an arm fraction of 0.0, 0.25, 0.5, or 1.0")
     frozen = frozen.to(device).eval().requires_grad_(False)

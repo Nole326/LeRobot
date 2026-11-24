@@ -53,6 +53,79 @@ class TrainingProfiles(unittest.TestCase):
                 )
                 self.assertEqual((args.first_seed, args.episodes), (731000, 50))
 
+    def test_historical_evaluation_protocols(self):
+        from unittest.mock import patch
+        from course.pickorange.act import evaluate
+
+        for profile, base, synced, effort, slots in (
+            ("Residual-1-24k", "80k", True, "dynamic", None),
+            ("Residual-2-24k", "80k", True, "dynamic", None),
+            ("Residual-3-26k", "80k", False, "dynamic", 1),
+            ("Residual-4-100k", "100k", True, "fixed-10Nm", 1),
+            ("Residual-5-90k-full", "100k", True, "fixed-10Nm", 2),
+        ):
+            with (
+                self.subTest(profile=profile),
+                patch.object(evaluate, "run") as run,
+                patch(
+                    "sys.argv", ["evaluate", "--profile", profile, "--out", "result"]
+                ),
+            ):
+                evaluate.main()
+                args = run.call_args.args[0]
+                self.assertEqual(
+                    (
+                        args.base.name,
+                        args.synchronized_reset,
+                        args.gripper_effort,
+                        args.required_slots,
+                        args.arm_fraction,
+                    ),
+                    (base, synced, effort, slots, 1),
+                )
+
+    @unittest.skipUnless(
+        importlib.util.find_spec("torch") and importlib.util.find_spec("safetensors"),
+        "requires torch and safetensors",
+    )
+    def test_historical_critic_warmup_and_joint_update(self):
+        import torch
+        from course.pickorange.sac.history.learner import Learner
+        from course.pickorange.sac.learner import SpatialEncoder
+
+        with torch.random.fork_rng(devices=[]):
+            for edge, placement in ((False, False), (True, False), (False, True)):
+                torch.manual_seed(1704)
+                model = Learner(
+                    edge_aware=edge,
+                    vectorized_augment=True,
+                    encoder=SpatialEncoder() if placement else None,
+                    device="cpu",
+                )
+                h, w = (96, 128) if placement else (120, 160)
+                obs = (
+                    torch.randint(256, (2, 2, 3, h, w), dtype=torch.uint8),
+                    torch.zeros(2, 18),
+                    torch.zeros(2, 6),
+                )
+                batch = (
+                    obs,
+                    torch.zeros(2, 6),
+                    torch.ones(2),
+                    obs,
+                    torch.full((2,), 0.99),
+                )
+                actor = model.actor.mean[-1].weight.detach().clone()
+                critic = model.q.heads[0].network[-1].weight.detach().clone()
+                model.update(batch, critic_only=True, fixed_base_target=True)
+                self.assertTrue(torch.equal(actor, model.actor.mean[-1].weight))
+                self.assertFalse(
+                    torch.equal(critic, model.q.heads[0].network[-1].weight)
+                )
+                model.update(batch)
+                self.assertFalse(torch.equal(actor, model.actor.mean[-1].weight))
+                self.assertEqual((model.updates, model.q_updates), (1, 2))
+
     def test_terminal_score_bands(self):
         row = dict(
             step=0,

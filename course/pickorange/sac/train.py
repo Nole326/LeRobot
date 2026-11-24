@@ -39,7 +39,7 @@ def configuration(args):
         )
     if args.limit is not None:
         config["physics_limit"] = args.limit
-    if config["physics_limit"] not in ((800,) if ee else (600, 800, 1000)):
+    if config["physics_limit"] not in ((800,) if ee else (400, 600, 800, 1000)):
         raise ValueError("Unknown training horizon for this base")
     if args.smoke:
         config.update(
@@ -187,7 +187,14 @@ def run(args):
                 seed = config["first_scene_seed"] + counts["scenes"]
                 torch.manual_seed(seed)
                 frozen.reset_scene()
-                transport.send_feedback(peer, {"seed": seed})
+                scene_limit = (
+                    700
+                    if rebuilding and config["physics_limit"] == 400
+                    else config["physics_limit"]
+                )
+                transport.send_feedback(
+                    peer, {"seed": seed, "physics_limit": scene_limit}
+                )
                 last_q = pending = None
                 previous_action = np.zeros(6, np.float32)
                 scene_steps = 0
@@ -305,7 +312,7 @@ def main():
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--resume", type=Path)
     parser.add_argument("--arm-fraction", type=float, choices=(0.25, 0.5, 1.0))
-    parser.add_argument("--limit", type=int, choices=(600, 800, 1000))
+    parser.add_argument("--limit", type=int, choices=(400, 600, 800, 1000))
     parser.add_argument("--smoke", action="store_true")
     run(parser.parse_args())
 

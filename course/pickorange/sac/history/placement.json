@@ -1,0 +1,22 @@
+{
+  "base_updates": 100000,
+  "seed": 3814,
+  "first_scene_seed": 891000,
+  "scene_count": 10000,
+  "scene_horizon_seconds": 45,
+  "pick_limit": 1200,
+  "return_limit": 270,
+  "residual_motor": [
+    1,
+    1,
+    1,
+    1,
+    0.6,
+    1
+  ],
+  "precollect": 1024,
+  "critic_warmup": 10000,
+  "replay_capacity": 150000,
+  "batch": 128,
+  "actor_updates": 100000
+}

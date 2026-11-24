@@ -135,9 +135,21 @@ def simulate(a):
     ec.terminations.time_out.func = lambda env: env.episode_length_buf >= limits
     ec.episode_length_s = max(c["physics_limit"] for c in ready) / 60
     ec.scene.robot.spawn.rigid_props.disable_gravity = False
-    dynamic = ee or testing
+    dynamic = (
+        ready[0].get("gripper_effort", "dynamic" if ee or testing else "fixed-10Nm")
+        == "dynamic"
+    )
     ec.dynamic_reset_gripper_effort_limit = dynamic
-    sync = ee or not testing
+    sync = ready[0].get("synchronized_reset", ee or not testing)
+    if testing and any(
+        c.get("gripper_effort") != ready[0].get("gripper_effort")
+        or c.get("synchronized_reset") != sync
+        or c.get("required_slots") not in (None, n)
+        for c in ready
+    ):
+        raise ValueError(
+            "Scene count, reset and gripper settings must match the evaluation profiles"
+        )
     if sync:
         configure_front_reset(ec)
     ec.recorders = Recorder()
@@ -198,6 +210,12 @@ def simulate(a):
                     running[i] = False
                     continue
                 seed = seeds[i] = job["seed"]
+                limit = job.get("physics_limit", ready[i]["physics_limit"])
+                if limit != ready[i]["physics_limit"] and not (
+                    not testing and ready[i]["physics_limit"] == 400 and limit == 700
+                ):
+                    raise ValueError("Unexpected episode horizon")
+                limits[i] = limit
                 random.seed(seed)
                 np.random.seed(seed)
                 torch.manual_seed(seed)
@@ -279,7 +297,7 @@ def simulate(a):
                         if testing
                         else ledgers[i].advance(
                             dict(step=counters[i], **row),
-                            counters[i] >= ready[i]["physics_limit"],
+                            counters[i] >= limits[i].item(),
                         )
                     )
                     totals[i] += (0.99 ** (tick / 16)) * sum(parts.values())
@@ -292,6 +310,9 @@ def simulate(a):
                             done=done,
                             discount=0.0 if done else 0.99 ** ((tick + 1) / 16),
                         )
+                        if testing and ready[i].get("check_actions") == query[i] + 1:
+                            feedback["check_complete"] = True
+                            ledgers[i] = None
                         if done:
                             if not testing:
                                 assert bool(terms[i]) == bool(ledgers[i].native)
