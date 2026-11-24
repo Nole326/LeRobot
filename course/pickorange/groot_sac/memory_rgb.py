@@ -71,11 +71,23 @@ def send_observation(out, query, data, timeout=180):
 
 
 def receive_observation(out, query, timeout=180):
+    deadline = time.monotonic() + timeout
+    error = Path(out) / "sim-error.json"
     with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as listener:
-        listener.settimeout(timeout)
         listener.bind(address(out))
         listener.listen(1)
-        peer, _ = listener.accept()
+        while True:
+            if error.exists():
+                raise RuntimeError("Simulator failed; see sim-error.json")
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise TimeoutError("Simulator observation unavailable")
+            listener.settimeout(min(1.0, remaining))
+            try:
+                peer, _ = listener.accept()
+                break
+            except socket.timeout:
+                continue
         with peer:
             peer.settimeout(timeout)
             actual_query, size = HEADER.unpack(read_exact(peer, HEADER.size))

@@ -19,6 +19,76 @@ except ImportError:
 
 @unittest.skipIf(np is None, 'NumPy required')
 class PickOrangeTests(unittest.TestCase):
+    def test_groot_duplicate_workers_leave_the_owner_running(self):
+        from course.pickorange.groot_sac.run_files import run_directory
+
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp) / 'run'
+            with run_directory(out), run_directory(out, simulator=True):
+                for simulator in (False, True):
+                    with self.subTest(simulator=simulator), self.assertRaises(FileExistsError):
+                        with run_directory(out, simulator=simulator):
+                            self.fail('A second process acquired the same role')
+                self.assertEqual({p.name for p in out.iterdir()}, {'simulation.claim'})
+
+    def test_groot_only_the_failed_role_writes_its_error(self):
+        from course.pickorange.groot_sac.run_files import run_directory
+
+        for simulator, marker in ((False, 'model-error.json'), (True, 'sim-error.json')):
+            with self.subTest(simulator=simulator), tempfile.TemporaryDirectory() as tmp:
+                out = Path(tmp) / 'run'
+                if simulator:
+                    out.mkdir()
+                with self.assertRaisesRegex(ValueError, 'initialization failed'):
+                    with run_directory(out, simulator=simulator):
+                        raise ValueError('initialization failed')
+                self.assertIn('initialization failed', json.loads((out / marker).read_text())['traceback'])
+                self.assertEqual(list(out.glob('*-error.json')), [out / marker])
+
+    @unittest.skipUnless(importlib.util.find_spec('torch') and importlib.util.find_spec('safetensors'),
+                         'GR00T model-side CPU dependencies required')
+    def test_groot_training_and_evaluation_preserve_an_existing_run(self):
+        from types import SimpleNamespace
+        from course.pickorange.groot_sac import evaluate, train
+
+        for entry in (train, evaluate):
+            with self.subTest(entry=entry.__name__), tempfile.TemporaryDirectory() as tmp:
+                args = SimpleNamespace(out=Path(tmp) / 'run')
+                with patch.object(entry, 'load_protocol', side_effect=ValueError('bad protocol')) as load:
+                    with self.assertRaisesRegex(ValueError, 'bad protocol'):
+                        entry.run(args)
+                    error = args.out / 'model-error.json'
+                    original = error.read_bytes()
+                    with self.assertRaises(FileExistsError):
+                        entry.run(args)
+                    load.assert_called_once_with()
+                    self.assertEqual(error.read_bytes(), original)
+
+    @unittest.skipUnless(sys.platform.startswith('linux'), 'Uses Linux abstract Unix sockets')
+    def test_groot_observation_wait_detects_peer_failure(self):
+        from course.pickorange.groot_sac.memory_rgb import receive_observation
+
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp)
+            with self.assertRaises(TimeoutError):
+                receive_observation(out, 0, timeout=0.02)
+            (out / 'sim-error.json').write_text('{}')
+            with self.assertRaisesRegex(RuntimeError, 'sim-error.json'):
+                receive_observation(out, 0, timeout=10)
+
+    @unittest.skipUnless(sys.platform.startswith('linux'), 'Uses Linux abstract Unix sockets')
+    def test_groot_observation_round_trip(self):
+        from concurrent.futures import ThreadPoolExecutor
+        from course.pickorange.groot_sac.memory_rgb import receive_observation, send_observation
+
+        data = dict(front=np.zeros((1, 480, 640, 3), np.uint8),
+                    wrist=np.ones((1, 480, 640, 3), np.uint8), joint_motor=np.arange(6)[None])
+        with tempfile.TemporaryDirectory() as tmp, ThreadPoolExecutor(max_workers=1) as pool:
+            result = pool.submit(receive_observation, tmp, 3, 5)
+            send_observation(tmp, 3, data, timeout=5)
+            for name, values in result.result().items():
+                np.testing.assert_array_equal(values, data[name])
+
     def test_protocol_and_check_have_no_simulator_dependency(self):
         from common import load_protocol
         cfg = load_protocol()

@@ -1,6 +1,6 @@
 """Frozen GR00T + spatial visual Residual SAC with asymmetric critics."""
 
-import argparse, hashlib, json, os, random, traceback
+import argparse, hashlib, json, os, random
 from collections import deque
 from pathlib import Path
 import numpy as np
@@ -9,6 +9,7 @@ from torch.nn import functional as F
 from .sac_core import SAC, state
 from .rewards import feedback_reward, VERSION, PARAMETERS
 from .memory_rgb import receive_observation
+from .run_files import run_directory
 
 from ..common import (
     load_protocol,
@@ -127,8 +128,12 @@ class FeatureFile:
 
 
 def run(a):
+    with run_directory(a.out):
+        train(a)
+
+
+def train(a):
     cfg = load_protocol()
-    a.out.mkdir(parents=True, exist_ok=False)
     (a.out / "ipc").mkdir()
     (a.out / "episodes").mkdir()
     cp = a.out / "checkpoints"
@@ -579,9 +584,4 @@ if __name__ == "__main__":
     a = p.parse_args()
     if a.target_updates < 1 or a.replay_capacity < (32 if a.qa else 10000):
         p.error("invalid update or replay budget")
-    try:
-        run(a)
-    except BaseException:
-        if a.out.exists():
-            publish(a.out / "model-error.json", dict(traceback=traceback.format_exc()))
-        raise
+    run(a)

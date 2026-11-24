@@ -616,18 +616,23 @@
   },
   {
     "path": "course/pickorange/groot_sac/evaluate.py",
-    "bytes": 6108,
-    "sha256": "3c30d671fe24c631537b49b18c1d5b70368d9dfe5be41d06c2f191627bc5b847"
+    "bytes": 6171,
+    "sha256": "c81a510eb944fe1d1fe49230cc56a78a70ab6024ede82404d6b9e7177b824de8"
   },
   {
     "path": "course/pickorange/groot_sac/memory_rgb.py",
-    "bytes": 3341,
-    "sha256": "555f1fdfd16450d6fdf1ea01fb0b99bd6dec9d250ab457bb0d2807f5ec709753"
+    "bytes": 3828,
+    "sha256": "4258f80ea43eee1317b5f06ddeaddb8639b0fbe38c031098585cffa5f2db6d40"
   },
   {
     "path": "course/pickorange/groot_sac/rewards.py",
     "bytes": 7102,
     "sha256": "9b10ce24e0eae5c101ba1f805b42ff6f202b87606d9f60f218fe99b7d425dd5f"
+  },
+  {
+    "path": "course/pickorange/groot_sac/run_files.py",
+    "bytes": 548,
+    "sha256": "7756240ec2d5b9a55a6034d36763ec15143bdbf96d4b624e20d23d3b14219ab4"
   },
   {
     "path": "course/pickorange/groot_sac/sac_core.py",
@@ -636,13 +641,13 @@
   },
   {
     "path": "course/pickorange/groot_sac/simulate.py",
-    "bytes": 14515,
-    "sha256": "bd7a9d4c4e1c2de075c04265585d9ccef305e7c01ee8c95bc258bbfadacc8517"
+    "bytes": 14573,
+    "sha256": "1325a8a54eb08b807cb6f25c327fd27257fac222449c58f5aac6b5adb751aece"
   },
   {
     "path": "course/pickorange/groot_sac/train.py",
-    "bytes": 21981,
-    "sha256": "cf825e3b9f13b10f3ff626b0a22f0e9fbe86eb13e4099fd0226492d58d3b1fc5"
+    "bytes": 21857,
+    "sha256": "2bc0264efb29f69e04b8f7fb4f7c5c55a26e971c0e6960bc7042fa4d0b8d8a98"
   },
   {
     "path": "course/pickorange/openvla_oft.py",
