@@ -10,18 +10,19 @@
 
 ## 专家演示数据集 / Demonstration datasets
 
-本项目采集的演示发布在 [LeIsaac SO101 PickOrange 数据集](https://huggingface.co/datasets/Nole326/LeIsaac-SO101-PickOrange)。两套数据均通过动作轨迹独立回放检验，每条包含前视与腕部 RGB 视频、六维实测关节位置、绝对关节目标和时间戳。数据集卡提供下载与读取示例。
+三组演示均通过回放检验，每条轨迹按时间对齐前视 RGB、腕部 RGB、六维关节观测与动作。原始数据的单位、采样频率和读取示例见[数据集卡](https://huggingface.co/datasets/Nole326/LeIsaac-SO101-PickOrange)。
 
-The project datasets passed independent action replay in simulation. Each episode includes front and wrist RGB, six measured joint positions, absolute joint targets, and timestamps. See the dataset card for download and loading examples.
+All three collections passed independent trajectory replay. Each release aligns the front and wrist RGB views with measured joint positions and action labels.
 
-| 来源 / Source | 轨迹数 / Episodes | 记录与动作频率 / Recording and action rate | 使用说明 / Usage |
-| --- | ---: | --- | --- |
-| [特权state控制脚本 / Privileged state control script](https://huggingface.co/datasets/Nole326/LeIsaac-SO101-PickOrange/tree/main/privileged-state-script) | 100 | 30 Hz | 同一目标保持两个物理步。 / Each target is held for two physics steps. |
-| [GR00T N1.5 任务策略 / GR00T N1.5 task policy](https://huggingface.co/datasets/Nole326/LeIsaac-SO101-PickOrange/tree/main/vla-gr00t) | 100 | 60 Hz | 每个物理步执行并记录一个目标。 / One target is applied and recorded per physics step. |
+| 采集来源 / Source | 控制模式 / Control | 轨迹 / Episodes | 记录时刻 / Records | 动作频率 / Rate |
+| --- | --- | ---: | ---: | ---: |
+| [GR00T N1.5](https://huggingface.co/datasets/Nole326/LeIsaac-SO101-PickOrange/blob/main/vla-gr00t-qpos/dataset.json) | qpos | 100 | 59,380 | 60 Hz |
+| [特权 state 控制脚本 / Privileged state control script](https://huggingface.co/datasets/Nole326/LeIsaac-SO101-PickOrange/blob/main/privileged-state-script/dataset.json) | qpos | 100 | 131,741 | 30 Hz |
+| [GR00T N1.5](https://huggingface.co/datasets/Nole326/LeIsaac-SO101-PickOrange/blob/main/vla-gr00t-ee/dataset.json) | EE | 100 | 26,563 | 30 Hz |
 
-两套数据均使用 60 Hz 物理推进和 30 Hz 相机刷新。GR00T 的相邻记录可能共享图像。混合用于 BC 前应对齐动作频率、关节坐标和图像、状态、动作的时间戳。
+物理仿真为 60 Hz，相机为 30 Hz。EE 动作包含基座坐标系下的位置、旋转向量和夹爪角度。末端演示的 300 个单颗片段共用所属轨迹的视频。两种 ACT 如何读取这些数据见[训练指南](../act/README.md)。
 
-Both use 60 Hz physics and 30 Hz camera updates. Consecutive GR00T records can share an image. Before combining the datasets for BC, align action rates, joint coordinates, and image, state, and action timestamps.
+Physics runs at 60 Hz and the cameras refresh at 30 Hz. The EE action specifies a base-frame position, rotation vector and gripper angle. The 300 single-orange segments share their parent episodes’ video streams.
 
 此前调研的外部数据包括 [Lightwheel 官方演示](https://huggingface.co/datasets/LightwheelAI/leisaac-pick-orange)和 [Aikwed 关节限位演示](https://huggingface.co/datasets/Aikwed/pick_orange_joint_limited)。使用前应按当前环境的控制接口和成功条件单独核验，见[资源清单](../../../docs/RESOURCES.md#专家演示--demonstrations)。
 

@@ -21,7 +21,7 @@ Put three oranges on the plate and return the arm to rest. This guide covers the
 
 The GR00T N1.5, N1.6, SmolVLA, and π₀.₅ services share the native-assisted evaluator and CPU audit. OFT requires a matching trained package. See the [resource list](RESOURCES.md#pickorange-act-权重--pickorange-act-checkpoints) for ACT task checkpoints and inference settings. Reproducing the held-out ACT results requires the corresponding ACT evaluator. The ACT data bridge in this repository is a diagnostic tool. See the [status matrix](TASKS.md) for integration and validation details.
 
-模型成绩、Residual SAC配对和RL显存需求见[检验摘要](PICKORANGE_VALIDATION.md)。实验RL训练器与学习参数尚未发布。 / See the validation summary for task results, paired Residual SAC evaluation and memory requirements. Experimental RL trainers and learned artifacts have not been released.
+训练或部署双相机学习策略见[关节与末端 ACT、残差部署及固定场景评测](../course/pickorange/act/README.md)。VLA 任务权重的依赖和原生启动命令见下文。 / See the learned policy guide for ACT and residual policies, and the sections below for native VLA services.
 
 ## 独立运行环境 / Separate runtime
 

@@ -4,7 +4,7 @@
 
 This directory contains the PickOrange model evaluation, visual-rule evaluation and demonstration collection entry points. Use the PickOrange runtime and task-specific input and action contracts.
 
-模型能力、配对RL结果与显存需求见[检验摘要](../../docs/PICKORANGE_VALIDATION.md)。本目录提供推理与评测代码；实验RL训练器和学习参数尚未发布。 / See the validation summary for results and memory requirements. This directory provides inference and evaluation code; experimental RL trainers and learned artifacts have not been released.
+qpos 与 EE 的 ACT 训练、策略加载及残差部署见[学习策略指南](act/README.md)。VLA 与规则评测使用本页各自的协议。 / See the [learned policy guide](act/README.md) for ACT training and residual deployment. VLA and scripted evaluations use the protocols below.
 
 ## 当前入口 / Available entry points
 

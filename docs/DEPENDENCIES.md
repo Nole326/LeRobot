@@ -2,6 +2,12 @@
 
 Choose the task using the [runtime/interface comparison](TASKS.md). LiftCube and PickOrange are current development tracks, not interchangeable installations.
 
+## PickOrange ACT
+
+训练和推理使用 LeRobot 0.4.2、PyTorch 2.7、torchvision 0.22、NumPy 和 safetensors。PyAV 解码原始双相机视频，OpenCV 将 EE 姿态转换为旋转向量。请按 PyTorch 的平台选项安装匹配的 torch/torchvision，再在同一环境中安装 `lerobot==0.4.2`。ACT 训练默认离线记录曲线，需在训练环境安装 `swanlab==0.10.3`。仅保留本地 `loss.jsonl` 时可设置 `LEROBOT_SWANLAB_MODE=disabled`。仿真端使用 LeIsaac 的 SO-101 关节标定。命令和接口见[学习策略指南](../course/pickorange/act/README.md)。
+
+Training and inference run in the LeRobot policy environment. PyAV reads the camera streams, and OpenCV decodes the EE orientation. Install `swanlab==0.10.3` for offline or online training curves. Set `LEROBOT_SWANLAB_MODE=disabled` to keep only the local loss log. The simulator provides robot kinematics and motor calibration.
+
 ## Current LiftCube runtime
 
 LiftCube uses the separately distributed `isaac-lab:4.5.0-v2.1.1-leisaac-v0.1.2-src` image: Isaac Sim 4.5.0, Isaac Lab v2.1.1 and LeIsaac v0.1.2. Obtain it through the [image guide](../course/liftcube/README.md#运行环境--runtime), which includes the SJTU share link and image acquisition instructions. Preserve its bundled Torch/CUDA and source paths; the historical snapshots below are not a replacement for this runtime. PyArrow/PyAV are optional dataset-reading dependencies that may need a compatible install inside the application environment.

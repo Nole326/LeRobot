@@ -10,7 +10,7 @@ import sys
 import tempfile
 from types import SimpleNamespace
 import unittest
-from unittest.mock import patch
+from unittest.mock import call, patch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "course/liftcube/src"))
@@ -108,6 +108,40 @@ class SwanLabTests(unittest.TestCase):
         writer.close()
         self.assertFalse(self.sdk.calls)
         self.assertFalse(list(Path(self.temp.name).iterdir()))
+
+    @unittest.skipUnless(importlib.util.find_spec("numpy"), "ACT data loading requires NumPy")
+    def test_pickorange_act_logs_optimizer_steps_and_keeps_local_loss(self):
+        from course.pickorange.act import train
+
+        def two_updates(args, data, log_update):
+            log_update(1, 0.75)
+            log_update(2, 0.5)
+
+        output = Path(self.temp.name) / "act"
+        argv = ["train", "qpos", "dataset.json", "--output", str(output)]
+        with patch.object(sys, "argv", argv), patch.object(sys, "path", sys.path.copy()), \
+                patch.object(train, "Episodes"), patch.object(train, "train", two_updates):
+            train.main()
+        rows = [json.loads(line) for line in (output / "loss.jsonl").read_text().splitlines()]
+        self.assertEqual(rows, [{"step": 1, "loss": 0.75}, {"step": 2, "loss": 0.5}])
+        self.assertEqual(self.sdk.points, [(row["step"], {"train/loss": row["loss"]}) for row in rows])
+        self.assertEqual(self.sdk.finishes, [{}])
+
+    @unittest.skipUnless(importlib.util.find_spec("numpy"), "ACT data loading requires NumPy")
+    def test_pickorange_act_check_data_decodes_without_starting_tracking(self):
+        from course.pickorange.act import train
+
+        output = Path(self.temp.name) / "check"
+        argv = ["train", "ee", "dataset.json", "--check-data", "--output", str(output)]
+        episode = SimpleNamespace(rows=[(range(4), None, ("front.mkv", "wrist.mkv"))], intervals=[1])
+        with patch.object(sys, "argv", argv), patch.object(train, "Episodes", return_value=episode), \
+                patch.object(train, "decode") as decode, patch.object(train, "train") as optimize:
+            train.main()
+        self.assertEqual(decode.call_args_list, [call("front.mkv", 4, cache=False),
+                                                call("wrist.mkv", 4, cache=False)])
+        optimize.assert_not_called()
+        self.assertFalse(self.sdk.calls)
+        self.assertFalse(output.exists())
 
     def test_online_requires_project_and_never_replaces_active_run(self):
         with patch.dict(os.environ, LEROBOT_SWANLAB_MODE="online"):
