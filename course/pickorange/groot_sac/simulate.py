@@ -6,10 +6,10 @@ from pathlib import Path
 import random
 import shutil
 import time
-import traceback
 
 import numpy as np
 from .memory_rgb import send_observation
+from .run_files import run_directory
 from .rewards import geometry, feedback_reward, VARIANTS, fixed_tcp, PARAMETERS
 
 from ..common import load_protocol, publish, rng_state, sha256, wait_file
@@ -29,21 +29,23 @@ def main():
     AppLauncher.add_app_launcher_args(p)
     a = p.parse_args()
     out = a.out
+    wait_file(out / "ready.json", 900, out / "model-error.json")
+    ready = json.loads((out / "ready.json").read_text())
+    cfg = load_protocol()
+    if ready["mode"] != a.mode or ready["protocol"] != cfg or ready["gamma"] != GAMMA:
+        raise ValueError("Simulator mode or protocol differs from the model run")
+    with run_directory(out, simulator=True):
+        simulate(a, ready, cfg, AppLauncher)
+
+
+def simulate(a, ready, cfg, app_launcher):
+    out = a.out
     train = a.mode == "train"
     app = env = None
     try:
-        wait_file(out / "ready.json", 900, out / "model-error.json")
-        ready = json.loads((out / "ready.json").read_text())
         variant = ready["reward_variant"]
         assert variant in VARIANTS
-        cfg = load_protocol()
-        assert (
-            cfg == ready["protocol"]
-            and ready["mode"] == a.mode
-            and ready["gamma"] == GAMMA
-        )
-        (out / "simulation.claim").open("x").close()
-        app = AppLauncher(a).app
+        app = app_launcher(a).app
         import gymnasium as gym
         import torch
         import leisaac.tasks  # noqa: F401 -- register the environment
@@ -352,14 +354,13 @@ def main():
                 status="completed", mode=a.mode, steps=steps, chunks=n, seeds=used_seeds
             ),
         )
-    except BaseException:
-        publish(out / "sim-error.json", dict(traceback=traceback.format_exc()))
-        raise
     finally:
-        if env is not None:
-            env.close()
-        if app is not None:
-            app.close()
+        try:
+            if env is not None:
+                env.close()
+        finally:
+            if app is not None:
+                app.close()
 
 
 if __name__ == "__main__":

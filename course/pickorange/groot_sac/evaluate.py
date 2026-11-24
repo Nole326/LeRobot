@@ -12,12 +12,18 @@ from safetensors.torch import load_file
 from ..common import load_protocol, predict_groot, publish, save_arrays, wait_file
 from ..service import load_policy, verify_model
 from .memory_rgb import receive_observation
+from .run_files import run_directory
 from .sac_core import ResidualActor, state
 from .train import VisualHook
 
 
-@torch.inference_mode()
 def run(a):
+    with run_directory(a.out):
+        evaluate(a)
+
+
+@torch.inference_mode()
+def evaluate(a):
     cfg = load_protocol()
     verify_model(a.model)
     base = load_policy(a.model, a.backend, "cuda")
@@ -33,7 +39,6 @@ def run(a):
         actor.load_state_dict(weights, strict=True)
         hook = VisualHook(base)
     out = a.out
-    out.mkdir(parents=True, exist_ok=False)
     ipc = out / "ipc"
     ipc.mkdir()
     seeds = list(range(a.first_seed, a.first_seed + a.episodes))
