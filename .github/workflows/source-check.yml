@@ -18,13 +18,15 @@ jobs:
       - name: Checkout source (v4.2.2)
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
+          fetch-depth: 2
           persist-credentials: false
           lfs: false
           submodules: false
       - name: Verify source and project files without GPU dependencies
         run: python3 scripts/check_project.py
-      - name: Check whitespace
-        run: git diff --check
+      - name: Check whitespace in the PR changes
+        if: github.event_name == 'pull_request'
+        run: git diff --check HEAD^1 HEAD
   vla-cpu:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
@@ -49,6 +51,8 @@ jobs:
           .local/vla-cpu/bin/python -B -m unittest discover -s tests -p 'test_vla*.py' -v
           .local/vla-cpu/bin/python -B -m unittest discover -s tests -p test_pickorange.py -v
           .local/vla-cpu/bin/python -B -m unittest discover -s tests -p 'test_pickorange_act*.py' -v
+          .local/vla-cpu/bin/python -B -m unittest discover -s tests -p test_pickorange_residual_training.py -v
+          .local/vla-cpu/bin/python -B -m unittest discover -s tests -p test_so101_adapter.py -v
           .local/vla-cpu/bin/python -B -m unittest discover -s tests -p test_pickorange_visual.py -v
           .local/vla-cpu/bin/python -B -m unittest discover -s tests -p test_evo1_service_contracts.py -v
           .local/vla-cpu/bin/python -B -m unittest discover -s tests -p test_scripted_liftcube.py -v

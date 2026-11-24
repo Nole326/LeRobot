@@ -1,6 +1,6 @@
 # PickOrange运行入口：智能体指令
 
-适用于本目录，与[根AGENTS](../../AGENTS.md)同时遵守。先读[本目录README](README.md)、[环境指南](../../docs/PICK_ORANGE.md)、[资源清单](../../docs/RESOURCES.md)。本目录是独立模型评测；`course/scripts/`保留历史诊断，LiftCube继续使用其专属包。
+本目录负责 PickOrange 的策略训练、模型服务、仿真评测及演示采集。开发约定见[根目录指南](../../AGENTS.md)，运行入口见 [PickOrange运行指南](README.md)，环境和资产见[环境指南](../../docs/PICK_ORANGE.md)与[资源清单](../../docs/RESOURCES.md)。
 
 - `common.py`校验协议、NPZ输入白名单和有界等待；`service.py`默认GR00T N1.5，`service_n16.py`和`service_pi05.py`各绑定自己的权重与后端；`evaluate.py`负责原生动作转换、完整回合及reset前捕获；`audit.py`独立读盘。不要将N1.6权重交给N1.5加载器，或复用π₀.₅域基座的处理器。
 - 各服务在构造模型前验证实际后端版本及受管工作树；不要仅凭协议版本声明放行。收尾须先关闭SwanLab writer再关闭环境／SimulationApp，保留错误但仍尝试释放资源；补测关闭顺序和失败分支，不伪造历史SDK状态。
@@ -15,8 +15,8 @@
 - `evaluate.py`复用LiftCube包的SwanLab数值记录层，仅evaluator写run，service不重复写。查询耗时按query、结果按完整episode计数；回合记录仍须独立审核。默认offline，私有online绑定留在使用者本地；不上传RGB/HDF5/RNG、完整协议/路径或终端信息。`--check`不得导入或初始化SDK，日志修改补测`tests/test_swanlab.py`。
 - 原始模型motor、转换后rad、action manager raw和实测q分开，明确scale/offset与关节顺序；本原生辅助协议不软件限幅，其他包装的动作保护不得因此放宽。
 - 官方特权state控制脚本代码已在`third_party/leisaac`。其重力/阻尼/直接写状态与成功覆盖必须在采集说明中披露；不得把它的生成成功当成固定物理BC准入。
-- 命令与资源说明必须让新使用者从公开仓库操作；权重、数据、个人部署、凭据、设备或私有运维配置不入Git。训练流程见[训练与评测](../../docs/TRAIN_AND_EVALUATE.md)，当前推理服务不等于VLA训练器。
-- 已完成实验的公开范围见[检验摘要](../../docs/PICKORANGE_VALIDATION.md)。只维护可公开的协议／指标和实际代码交付状态，不复制私有实验记录；DiT12为搁置项，不提供虚构训练命令或自行恢复，历史结果也不能算修订源码已重新GPU验收。
+- 在各方法的运行指南中列出依赖、权重来源和命令。区分推理服务、离线行为克隆和在线残差训练的入口。
+- 历史评测记录保留当时的模型、协议与场景范围，见[检验摘要](../../docs/PICKORANGE_VALIDATION.md)。
 
 ACT 和 GR00T 的在线训练分别见 [ACT 残差指南](sac/README.md)与 [GR00T 残差指南](groot_sac/README.md)。更改训练或评测设置时同步核对训练时限、控制模式、夹爪力矩、回放及超时处理。
 

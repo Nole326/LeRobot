@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+补齐 PickOrange 的训练与固定场景评测导航。ACT 指南区分关节目标、分段末端目标和完整轨迹末端目标。ACT 与 GR00T 残差指南列出各自的基座、权重加载方式和评测配置。
+
+The PickOrange guides cover joint-space ACT, segmented and full-episode end-effector ACT, and residual SAC on ACT and GR00T. Each residual guide identifies its base model, checkpoint loader and fixed-seed evaluation settings.
+
 新增 PickOrange 双相机 qpos 与分段 EE 的 ACT 训练入口，整理关节与末端残差的部署代码，并统一演示、权重和评测导航。
 
 Added ACT training for joint targets and segmented end-effector control, packaged the corresponding residual inference code, and updated the dataset and model guides.

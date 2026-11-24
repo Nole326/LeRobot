@@ -6,7 +6,7 @@ import unittest
 from unittest.mock import patch
 from types import SimpleNamespace
 
-AVAILABLE = all(importlib.util.find_spec(name) is not None for name in ('numpy', 'torch'))
+AVAILABLE = all(importlib.util.find_spec(name) is not None for name in ('numpy', 'torch', 'yaml'))
 if AVAILABLE:
     import numpy as np
     sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'course/liftcube/src'))
@@ -14,7 +14,7 @@ if AVAILABLE:
     from starter.interfaces.action import motor_to_radians, radians_to_motor
 
 
-@unittest.skipUnless(AVAILABLE, 'Requires the course NumPy/Torch environment')
+@unittest.skipUnless(AVAILABLE, 'Requires NumPy, Torch and PyYAML')
 class SO101AdapterTests(unittest.TestCase):
     def test_owned_environment_disables_implicit_demo_recorder(self):
         raw = self.raw()

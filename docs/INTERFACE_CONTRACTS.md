@@ -22,6 +22,10 @@ An opt-in [planar EE development controller](PLANAR_EE_DEVELOPMENT.md) accepts a
 
 ## 1. 观测 / Observations
 
+PickOrange ACT 的部署观测为前视与腕部 RGB 及六个实测关节位置。qpos 模型预测六个电机目标，EE 模型预测基座坐标系中的目标位姿和夹爪角度。分段 EE 另输出段末信号，用于重置策略历史，仿真场景继续运行。EE 残差作用在逆运动学得到的电机目标上。训练标签的单位、时间聚合和加载示例见 [PickOrange ACT 指南](../course/pickorange/act/README.md)。
+
+PickOrange ACT takes front and wrist RGB plus six measured joint positions. The qpos policy predicts motor targets. The EE policy predicts a base-frame tool pose and gripper angle. A segmented EE policy also signals when to reset its policy history while the scene continues. The EE residual corrects the motor targets after inverse kinematics.
+
 VLA推理的单front、显式统计、动作块和跨回合缓存边界见[具体接口](VLA_INTERFACES.md)。策略`reset()`是可选清缓存钩子；公共评测在开始及所有退出路径调用，不得在其中重seed或复位模型参数。任务切换与外部接管也须清掉旧块。
 
 See [VLA interfaces](VLA_INTERFACES.md) for single-front inputs, explicit statistics and chunks. Optional policy `reset()` clears caches at episode boundaries and all exit paths; it must not reseed or reset weights. Clear chunks on task changes and interventions too.

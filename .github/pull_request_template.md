@@ -8,9 +8,7 @@
 
 ## 提交前复核 / Review checklist
 
-- [ ] 已复核根目录及受影响目录的 `AGENTS.md`：入口、前提、命令和验收条件已同步，或在下方说明无需修改的原因。 / Reviewed root and applicable nested `AGENTS.md` files: synchronized entry points, prerequisites, commands and acceptance criteria, or explained why no change is needed below.
+- [ ] 已复核受影响目录的开发指南，更新涉及的入口、命令和验收条件。 / Reviewed the relevant development guides and updated affected entry points, commands and acceptance criteria.
 - [ ] 已同步受影响的接口、用法和中英文文档；重要变化已记入 `CHANGELOG.md`。 / Updated affected contracts, usage and bilingual docs; recorded meaningful changes in `CHANGELOG.md`.
-- [ ] 已检查公开内容、提交说明与Git作者/提交者信息，无凭据、未同意公开的个人信息、个人服务器/设备信息、个人运维规则、私有配置或未获准材料/运行产物。 / Checked public content, commit messages and author/committer metadata for credentials, unapproved personal information, personal infrastructure/device details, individual operations policies, private configuration and unapproved materials/artifacts.
+- [ ] 已复核公开内容、提交说明和提交身份，移除凭据、私人信息、部署细节及未授权材料。 / Checked content, commit messages and commit identity for credentials, private information, deployment details and materials without publication permission.
 - [ ] 如涉及上游源码或资产，已保留许可并更新适用补丁、来源清单。 / Where upstream source or assets changed, preserved licenses and updated applicable patches, provenance records.
-
-<!-- 文档无需修改或某项不适用时，在这里简要说明。 / Briefly explain unchanged guidance or inapplicable items here. -->
