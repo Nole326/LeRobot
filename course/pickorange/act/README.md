@@ -23,13 +23,20 @@ python -m course.pickorange.act.train ee datasets/pickorange/vla-gr00t-ee/datase
 
 qpos 从 60 Hz 的偶数记录取观测，以其后第 2、4、…、30 个物理步的动作作为监督。EE 直接使用 30 Hz 记录，从当前记录开始预测，动作块在单颗片段末尾截断并掩码。训练用位置、旋转矩阵前两列和夹爪角度表达运动；另一个输出预测段末。每条整轨包含三个单颗片段，最后两条记录的段末标签为正。
 
-默认有效 batch 为 64，每个 microbatch 为 8，训练 100k 次优化器更新。主网络和视觉骨干学习率分别为 0.0001 和 0.00001。训练输出包括损失日志，以及含模型配置、权重、归一化统计和执行配置的推理检查点。指定全新的输出目录；可用 `--updates 1 --batch-size 2 --microbatch 1` 验证一次更新及检查点导出。
+默认有效 batch 为 64，每个 microbatch 为 8，共执行 100k 次优化器更新。主网络和视觉骨干的学习率分别为 0.0001 和 0.00001。输出目录包含损失日志和按更新次数命名的 `checkpoint-<更新次数>/`。每个检查点包含模型配置、权重、归一化统计和执行配置，可直接加载推理。优化器和随机采样状态未保存，训练中断后无法从里程碑原样续训。再次启动训练需指定新的输出目录。可用 `--updates 1 --batch-size 2 --microbatch 1` 验证一次更新及检查点导出。
 
-Training uses the original camera frames, calibrated joint positions and aligned action labels. For qpos, sample every second observation and supervise the next 15 stride-two targets. EE supervision stays inside one single-orange segment. The trainer writes deployable checkpoints and a scalar loss log.
+Training uses the original camera frames, calibrated joint positions and aligned action labels. For qpos, sample every second observation and supervise the next 15 stride-two targets. EE supervision stays inside one single-orange segment. Checkpoints support inference. Exact training resumption would also require the optimizer and random sampling states, which the trainer does not export.
 
 ## 部署 / Deployment
 
-在仓库根目录启动 Python。下载相互匹配的基座与残差目录。每个仿真场景开始时重置策略历史。EE 模型在场内预测到单颗段末时仅重置基座，保留场景和残差历史。
+按下表选择冻结的 ACT 基座和残差加载器。前两行的源码随 Hugging Face 权重发布，后两行的加载器位于本仓库的 `course.pickorange.act.residual`。每个新场景开始时重置策略历史。EE 基座预测到单颗段末时仅重置自身的时间聚合，场景和残差历史继续保留。
+
+| 残差模型 / Model | 控制模式 | ACT 基座 | 加载器 / Loader |
+| --- | --- | --- | --- |
+| Residual-1、2、3 | qpos | ACT-1 80k | [`Residual/residual_policy.py`](https://huggingface.co/Nole326/LeIsaac-SO101-PickOrange/blob/main/Residual/residual_policy.py) 中的 `ACTResidualPolicy.from_safetensors`，按检查点配置选择 `edge_aware` |
+| Residual-4 | qpos | ACT-1 100k | [`Residual/Residual-4/100k/policy.py`](https://huggingface.co/Nole326/LeIsaac-SO101-PickOrange/blob/main/Residual/Residual-4/100k/policy.py) 中的 `make_policy`，包含放置检测与归位控制 |
+| Residual-5 | qpos | ACT-1 100k | [`make_policy`](residual.py)，从所选部署配置读取 `arm_fraction` |
+| Residual-6、7、8 | EE | ACT-2 80k | [`EEResidual`](residual.py)，对逆运动学求得的电机目标施加修正 |
 
 在已取得访问权限的账号下，将示例所用的模型和执行配置下载到同一目录。
 
@@ -47,26 +54,18 @@ act.reset_scene()
 motor_target = act.predict(front_rgb, wrist_rgb, joint_motor)
 ```
 
-以下示例在同一关节 ACT 基座上部署四分之一臂幅度的残差策略。两种残差加载器都从权重文件旁的 `config.json` 核对 `action_mode`；下载或移动模型时应保留该文件。
+以下示例复用上面的 `act`，在场景开始时接入 Residual-5。五个臂关节使用四分之一幅残差，夹爪保持满幅。接入后，每次观测只调用 `policy.act`，由它推进基座的时间聚合。每个新场景调用 `policy.reset()`。本仓库的两种残差加载器均从权重旁的 `config.json` 核对 `action_mode`。
 
 ```python
 import json
 from pathlib import Path
-from lerobot.configs.policies import PreTrainedConfig
-from lerobot.policies.act.modeling_act import ACTPolicy
-from safetensors.torch import load_file
 from course.pickorange.act.residual import make_policy
 
-base = Path("downloads/pickorange/ACT/ACT-1/100k")
 weights = Path("downloads/pickorange/Residual/Residual-5/80k")
-config = PreTrainedConfig.from_pretrained(base)
-config.pretrained_backbone_weights = None
-act = ACTPolicy(config)
-act.load_state_dict(load_file(str(base / "model.safetensors")), strict=True)
-stats = json.loads((base / "normalization.json").read_text())
-profile = json.loads((weights / "profiles/arm-quarter/config.json").read_text())
+profile = json.loads((weights / "profiles/arm-quarter/config.json").read_text(encoding="utf-8"))
 policy = make_policy(
-    act, stats, weights / "model.safetensors", device="cuda", arm_fraction=profile["arm_fraction"]
+    act.model, act.stats, weights / "model.safetensors",
+    device=act.device, arm_fraction=profile["arm_fraction"],
 )
 policy.reset()
 motor_target = policy.act(front_rgb, wrist_rgb, joint_motor)

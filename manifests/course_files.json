@@ -381,8 +381,8 @@
   },
   {
     "path": "course/pickorange/act/README.md",
-    "bytes": 8329,
-    "sha256": "cc335b069b7fccb3b749cdfb948ce98c7d07d7a4ea64c00268084c68063a2b10"
+    "bytes": 9261,
+    "sha256": "fa2f8b73aec3aade825798417a41ce81cfb8343358f1a79ac424d73ee355e534"
   },
   {
     "path": "course/pickorange/act/act_policy.py",

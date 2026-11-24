@@ -16,7 +16,7 @@ Start with the [status matrix](TASKS.md) and [resources](RESOURCES.md). Commands
 | 特权state控制脚本 / privileged state control scripts | 本页下一节，显式`--privileged-teacher` | [自研控制脚本与回放检验](../course/pickorange/expert/README.md)。[官方状态机说明](../course/pickorange/README.md#特权state控制脚本采集--privileged-state-control-script-collection)列出物理和状态写入限制 / Project collection and replay tools, plus the upstream state-machine constraints |
 | 预训练VLA推理 / Pretrained inference | [单front包装](VLA_INTERFACES.md)，匹配本地适配描述；完整GPU闭环按模型验收 | [GR00T N1.5/N1.6、SmolVLA与π₀.₅双视角入口](../course/pickorange/README.md)，能力与限制见[检验摘要](PICKORANGE_VALIDATION.md) |
 | SmallCNN BC/PPO | [已有参考训练](../course/liftcube/TRAINING.md) | 当前不使用LiftCube训练器 / Not integrated |
-| ACT/SmolVLA训练 | 数据验收后复用下述上游离线训练；任务闭环单独接入 | 按任务双视角、动作和统计配置离线训练。现有 ACT 权重与推理配置见[资源清单](RESOURCES.md#pickorange-act-权重--pickorange-act-checkpoints) / Use task-specific dual-view inputs, action semantics, and statistics. Published ACT exports are linked in Resources. |
+| ACT/SmolVLA训练 | 数据验收后复用下述上游离线训练；任务闭环单独接入 | [PickOrange ACT 训练与部署](../course/pickorange/act/README.md)使用双相机 qpos 或 EE 演示。SmolVLA 按其后端和数据格式配置。 / Use the PickOrange trainer for ACT and the model-specific backend for SmolVLA. |
 | π₀.₅/GR00T/OFT微调 | 先冻结形态、输入/动作与数据合同，再按匹配版本原生训练器实现 / Backend-specific training integration pending | 同左；不得混用不同模型图、形态头和处理器 / Same boundary |
 
 推理包装只负责加载与执行，不能直接接入SmallCNN优化器。现有VLA CPU前向、上游训练脚本和本项目任务训练验收分别记录；没有一键完成四种模型训练的统一入口。
@@ -63,6 +63,12 @@ LiftCube本地数据检查入口见[数据指南](../course/liftcube/TRAINING.md
 
 ## 4. ACT与SmolVLA离线训练 / Offline training
 
+**PickOrange ACT**　在仓库根目录运行 `python -m course.pickorange.act.train`，依次传入控制模式（`qpos` 或 `ee`）和对应的 `dataset.json`。先用 `--check-data` 检查动作标签与双相机视频，再用 `--output` 指定新目录开始训练。里程碑检查点可加载推理；训练器不保存优化器和随机采样状态，中断后无法精确续训。[数据下载、完整命令与部署示例](../course/pickorange/act/README.md)
+
+Run the PickOrange ACT module from the repository root with the control mode and matching manifest. Use `--check-data` to validate the demonstrations and `--output` to start a new run. Milestone checkpoints support inference only.
+
+**LiftCube ACT / SmolVLA**
+
 在**独立LeRobot模型环境**安装本仓库冻结的`third_party/lerobot`及所选模型extra；不要在仓库根或模拟器依赖上覆盖安装。上游具体选项见[ACT](../third_party/lerobot/docs/source/act.mdx)、[SmolVLA](../third_party/lerobot/docs/source/smolvla.mdx)与[训练脚本](../third_party/lerobot/src/lerobot/scripts/lerobot_train.py)。
 
 以下为经过数据准入之后的小预算开发示例，不是本项目已验证的训练配方。`team/liftcube-accepted`是需替换的逻辑ID；`--dataset.root`必须指向已转换且支持的本地数据目录。正式预算另行配置。
@@ -89,9 +95,7 @@ Run from the repository root with the LiftCube `src` on `PYTHONPATH`, in the sep
 
 使用旧模型配置前先核对当前后端支持字段，处理不生效的legacy字段须留下明确兼容记录；严格权重和统计不能放宽。SmolVLA源权重为双视角，若训练采用单front，须按[包装契约](VLA_INTERFACES.md)明确缺槽mask/预处理与导出，不能假定改数据路径就完成适配。
 
-PickOrange沿相同离线入口，但更换成其**独立已准入**数据、匹配视角/统计/任务权重和输出目录。不能只换任务名称沿用LiftCube统计，也不能把上述GR00T服务当ACT/SmolVLA推理器。
-
-先验证一批样本、损失与参数实际更新、保存重载、完整优化器/RNG恢复，再扩大训练。日志区分训练loss、训练内成功率与独立策略评测；评测必须用完整冻结场景和实际执行结果。
+将上游 SmolVLA 训练器用于 PickOrange 时，需使用该任务已验收的数据、双视角配置、归一化统计和对应任务权重，并指定独立输出目录。扩大上游训练预算前，先验证样本、损失、参数更新、权重重载及优化器和随机状态恢复。日志分别记录训练损失、训练内成功率和独立场景评测成绩。
 
 ## 5. 评测与发布 / Evaluation and release
 
