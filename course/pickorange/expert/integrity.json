@@ -8,7 +8,7 @@
     "efficient_motion_teacher.py": "2cff49f326f9b7f9f98ad5621bf6f015da3e6534c4ae4d24a8e4af6630de5045",
     "finger_geometry_calibration.json": "735f56d8172c95cbdd6a73a976f8da17f27aba609ec41ca9774fb1b73195b446",
     "fixed_face_teacher.py": "7dded7e0e51ee42e7afb2d030e51506f022cb981cb8b3aa166660a9673d80d20",
-    "geometric_teacher.py": "7f2c775e1c8ffeb6a9de50b4970c3dc75b2d82ccb0431acdd88e72e0017f0eed",
+    "geometric_teacher.py": "8550f8782699d33c2d13952ec9092a36a65eda1bc4008102073324ee49e00969",
     "joint_contract.py": "bbacff0d1fab508b8ea940540ef448b280d7f82ffbfd2e0c61223e607c2f49e6",
     "object_center_calibration.json": "5068004241351af594d40b086f55b1c0cb46db422868dcb96ce820e4984148fc",
     "privileged_teacher.py": "f72d3b631c547916df06c7541217b6f08df75e098fe8af7afacf69250c253fc5",

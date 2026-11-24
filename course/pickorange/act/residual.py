@@ -91,6 +91,13 @@ def check_views(front, wrist):
             raise ValueError("Expected two HWC 640 by 480 uint8 RGB images")
 
 
+def validate_ee_residual_base(control):
+    if (control.get("mode"), control.get("optimizer_updates"), control.get("skill_end")) != (
+        "absolute_ee_robot_base", 80000, True
+    ):
+        raise ValueError("EE residuals require the segmented ACT-2 80k base")
+
+
 def checkpoint_config(directory, expected_mode):
     path = Path(directory) / "config.json"
     config = json.loads(path.read_text(encoding="utf-8"))
@@ -100,9 +107,14 @@ def checkpoint_config(directory, expected_mode):
     return config
 
 
-def make_policy(frozen, normalization, weights, device="cpu", arm_fraction=0.5):
+def make_policy(frozen, normalization, weights, device="cpu", arm_fraction=0.5, *, placement=False):
     """Attach the residual to a loaded ACT-1 100k policy. Returns a per-episode controller."""
-    checkpoint_config(Path(weights).parent, "absolute_joint_motor")
+    if placement:
+        cfg = json.loads(Path(weights).with_name("config.json").read_text(encoding="utf8"))
+        if cfg.get("model") != "Residual-4" or cfg.get("encoder") != "dual_rgb_resblocks":
+            raise ValueError("Expected a Residual-4 placement controller checkpoint")
+    else:
+        checkpoint_config(Path(weights).parent, "absolute_joint_motor")
     if arm_fraction not in (0.0, 0.25, 0.5, 1.0):
         raise ValueError("Expected an arm fraction of 0.0, 0.25, 0.5, or 1.0")
     frozen = frozen.to(device).eval().requires_grad_(False)
@@ -169,7 +181,9 @@ def make_policy(frozen, normalization, weights, device="cpu", arm_fraction=0.5):
 class EEResidual:
     """Apply a learned correction to the EE controller's IK joint target, in motor coordinates."""
 
-    def __init__(self, directory, device="cpu", deployment_arm_fraction=1.0):
+    def __init__(self, directory, device="cpu", deployment_arm_fraction=1.0, *, base_control=None):
+        if base_control is not None:
+            validate_ee_residual_base(base_control)
         directory = Path(directory)
         cfg = checkpoint_config(directory, "joint_motor_correction_after_absolute_ee_ik")
         if deployment_arm_fraction not in cfg["deployment_arm_fractions"]:

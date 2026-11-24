@@ -1,5 +1,7 @@
 # PickOrange：模型评测与控制脚本采集
 
+PickOrange 在线训练与固定场景评测 / Online training and fixed-seed evaluation · [ACT residual SAC](sac/README.md) · [GR00T residual SAC](groot_sac/README.md)
+
 本目录提供 PickOrange 模型评测、视觉规则评测和控制脚本采集入口。环境安装与资产见[环境指南](../../docs/PICK_ORANGE.md)，模型和演示见[资源清单](../../docs/RESOURCES.md)，LiftCube 入口见[任务指南](../liftcube/README.md)。
 
 This directory contains the PickOrange model evaluation, visual-rule evaluation and demonstration collection entry points. Use the PickOrange runtime and task-specific input and action contracts.
@@ -176,4 +178,4 @@ The upstream generator teleports/blends joint states and changes physics/termina
 
 ## 训练与其他模型 / Training and other models
 
-本目录不含正式训练器。ACT/SmolVLA先走[数据准入与上游训练入口](../../docs/TRAIN_AND_EVALUATE.md)；其训练导出不能直接交给本GR00T服务。π₀.₅与OFT的仓库包装、资源和缺口见[四VLA接口](../../docs/VLA_INTERFACES.md)与[状态表](../../docs/TASKS.md)。新增后端要单独对齐双视角、单位、统计、chunk和实际执行频率。
+ACT 和 GR00T 的残差训练与固定场景评测见本页开头的两个训练指南。SmolVLA 行为克隆见[数据准入与上游训练入口](../../docs/TRAIN_AND_EVALUATE.md)。其他 VLA 的后端、双视角、动作单位及统计见[VLA 接口](../../docs/VLA_INTERFACES.md)。

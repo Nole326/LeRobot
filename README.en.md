@@ -37,7 +37,7 @@ The current stage covers LiftCube and PickOrange as separate policy, data and ev
 
 See the [task and adaptation matrix](docs/TASKS.md) for runtimes, expert scripts, demonstrations and checkpoint/validation status across the four VLA families. A shared SO-101 robot does not make the interfaces interchangeable; keep configurations, checkpoints, statistics and scores separate.
 
-The [PickOrange learned policy guide](course/pickorange/act/README.md) covers qpos and EE behavior cloning, checkpoint loading, and residual deployment. See the [runtime protocols](course/pickorange/README.md) for VLA and scripted policies.
+PickOrange provides [qpos and EE behavior cloning](course/pickorange/act/README.md), [ACT residual SAC training and fixed-seed evaluation](course/pickorange/sac/README.md), and [GR00T residual SAC training and reward comparisons](course/pickorange/groot_sac/README.md). Each guide includes the runtime configuration, commands and checkpoint loading instructions.
 
 Obtain weights and demonstrations from [resources](docs/RESOURCES.md), then follow the [training and evaluation guide](docs/TRAIN_AND_EVALUATE.md). PickOrange's native-assisted evaluation uses object truth for gripper control and is reported separately from non-privileged visual baselines.
 

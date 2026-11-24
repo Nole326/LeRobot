@@ -1,5 +1,7 @@
 # PickOrange 双相机 ACT 与残差策略
 
+PickOrange 在线训练与固定场景评测 / Online training and fixed-seed evaluation · [ACT residual SAC](../sac/README.md) · [GR00T residual SAC](../groot_sac/README.md)
+
 [模型卡与固定场景成绩](https://huggingface.co/Nole326/LeIsaac-SO101-PickOrange) · [原始演示](https://huggingface.co/datasets/Nole326/LeIsaac-SO101-PickOrange) · [仿真与规则基线](../README.md)
 
 部署观测为前视和腕部两路 640×480 的 RGB 图像（HWC、uint8）及六维实测关节位置（SO-101 标定电机坐标）。物理仿真为 60 Hz。策略每两步接收一次新观测，预测 15 步动作块，按系数 0.001 做时间聚合，当前目标保持两个物理步。
@@ -31,19 +33,19 @@ Training uses the original camera frames, calibrated joint positions and aligned
 
 ## 部署 / Deployment
 
-按下表选择冻结的 ACT 基座和残差加载器。前两行的源码随 Hugging Face 权重发布，后两行的加载器位于本仓库的 `course.pickorange.act.residual`。每个新场景开始时重置策略历史。EE 基座预测到单颗段末时仅重置自身的时间聚合，场景和残差历史继续保留。
+按下表选择冻结的 ACT 基座和残差加载器。所有发布权重均可从[固定场景评测入口](evaluate.py)选择具名配置。每个新场景开始时重置策略历史。EE 基座预测到单颗段末时仅重置自身的时间聚合，场景和残差历史继续保留。
 
 | 残差模型 / Model | 控制模式 | ACT 基座 | 加载器 / Loader |
 | --- | --- | --- | --- |
-| Residual-1、2、3 | qpos | ACT-1 80k | [`Residual/residual_policy.py`](https://huggingface.co/Nole326/LeIsaac-SO101-PickOrange/blob/main/Residual/residual_policy.py) 中的 `ACTResidualPolicy.from_safetensors`，按检查点配置选择 `edge_aware` |
-| Residual-4 | qpos | ACT-1 100k | [`Residual/Residual-4/100k/policy.py`](https://huggingface.co/Nole326/LeIsaac-SO101-PickOrange/blob/main/Residual/Residual-4/100k/policy.py) 中的 `make_policy`，包含放置检测与归位控制 |
+| Residual-1、2、3 | qpos | ACT-1 80k | [`RGBController`](historical_policy.py) 调用 [`ACTResidualPolicy.from_safetensors`](rgb_residual.py)，按检查点配置选择 `edge_aware` |
+| Residual-4 | qpos | ACT-1 100k | [`PlacementController`](historical_policy.py)，包含放置检测与归位控制 |
 | Residual-5 | qpos | ACT-1 100k | [`make_policy`](residual.py)，从所选部署配置读取 `arm_fraction` |
 | Residual-6、7、8 | EE | ACT-2 80k | [`EEResidual`](residual.py)，对逆运动学求得的电机目标施加修正 |
 
 在已取得访问权限的账号下，将示例所用的模型和执行配置下载到同一目录。
 
 ```bash
-hf download Nole326/LeIsaac-SO101-PickOrange --include "ACT/ACT-1/100k/*" "ACT/ACT-2/80k/*" "Residual/Residual-5/80k/*" "Residual/Residual-8/56k/*" --local-dir downloads/pickorange
+hf download Nole326/LeIsaac-SO101-PickOrange --include "ACT/ACT-1/100k/*" "ACT/ACT-2/80k/*" "Residual/Residual-5/80k/*" "Residual/Residual-8/56k/*" --local-dir models/pickorange
 ```
 
 **qpos**　纯 ACT 从检查点读取配置与归一化统计，直接返回六维标定电机目标。
@@ -51,7 +53,7 @@ hf download Nole326/LeIsaac-SO101-PickOrange --include "ACT/ACT-1/100k/*" "ACT/A
 ```python
 from course.pickorange.act.act_policy import QposPolicy
 
-act = QposPolicy("downloads/pickorange/ACT/ACT-1/100k", device="cuda")
+act = QposPolicy("models/pickorange/ACT/ACT-1/100k", device="cuda")
 act.reset_scene()
 motor_target = act.predict(front_rgb, wrist_rgb, joint_motor)
 ```
@@ -63,7 +65,7 @@ import json
 from pathlib import Path
 from course.pickorange.act.residual import make_policy
 
-weights = Path("downloads/pickorange/Residual/Residual-5/80k")
+weights = Path("models/pickorange/Residual/Residual-5/80k")
 profile = json.loads((weights / "profiles/arm-quarter/config.json").read_text(encoding="utf-8"))
 policy = make_policy(
     act.model, act.stats, weights / "model.safetensors",
@@ -87,8 +89,8 @@ from leisaac.utils.robot_utils import (
 from course.pickorange.act.ee_policy import EEPolicy
 from course.pickorange.act.residual import EEResidual
 
-act = EEPolicy("downloads/pickorange/ACT/ACT-2/80k", device="cuda")
-residual = EEResidual("downloads/pickorange/Residual/Residual-8/56k", device="cuda")
+act = EEPolicy("models/pickorange/ACT/ACT-2/80k", device="cuda")
+residual = EEResidual("models/pickorange/Residual/Residual-8/56k", device=act.device, base_control=act.control)
 act.reset_scene()
 residual.reset_scene()
 ee_target, segment_end = act.predict(front_rgb, wrist_rgb, joint_motor)
@@ -98,7 +100,7 @@ motor_target = ik_motor + residual.correction(front_rgb, wrist_rgb, joint_motor,
 joint_target_rad = convert_lerobot_action_to_leisaac(motor_target.reshape(1, 6))[0]
 ```
 
-For EE, the base predicts a TCP position, gripper-link orientation and gripper angle in the units above. Configure the IK tool offset in the child frame of `wrist_roll`, or call `link_origin_target` once for link-origin IK. Pass the calibrated motor targets from IK to the residual. In both modes, keep the control cadence and the checkpoint-specific amplitude profile. The residual module implements deployment; the online SAC trainer and replay service are separate components.
+For EE, the base predicts a TCP position, gripper-link orientation and gripper angle in the units above. Configure the IK tool offset in the child frame of `wrist_roll`, or call `link_origin_target` once for link-origin IK. Pass the calibrated motor targets from IK to the residual. In both modes, keep the control cadence and the checkpoint-specific amplitude profile. The [online SAC guide](../sac/README.md) covers training, replay, resumption and the fixed-seed evaluation profiles.
 
 ## 评测 / Evaluation
 

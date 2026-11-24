@@ -1,0 +1,15 @@
+{
+  "control": "qpos",
+  "base": "ACT-1",
+  "base_updates": 100000,
+  "gripper_effort": "fixed-10Nm",
+  "arm_fraction": 1.0,
+  "physics_limit": 800,
+  "precollect": 1024,
+  "critic_warmup": 10000,
+  "actor_updates": 100000,
+  "batch_size": 128,
+  "replay_capacity": 150000,
+  "seed": 3814,
+  "first_scene_seed": 891000
+}

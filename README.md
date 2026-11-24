@@ -37,7 +37,7 @@
 
 两任务的环境版本、专家脚本、演示数据及四种VLA的权重与验收进度见[任务与适配状态表](docs/TASKS.md)。同为SO-101不等于接口相同，配置、权重、统计与成绩分别管理。
 
-PickOrange 的[学习策略指南](course/pickorange/act/README.md)提供 qpos 和 EE 行为克隆训练、权重加载与残差部署示例。VLA 和规则策略沿用各自的[运行协议](course/pickorange/README.md)。
+PickOrange 学习策略从三处进入：[qpos 与 EE 行为克隆](course/pickorange/act/README.md)、[ACT 残差 SAC 训练与固定场景评测](course/pickorange/sac/README.md)、[GR00T 残差 SAC 训练与奖励对照](course/pickorange/groot_sac/README.md)。各指南提供相应的运行配置、启动命令和权重加载方法。
 
 从[资源清单](docs/RESOURCES.md)获取模型与演示，按[训练与评测指南](docs/TRAIN_AND_EVALUATE.md)选择任务入口。PickOrange原生辅助评测使用物体真值控制夹爪，与无特权视觉baseline分开报告。
 

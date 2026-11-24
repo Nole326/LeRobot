@@ -82,8 +82,8 @@ Code, external checkpoints and accepted task policies are distinct. Validate vie
 | 方法 / Method | LiftCube | PickOrange |
 | --- | --- | --- |
 | SmallCNN BC/PPO | 已有参考训练、存档与评测代码，真实学习能力另验 / Reference trainers and evaluation | 未接入这些训练器 / Not integrated |
-| ACT | 冻结 LeRobot 实现可复用，当前任务训练包装待接 / Upstream implementation, task integration pending | [外部 ACT 权重与模型卡](RESOURCES.md#pickorange-act-权重--pickorange-act-checkpoints)提供推理配置及固定场景结果。仓库内提供数据桥与 CPU 诊断 / Published checkpoints and evaluation results are available externally. The repository includes the data bridge and CPU diagnostics. |
-| VLA上的RL / RL on a VLA | 尚无任务RL能力验收 / No task-level RL acceptance | N1.5 Residual SAC小训练及30对已审核，19/30→21/30，尚无稳定提升；N1.6及π₀.₅另有流程测峰。DiT12搁置；[结果和代码交付范围](PICKORANGE_VALIDATION.md)，不提供一键RL训练器 / Results do not imply a released trainer |
+| ACT | qpos 与分段 EE 行为克隆 / Behavior cloning | [训练与部署](../course/pickorange/act/README.md)、[固定场景评测与残差 SAC](../course/pickorange/sac/README.md) |
+| VLA 上的 RL / RL on a VLA | 冻结 GR00T N1.5，训练有界残差策略 | [计数和混合奖励训练、续训与固定场景评测](../course/pickorange/groot_sac/README.md) |
 
 ## 当前开发顺序 / Development order
 

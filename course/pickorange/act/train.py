@@ -44,7 +44,7 @@ def train(args, data, log_update):
     std = torch.tensor(rgb_std, device=args.device).view(1, 3, 1, 1)
     normalization = {k: getattr(data, k).tolist() for k in ("qmu", "qstd", "amu", "astd")}
     execution = {
-        "mode": "absolute_ee_robot_base" if data.single else "stride2",
+        "mode": "absolute_ee_robot_base" if data.ee else "stride2",
         "physics_hz": 60,
         "action_hz": 30,
         "replan_physics_ticks": 2,
@@ -55,12 +55,14 @@ def train(args, data, log_update):
         "rgb_std": rgb_std,
         "camera_shape": [480, 640, 3],
     }
+    if data.ee:
+        execution["skill_end"] = data.single
     if data.single:
         from .ee_loss import segmented_loss
 
-        execution.update(skill_end=True, skill_end_encoding="logit")
+        execution["skill_end_encoding"] = "logit"
     data.cache()
-    milestones = {10_000, 20_000, 30_000, 40_000, 50_000, 65_000, 80_000, 100_000, args.updates}
+    milestones = {10_000, 20_000, 30_000, 40_000, 50_000, 65_000, 80_000, 100_000, 120_000, 160_000, args.updates}
     with ThreadPoolExecutor(max_workers=args.microbatch) as pool:
         for step in range(1, args.updates + 1):
             samples = data.choose(rng, args.batch_size)
@@ -104,7 +106,7 @@ def train(args, data, log_update):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("mode", choices=("qpos", "ee"))
+    parser.add_argument("mode", choices=("qpos", "ee", "ee-full"))
     parser.add_argument("manifest", type=Path)
     parser.add_argument("--output", type=Path)
     parser.add_argument("--updates", type=int, default=100_000)

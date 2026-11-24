@@ -56,10 +56,11 @@ class Episodes:
     def __init__(self, manifest, mode, limit=None):
         self.mode = mode
         self.single = mode == "ee"
+        self.ee = mode in ("ee", "ee-full")
         self.rows = []
         self.intervals = []
         spec = json.loads(manifest.read_text("utf-8"))
-        if self.single and (spec.get("control"), spec.get("physics_hz"), spec.get("action_hz")) != (
+        if self.ee and (spec.get("control"), spec.get("physics_hz"), spec.get("action_hz")) != (
             "absolute_ee_robot_base",
             60,
             30,
@@ -73,7 +74,7 @@ class Episodes:
             with np.load(archive, allow_pickle=False) as data:
                 q = data["joints"].astype(np.float32)
                 action = data["action"].astype(np.float32)
-                if not self.single:
+                if not self.ee:
                     times = data.get("timestamp")
                     if (
                         times is None
@@ -82,7 +83,7 @@ class Episodes:
                     ):
                         raise ValueError(f"Stride-two qpos requires 60 Hz timestamps at {archive}")
             n = entry["records"]
-            if q.shape != (n, 6) or action.shape != (n, 7 if self.single else 6):
+            if q.shape != (n, 6) or action.shape != (n, 7 if self.ee else 6):
                 raise ValueError(f"Invalid {mode} state or action shape at {archive}")
             if not np.isfinite(q).all() or not np.isfinite(action).all() or n < 3:
                 raise ValueError(f"Invalid trajectory at {archive}")
@@ -104,6 +105,8 @@ class Episodes:
                 ).astype(np.float32)
             else:
                 segments = [(0, n)]
+                if self.ee:
+                    action = np.column_stack((action[:, :3], rotation_columns(action[:, 3:6]), action[:, 6])).astype(np.float32)
             self.intervals.extend((index, a, b) for a, b in segments)
             self.rows.append((q, action, (front, wrist)))
 
@@ -125,7 +128,7 @@ class Episodes:
         samples = []
         for i in rng.integers(len(self.intervals), size=count):
             ep, start, end = self.intervals[i]
-            if self.single:
+            if self.ee:
                 t = int(rng.integers(start, end))
             else:
                 t = 2 * int(rng.integers((end - 1) // 2))
@@ -135,7 +138,7 @@ class Episodes:
     def sample(self, sample):
         ep, t, end = sample
         q, a, _ = self.rows[ep]
-        offsets = np.arange(15) if self.single else 2 * np.arange(1, 16)
+        offsets = np.arange(15) if self.ee else 2 * np.arange(1, 16)
         targets = t + offsets
         images = [
             np.frombuffer(zlib.decompress(view[t]), dtype=np.uint8).reshape(480, 640, 3)

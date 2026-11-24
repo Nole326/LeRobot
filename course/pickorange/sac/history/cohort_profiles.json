@@ -1,0 +1,6 @@
+{
+  "rgb-count": {"base_updates": 80000, "encoder": "rgb", "reward": "count", "private_actor_updates": 12581},
+  "rgb-hybrid": {"base_updates": 80000, "encoder": "rgb", "reward": "hybrid", "private_actor_updates": 14086},
+  "edges-count": {"base_updates": 80000, "encoder": "edges", "reward": "count", "private_actor_updates": 13138},
+  "edges-hybrid": {"base_updates": 80000, "encoder": "edges", "reward": "hybrid", "private_actor_updates": 13808}
+}

@@ -5,7 +5,10 @@ around that axis is intentionally free, rather than requesting six pose DOFs.
 This is a development teacher, not the unpublished course controller.
 """
 import numpy as np
-from joint_contract import JOINTS, USD_LIMITS_DEG
+if __package__:
+    from .joint_contract import JOINTS, USD_LIMITS_DEG
+else:
+    from joint_contract import JOINTS, USD_LIMITS_DEG
 
 
 def rotation(quat):
