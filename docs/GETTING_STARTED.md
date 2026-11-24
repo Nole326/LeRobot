@@ -6,9 +6,9 @@ Build one minimal loop before increasing model size or training budget: read obs
 
 ## 1. 先看什么 / Where to start
 
-阅读顺序：本页 → [接口约定](INTERFACE_CONTRACTS.md) → [依赖](DEPENDENCIES.md) → [训练验证](TRAINING_VALIDATION.md)。正式任务定义优先于海报和上游示例；尚未发布的参数保持未确认，不用“常见默认值”补齐。
+先读[接口约定](INTERFACE_CONTRACTS.md)，再按所选任务查阅[依赖](DEPENDENCIES.md)和[训练验证](TRAINING_VALIDATION.md)。环境参数和评分规则以该任务发布的定义为准。
 
-Read this page, then the [interface contracts](INTERFACE_CONTRACTS.md), [dependencies](DEPENDENCIES.md) and [training validation](TRAINING_VALIDATION.md). The formal task definition takes precedence over artwork and upstream examples. Leave unpublished parameters unresolved instead of substituting familiar defaults.
+Start with the [interface contracts](INTERFACE_CONTRACTS.md), then check [dependencies](DEPENDENCIES.md) and [training validation](TRAINING_VALIDATION.md) for the selected task. Use its published environment parameters and scoring rules.
 
 先按[任务对照](TASKS.md)选择LiftCube或PickOrange，再按[资源清单](RESOURCES.md)获取模型/演示、按[训练与评测](TRAIN_AND_EVALUATE.md)选择入口。LiftCube已有配套镜像、视觉脚本和参考训练；PickOrange使用独立环境与[双视角推理/评测入口](../course/pickorange/README.md)。两任务不混用依赖、统计或评分。
 
@@ -22,7 +22,8 @@ Choose a task in the comparison, obtain its resources and follow the execution g
 | PickOrange 模型选型 / Model selection | [ACT 权重与模型卡](RESOURCES.md#pickorange-act-权重--pickorange-act-checkpoints)提供推理配置与固定场景成绩。[VLA 检验摘要](PICKORANGE_VALIDATION.md)记录协议、任务成绩及 RL 资源需求 / ACT exports and held-out results, plus VLA and RL validation |
 | 视觉规则抓放 / Visual-rule grasping | [LiftCube 规则指南](SCRIPTED_LIFTCUBE.md) · [PickOrange 规则指南](../course/pickorange/visual/README.md)。两者均可先运行 `--check`，实际闭环使用各自的仿真环境与标定。 / Check the entry point first, then use the task-specific simulator and calibration. |
 | 三维末端开发 / Planar EE development | [开发契约](PLANAR_EE_DEVELOPMENT.md)；独立标定、有效初始姿态及匹配策略，物理精度未验收 / Separate calibration, valid starting pose and compatible policy; tracking not accepted |
-| BC/PPO / Learning | [训练指南](../course/liftcube/TRAINING.md)；当前为六关节SmallCNN参考路径，BC先完成演示准入 / Six-joint SmallCNN reference path; BC requires accepted demonstrations |
+| LiftCube BC/PPO | [SmallCNN 训练与评测](../course/liftcube/TRAINING.md)。行为克隆使用通过回放检验的演示。 / SmallCNN training and evaluation with replay-verified demonstrations for BC. |
+| PickOrange BC / RL | [双相机 ACT](../course/pickorange/act/README.md)、[ACT 残差 SAC](../course/pickorange/sac/README.md)、[GR00T 残差 SAC](../course/pickorange/groot_sac/README.md) / Task-specific training and fixed-seed evaluation. |
 | VLA推理接口 / VLA inference interfaces | [VLA 接口](VLA_INTERFACES.md)；LiftCube 使用前视，PickOrange 使用前视与腕部双相机。核对六关节动作、预测与执行长度，以及配套权重和统计 / Check the task camera inputs, joint targets, prediction and execution lengths, and matching model export |
 
 先在本地运行以下检查。第一条应成功；第二条对未填写的模板应返回退出码 3，并逐项列出缺失字段。
@@ -77,9 +78,9 @@ Some diagnostics assume specific mount paths, 20-frame data or small models. Rea
 
 Assign ownership by interface rather than by file: environment/control, data, BC/VLA, RL, and evaluation/reproducibility. Shared schema changes need joint review. Use a focused branch and PR for each change, describing its purpose, interface impact, tests and remaining risks. Edit only affected README sections and append important changes to `Unreleased`, rather than duplicating the README.
 
-`main` 保持可复现；功能分支可直接 PR 到 `main`。只有确实需要多个模块一起联调时，再使用团队约定的 `develop` 集成分支。本说明没有创建分支、开启保护规则或设置审核权限，具体流程见[贡献说明](../CONTRIBUTING.md)。
+分支、评审与发布流程见[贡献指南](../CONTRIBUTING.md)。
 
-Keep `main` reproducible; feature branches may open PRs directly into it. Use an agreed `develop` integration branch only when several modules need joint testing. This guide does not create branches, enable protection or assign review permissions. See [Contributing](../CONTRIBUTING.md).
+See [Contributing](../CONTRIBUTING.md) for the branch, review and release workflow.
 
 ## 5. 借鉴 rl-garden 的部分 / Lessons from rl-garden
 

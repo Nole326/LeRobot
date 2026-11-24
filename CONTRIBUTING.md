@@ -1,22 +1,14 @@
 # 修改与验证 / Contributing and validation
 
-新开发从最新`main`创建短期功能分支；`v0.1.x-baseline`只用于复现初始源码快照，不包含后续LiftCube功能。用户指定现有分支时沿用该分支。优先新增独立适配器，避免直接修改已冻结的上游源码；算法、奖励、观测、控制器和评估口径的变化需要分别记录和验证。
+日常开发使用当前 main。复现初始源码快照可切换到 `v0.1.x-baseline`。集成上游代码时优先使用独立适配器，算法、奖励、观测、控制器和评测协议的改动分别记录和验证。
 
-Branch new work from current `main`; use `v0.1.x-baseline` only to reproduce the initial source snapshot, which predates LiftCube development. Keep an existing branch when explicitly requested. Prefer standalone adapters over modifying frozen upstream source. Changes to algorithms, rewards, observations, controllers and evaluation protocols need explicit records and validation.
+Use the current main branch for development and `v0.1.x-baseline` to reproduce the initial source snapshot. Prefer standalone adapters for upstream integrations. Document and validate changes to algorithms, rewards, observations, controllers and evaluation protocols separately.
 
 ## 智能体协作 / Working with agents
 
-将 [AGENTS.md](AGENTS.md) 作为智能体的仓库入口，交接时给出任务范围、适用授权和验收条件。每个 PR 复核其中的目录、接口边界、命令和开发约定；相关变化与代码同 PR 更新，无影响则说明原因。详细规范只保留一处，其余文档链接过去；运行进度与私有部署记录不写入该文件。
-
-Use [AGENTS.md](AGENTS.md) as the repository entry point for agents, supplying task scope, applicable authority and acceptance criteria. Review its layout, contract boundaries, commands and conventions in each PR; update affected guidance alongside code or explain why no change is needed. Keep detailed rules in one place and link to them; runtime progress and private deployment records do not belong there.
-
 [AGENTS.md](AGENTS.md)负责仓库导航与共同规则。[LiftCube](course/liftcube/AGENTS.md)、[PickOrange 模型评测与采集](course/pickorange/AGENTS.md)和[独立诊断工具](course/scripts/AGENTS.md)分别说明运行入口、依赖与验收条件。修改跨目录接口时，检查受影响目录的约定。[PR 模板](.github/pull_request_template.md)用于记录改动、验证与公开内容复核。
 
-这些指令面向所有使用者，不包含个人服务器、机构名称、设备绑定、账号或个人运维规则；使用者的平台专属配置留在仓库外。
-
 The [root guide](AGENTS.md) covers repository navigation and shared conventions. The [LiftCube](course/liftcube/AGENTS.md), [PickOrange evaluation and collection](course/pickorange/AGENTS.md), and [standalone diagnostics](course/scripts/AGENTS.md) guides cover entry points, dependencies, and acceptance criteria. Review the applicable guides when a change crosses directory boundaries. Use the [PR template](.github/pull_request_template.md) to document changes, validation, and publication checks.
-
-These instructions apply to any user and exclude personal infrastructure, institutional identifiers, device bindings, accounts and individual operations policies. Keep platform-specific user configuration outside the repository.
 
 ## 分支与评审 / Branches and review
 
@@ -60,7 +52,7 @@ git diff --cached --stat
 
 For action, data, training or evaluation interface changes, update the [contracts](docs/INTERFACE_CONTRACTS.md) and plan-inspection tests; do not commit private experiment configurations. Run `python scripts/inspect_plan.py configs/experiment-plan.toml --print-config` to list template gaps. Exit code 3 is expected for the unfilled template, not a training failure. See the [development guide](docs/GETTING_STARTED.md) for stage ownership.
 
-自动检查核验源码一致性、公开工具 Python 语法、通用 Markdown 的本地文件链接及海报尺寸。它不运行上游代码，不验证外部网页可用性，也不是完整安全审计或 GPU 测试。
+仓库检查验证源码一致性、Python 语法、Markdown 本地链接及海报尺寸，并运行软件测试。提交时列出跳过的测试，以及另行执行的仿真或硬件验证。
 
 Automated checks validate source consistency, public utility Python syntax, local Markdown links, poster dimensions, and software tests. Report skipped tests and any simulator or hardware validation separately.
 
@@ -68,9 +60,9 @@ PR 的 `source-check` 和 `vla-cpu` 见 [CI 工作流](.github/workflows/source-
 
 The [CI workflow](.github/workflows/source-check.yml) defines `source-check` and `vla-cpu`. Run the relevant checks for changes to model services, controllers, or logging. For historical results, identify the runner, model and data versions, action rate, scene set, time limit, and completed episode count. Use episode records as evidence for simulator results.
 
-根README分为中文 `README.md` 和英文 `README.en.md`，顶部互链；修改目标、用法、范围与文档入口时同步两版。GitHub中这是普通文档链接，不需要网页脚本或额外部署。其他新写项目说明仍按中文一段、英文一段组织。上游原文不强行翻译。提交说明应包含目的、受影响接口、检查结果与尚未验证的部分。
+根目录的 [中文 README](README.md) 和 [English README](README.en.md) 同步维护。新增项目文档按中文在前、英文在后的顺序编写，上游文档保留原文。
 
-The root README has linked Chinese (`README.md`) and English (`README.en.md`) editions; synchronize goals, usage, scope and navigation. These are ordinary GitHub document links, requiring no scripts or deployment. Other new project documentation uses Chinese-then-English paragraphs. Do not rewrite upstream documents solely for translation. Describe purpose, affected interfaces, checks and remaining validation limits.
+Keep the Chinese and English READMEs in sync. Write new project documentation in Chinese followed by English, and preserve upstream documents in their original language.
 
 禁止提交凭据、原始课程材料、服务器信息、私有配置、数据集、模型、运行日志及未获准的截图。忽略规则不能替代人工复核；不要在公开 issue 中粘贴这些内容。海报仅限已获准的脱敏版本。
 

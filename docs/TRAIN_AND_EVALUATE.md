@@ -8,9 +8,9 @@ PickOrange 任务 BC 的自采入口见 [控制脚本与动作轨迹独立回放
 
 For PickOrange BC, use the control script and independent trajectory replay verification to collect demonstrations. The controller, replay, and collection workflow have been validated together in simulation. Check recording and action rates when using the linked published demonstrations.
 
-先读[任务与适配状态](TASKS.md)，再从[资源清单](RESOURCES.md)获取环境资产、演示与权重。以下是使用者在完成前提和取得计算资源后运行的命令说明；仓库检查或下载不会代为启动训练。
+先按[任务与适配状态](TASKS.md)选择方法，再从[资源清单](RESOURCES.md)获取相应的环境资产、演示与权重。
 
-Start with the [status matrix](TASKS.md) and [resources](RESOURCES.md). Commands below are execution instructions, not automatic launches or claims that task-specific training has already passed acceptance.
+Choose a method in the [task matrix](TASKS.md), then obtain its environment assets, demonstrations and checkpoints from [Resources](RESOURCES.md).
 
 ## 1. 选择正确入口 / Choose an entry
 
@@ -67,7 +67,7 @@ LiftCube本地数据检查入口见[数据指南](../course/liftcube/TRAINING.md
 
 ## 4. ACT与SmolVLA离线训练 / Offline training
 
-**PickOrange ACT**　在仓库根目录运行 `python -m course.pickorange.act.train`，依次传入控制模式（`qpos` 或 `ee`）和对应的 `dataset.json`。先用 `--check-data` 检查动作标签与双相机视频，再用 `--output` 指定新目录开始训练。里程碑检查点可加载推理；训练器不保存优化器和随机采样状态，中断后无法精确续训。[数据下载、完整命令与部署示例](../course/pickorange/act/README.md)
+**PickOrange ACT**　在仓库根目录运行 `python -m course.pickorange.act.train`，依次传入训练模式和对应的 `dataset.json`。关节目标使用 `qpos`，末端目标按单颗片段或完整轨迹训练时分别使用 `ee` 和 `ee-full`。先用 `--check-data` 核对动作标签与双相机视频，再用 `--output` 指定新目录开始训练。里程碑检查点可加载推理；精确续训还需要优化器和采样状态。[数据下载、完整命令与部署示例](../course/pickorange/act/README.md)
 
 Run the PickOrange ACT module from the repository root with the control mode and matching manifest. Use `--check-data` to validate the demonstrations and `--output` to start a new run. Milestone checkpoints support inference only.
 
@@ -104,7 +104,7 @@ Run from the repository root with the LiftCube `src` on `PYTHONPATH`, in the sep
 ## 5. 评测与发布 / Evaluation and release
 
 - LiftCube用`starter.evaluation.evaluate`，VLA通过`--policy-class`与本地适配JSON加载，规则/控制脚本走专属入口。相同输入、动作、频率、预算和评分才合算。
-- PickOrange用[独立原生辅助入口](../course/pickorange/README.md)。新后端须先完成真实双相机/动作转换和回合缓存验证；未经接入不能把训练loss当闭环能力。
+- PickOrange 基座 VLA 使用[原生辅助评测](../course/pickorange/README.md)。ACT 与 GR00T 残差使用相应运行指南中的固定场景评测器。比较时记录基座权重、场景、夹爪设置和动作执行频率。
 - 当前标准VLA包装均未提供任意训练任务resume承诺。不同任务初始化、LoRA微调、完整续训及纯推理导出分别处理。
 - GitHub发布代码、公开配置、来源及结果摘要；模型/LoRA/动作头和统计可发布到Hugging Face模型仓库，演示发布到数据集仓库，均先确认许可、隐私及完整性。下载URL和固定revision回填[资源清单](RESOURCES.md)，运行产物不进入Git。
 
@@ -112,8 +112,8 @@ Publish reproducible code/configuration in Git, model exports on an appropriate 
 
 ## 6. PickOrange上的VLA RL / RL on the PickOrange VLA
 
-已有独立工程实验的流程测峰、Residual SAC小训练及配对结果见[检验摘要](PICKORANGE_VALIDATION.md)。这些结果不表示本仓库已提供通用SAC/PPO VLA训练器；当前命令加载原公开任务基座，不会自动加载实验残差或重现其后测。DiT12暂搁置，训练器和学习参数均未打包。
+GR00T N1.5 路线冻结 PickOrange 任务权重，训练有界残差 Actor。计数与混合奖励共用训练入口。训练、续训和固定场景评测命令见 [GR00T 残差 SAC 指南](../course/pickorange/groot_sac/README.md)。评测时省略 `--weights` 使用纯基座，传入残差权重即可在同一协议下比较。
 
-先冻结匹配的BC／任务基座与评测协议，再分别定义可训练范围（残差、LoRA、Adapter或部分解冻）和学习目标（BC/SFT、SAC或PPO）。直接更新flow策略还需验证采样／概率处理和训练部署一致性；显存短测通过不能替代这一项。正式扩大训练前核验同点优化器、replay、RNG恢复，以及未参与选参的新场景配对。
+早期显存短测、配对实验及已搁置的 DiT12 动作模块实验见[检验摘要](PICKORANGE_VALIDATION.md)。
 
-Existing pilot results are not a released general-purpose VLA RL trainer. Define the trainable scope separately from the learning objective, validate flow-policy sampling and train/deploy consistency, and test complete recovery before scaling. Use new held-out paired scenes for capability claims.
+Residual SAC trains a bounded actor on a frozen GR00T N1.5 task model. The same evaluator runs the base alone or loads the residual actor with `--weights`. The [validation summary](PICKORANGE_VALIDATION.md) records the earlier memory measurements, paired results and exploratory DiT12 work.

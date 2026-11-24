@@ -30,14 +30,12 @@ The current stage covers LiftCube and PickOrange as separate policy, data and ev
 ## Current scope
 
 - **LiftCube:** environment adapters, demonstration loading, BC, reference PPO, a visual rule policy and shared evaluation. See the [LiftCube guide](course/liftcube/README.md) for the matching image and runtime.
-- **PickOrange:** pinned environment, dual-view GR00T/SmolVLA/PI05 services, shared evaluation and trajectory audits. The [privileged state control script](course/pickorange/expert/README.md) adds demonstration collection and independent action-trajectory replay verification. Control execution, independent replay and demonstration collection have been jointly validated in simulation. The new SmolVLA entry has CPU checks; its GPU rollout validation remains pending. See the [runner guide](course/pickorange/README.md).
+- **PickOrange simulation task** uses the SO-101 PickOrange environment from [LightwheelAI’s LeIsaac](https://github.com/LightwheelAI/leisaac), pinned to version 0.4.0. The repository includes training and evaluation code for [ACT behavior cloning (qpos and EE)](course/pickorange/act/README.md), [ACT residual SAC](course/pickorange/sac/README.md), and [GR00T residual SAC](course/pickorange/groot_sac/README.md). The [PickOrange run guide](course/pickorange/README.md) covers dual-camera inference with GR00T, SmolVLA, and π₀.₅, simulation evaluation, and trajectory audits.
 - **VLA interfaces:** the [two-task interface guide](docs/VLA_INTERFACES.md) links model backends for both tasks: single-front wrappers for LiftCube and dual-view services for PickOrange. OFT still requires matching trained heads, projections and statistics.
-- **Rules and control scripts:** the [two-task script guide](docs/SCRIPTED_POLICIES.md) links LiftCube visual/state policies, the official PickOrange state control script and upstream references. A [PickOrange visual rule policy](course/pickorange/visual/README.md) offers separate model-assisted and RGB/q6/known-camera-calibration variants under named 55-second protocols; privileged state control scripts remain separate.
-- **Later scope:** the formal multi-object task, cross-object generalization and hardware deployment. The unreleased environment is not a prerequisite for current development.
+- **Rules and control scripts:** the [two-task script guide](docs/SCRIPTED_POLICIES.md) links LiftCube policies, the upstream PickOrange control script and related references. The [PickOrange privileged state control script](course/pickorange/expert/README.md) has been validated in simulation for control, demonstration collection and independent action-trajectory replay. The [PickOrange visual rule policy](course/pickorange/visual/README.md) provides a model-assisted variant and an RGB, six-joint state and camera calibration variant, each with a 55-second evaluation protocol.
+- **Future work** includes multi-object manipulation, cross-object generalization and hardware deployment.
 
 See the [task and adaptation matrix](docs/TASKS.md) for runtimes, expert scripts, demonstrations and checkpoint/validation status across the four VLA families. A shared SO-101 robot does not make the interfaces interchangeable; keep configurations, checkpoints, statistics and scores separate.
-
-PickOrange provides [qpos and EE behavior cloning](course/pickorange/act/README.md), [ACT residual SAC training and fixed-seed evaluation](course/pickorange/sac/README.md), and [GR00T residual SAC training and reward comparisons](course/pickorange/groot_sac/README.md). Each guide includes the runtime configuration, commands and checkpoint loading instructions.
 
 Obtain weights and demonstrations from [resources](docs/RESOURCES.md), then follow the [training and evaluation guide](docs/TRAIN_AND_EVALUATE.md). PickOrange's native-assisted evaluation uses object truth for gripper control and is reported separately from non-privileged visual baselines.
 
@@ -76,7 +74,7 @@ LiftCube integration lives in `course/liftcube/src/starter/`. PickOrange executi
 │   ├── configs/              # Current task configurations
 │   └── patches/              # Reversible changes to the course starter
 ├── course/scripts/           # PickOrange environment, replay and ACT-bridge diagnostics
-├── course/pickorange/        # Dual-view VLA services, evaluation and trajectory audits
+├── course/pickorange/        # ACT, residual SAC, VLA services, evaluation and demo collection
 ├── configs/                  # Public experiment-plan templates
 ├── scripts/                  # Repository, provenance and plan checks
 ├── tests/                    # First-party regression tests

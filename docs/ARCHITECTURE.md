@@ -48,7 +48,8 @@ See [VLA inference interfaces](VLA_INTERFACES.md) for four single-front wrappers
 
 | 改动 / Change | 约定 / Convention |
 | --- | --- |
-| ACT / SmolVLA / OpenVLA-OFT / π₀.₅ / GR00T | 模型专属代码在`starter/models/`，四种VLA已有推理包装，ACT待接入；复用公共观测/动作与评测 / Model-specific code belongs under `starter/models/`; four VLA inference wrappers exist, ACT is pending |
+| LiftCube 模型 / LiftCube policies | 单前视 VLA 包装位于 `starter/models/`；ACT 离线训练使用 LeRobot，见[训练指南](TRAIN_AND_EVALUATE.md)。 / Single-view VLA wrappers share the evaluation interface. Offline ACT training uses LeRobot. |
+| PickOrange 学习策略 / PickOrange policies | [ACT](../course/pickorange/act/README.md) 负责双相机行为克隆与基座加载。[ACT 残差](../course/pickorange/sac/README.md)和 [GR00T 残差](../course/pickorange/groot_sac/README.md)各自提供训练、仿真与评测入口。 / ACT provides the BC policy. Each residual package pairs its own learner and evaluator with the simulator. |
 | SFT/BC 与 RL / SFT/BC and RL | 模型前向与优化算法分开，复用或新增实际需要的训练入口 / Separate forward inference from optimization; extend entry points only as needed |
 | residual | 基座预测、残差和实际执行分别记录；同一执行层限位 / Record base, residual and applied actions separately; use the same execution safety layer |
 | 新任务 / New task | 扩展 `envs/` 和任务配置；不复制每种模型一份环境 / Extend environments and task configurations, not an environment copy per model |

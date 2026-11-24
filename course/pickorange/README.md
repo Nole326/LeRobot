@@ -1,12 +1,14 @@
-# PickOrange：模型评测与控制脚本采集
+# PickOrange 仿真任务 / PickOrange simulation task
 
-PickOrange 在线训练与固定场景评测 / Online training and fixed-seed evaluation · [ACT residual SAC](sac/README.md) · [GR00T residual SAC](groot_sac/README.md)
+环境与资产见[环境指南](../../docs/PICK_ORANGE.md)，演示与权重见[资源清单](../../docs/RESOURCES.md)。下表按训练与评测方法给出入口。双相机 VLA 服务、视觉规则和控制脚本采集的命令见后文。
 
-本目录提供 PickOrange 模型评测、视觉规则评测和控制脚本采集入口。环境安装与资产见[环境指南](../../docs/PICK_ORANGE.md)，模型和演示见[资源清单](../../docs/RESOURCES.md)，LiftCube 入口见[任务指南](../liftcube/README.md)。
+Use the [environment guide](../../docs/PICK_ORANGE.md) to set up LeIsaac and the [resource list](../../docs/RESOURCES.md) to obtain demonstrations and checkpoints. Choose a training or evaluation method below. Later sections cover VLA inference, visual rules and demonstration collection.
 
-This directory contains the PickOrange model evaluation, visual-rule evaluation and demonstration collection entry points. Use the PickOrange runtime and task-specific input and action contracts.
-
-qpos 与 EE 的 ACT 训练、策略加载及残差部署见[学习策略指南](act/README.md)。VLA 与规则评测使用本页各自的协议。 / See the [learned policy guide](act/README.md) for ACT training and residual deployment. VLA and scripted evaluations use the protocols below.
+| 方法 / Method | 运行指南 / Guide |
+| --- | --- |
+| ACT 行为克隆 / Behavior cloning | [qpos 与分段 EE 数据、训练和策略加载 / Data, training and policy loading](act/README.md) |
+| ACT 残差 SAC / ACT residual SAC | [关节与末端策略的训练、部署及固定场景评测 / Training, deployment and evaluation](sac/README.md) |
+| GR00T 残差 SAC / GR00T residual SAC | [冻结基座、奖励对照及固定场景评测 / Frozen base, rewards and evaluation](groot_sac/README.md) |
 
 ## 当前入口 / Available entry points
 

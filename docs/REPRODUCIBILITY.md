@@ -18,9 +18,9 @@ Select [LiftCube or PickOrange](TASKS.md) first. Their source/runtime versions, 
 
 For LiftCube, follow its [runtime guide](../course/liftcube/README.md): mount this repository at `/repo` and demonstrations separately at `/data/lift_cube`, then run in `/repo/course/liftcube` with the matching image's LeIsaac source on `PYTHONPATH`. The layout below covers [PickOrange diagnostics](PICK_ORANGE.md), which remain diagnostics within the current task track, not a complete model benchmark or a recipe for installing LiftCube over that environment.
 
-The separate [PickOrange GR00T service/evaluator](../course/pickorange/README.md) accepts explicit model/backend/output paths from the repository root. It does not require diagnostic launcher paths, but still needs a compatible independent simulator. Its native-assisted protocol, historical score and new source-port acceptance status are documented separately. Obtain fixed models/data through [resources](RESOURCES.md).
+For PickOrange, use the [task guide](../course/pickorange/README.md) for VLA inference and demonstration collection. Follow the method-specific guides for [ACT](../course/pickorange/act/README.md), [ACT residual SAC](../course/pickorange/sac/README.md) and [GR00T residual SAC](../course/pickorange/groot_sac/README.md). Match the published checkpoint to its loader, control mode and evaluation protocol. Weights and demonstrations are listed in [Resources](RESOURCES.md).
 
-The diagnostic launchers expect /workspace/course, application overlays venv_sim and venv_bc, upstream source directories leisaac and lerobot, and assets under /data/course. These are interface path conventions, not a server inventory or authorization to create/restart containers.
+The diagnostic launchers expect the course tools under `/workspace/course`, application overlays named `venv_sim` and `venv_bc`, and external assets under `/data/course`. See the [environment guide](PICK_ORANGE.md) for the mount layout.
 
 In an authorized isolated deployment, map/copy course tools and third_party sources to the expected locations. Check module paths to avoid importing an unrelated installed version. Use a compatible IsaacLab/Isaac Sim runtime; do not overwrite an already running environment simply because this repository contains another source copy.
 

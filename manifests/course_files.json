@@ -371,18 +371,18 @@
   },
   {
     "path": "course/pickorange/AGENTS.md",
-    "bytes": 5865,
-    "sha256": "219c173add6a07ff4a70c6bc84cd89f7435daba3f74af800b73dc910eda3ac49"
+    "bytes": 5570,
+    "sha256": "f09344215f814cebe633f7b9636cd5337a86734180d740bf0d7975da59438955"
   },
   {
     "path": "course/pickorange/README.md",
-    "bytes": 16231,
-    "sha256": "4b07adbbfb1e698116216c222f8a470bd71b9f9c22364cb5694722a58dcc734c"
+    "bytes": 16346,
+    "sha256": "00c79223abd96414a8931d87c339580f0b100ee4092120d4fc4d23cd417c07bb"
   },
   {
     "path": "course/pickorange/act/README.md",
-    "bytes": 9706,
-    "sha256": "f84a54bfc00fc52c86ae557596f158b20314fa2b80917d9676a98365579e9f76"
+    "bytes": 10092,
+    "sha256": "d15f951a68bf21c6a1b360aca20fd09fd6226809ecc1afcb3393466f9fc0b256"
   },
   {
     "path": "course/pickorange/act/act_policy.py",
@@ -611,8 +611,8 @@
   },
   {
     "path": "course/pickorange/groot_sac/README.md",
-    "bytes": 3459,
-    "sha256": "2f652b4e536997c66e91fa28a416e35fb8fd45351a51fa4cbd0e07afd3aff9d5"
+    "bytes": 3958,
+    "sha256": "993a77c6b25d706b3fa5c66b38905f01d2dce3901ce42754f711e135cecd1278"
   },
   {
     "path": "course/pickorange/groot_sac/evaluate.py",
@@ -856,8 +856,8 @@
   },
   {
     "path": "course/scripts/AGENTS.md",
-    "bytes": 7460,
-    "sha256": "80883e6d722ec8f31cc330071c5cc40c44432186b96a310064579414915e3db5"
+    "bytes": 7411,
+    "sha256": "97c20f4eb6cca4b088176587016f6e78577080c25b6d11cba9c14c18dc73d719"
   },
   {
     "path": "course/scripts/analyze_ee_motion.py",

@@ -30,14 +30,12 @@
 ## 当前范围
 
 - **LiftCube**：提供环境适配、演示读取、BC、参考 PPO、视觉规则策略和公共评测入口。配套镜像与运行方法见 [LiftCube 指南](course/liftcube/README.md)。
-- **PickOrange**：提供冻结环境、双相机GR00T／SmolVLA／π₀.₅服务、公共评测与轨迹审核；新增SmolVLA入口已作CPU检查，实际闭环待验。见[运行指南](course/pickorange/README.md)。
+- **PickOrange仿真任务**采用 [LightwheelAI 的 LeIsaac](https://github.com/LightwheelAI/leisaac) 中的 SO-101 PickOrange 环境，版本固定为 0.4.0。仓库提供 [ACT 行为克隆（qpos 与 EE）](course/pickorange/act/README.md)、[ACT 残差 SAC](course/pickorange/sac/README.md) 和 [GR00T 残差 SAC](course/pickorange/groot_sac/README.md) 的训练与评测代码。双相机 VLA 推理服务（GR00T、SmolVLA、π₀.₅）、仿真评测和轨迹审核见 [PickOrange运行指南](course/pickorange/README.md)。
 - **VLA接口**：[双任务接口导航](docs/VLA_INTERFACES.md)列出各模型的源码与入口：LiftCube使用单front包装，PickOrange使用双相机服务；OFT还需匹配的受训动作头、投影与统计。
 - **规则与控制脚本**：[双任务脚本指南](docs/SCRIPTED_POLICIES.md)集中链接LiftCube视觉／state脚本、PickOrange [特权state控制脚本](course/pickorange/expert/README.md)、官方控制脚本及上游参考。PickOrange自研控制脚本已完成控制、回放与采集流程的实际仿真联合验证；新增[视觉规则策略](course/pickorange/visual/README.md)，提供显式标定／模型辅助版及仅RGB＋q6＋已知相机标定版，使用独立55秒协议。
-- **后续任务**：正式多物体抓放、跨物体泛化与真机部署；保留迁移设计，当前不以未发布环境的适配为前提。
+- **后续任务**包括正式多物体抓放、跨物体泛化和真机部署。
 
 两任务的环境版本、专家脚本、演示数据及四种VLA的权重与验收进度见[任务与适配状态表](docs/TASKS.md)。同为SO-101不等于接口相同，配置、权重、统计与成绩分别管理。
-
-PickOrange 学习策略从三处进入：[qpos 与 EE 行为克隆](course/pickorange/act/README.md)、[ACT 残差 SAC 训练与固定场景评测](course/pickorange/sac/README.md)、[GR00T 残差 SAC 训练与奖励对照](course/pickorange/groot_sac/README.md)。各指南提供相应的运行配置、启动命令和权重加载方法。
 
 从[资源清单](docs/RESOURCES.md)获取模型与演示，按[训练与评测指南](docs/TRAIN_AND_EVALUATE.md)选择任务入口。PickOrange原生辅助评测使用物体真值控制夹爪，与无特权视觉baseline分开报告。
 
@@ -76,7 +74,7 @@ LiftCube集成代码位于 `course/liftcube/src/starter/`；PickOrange运行入�
 │   ├── configs/              # 当前任务配置
 │   └── patches/              # 相对课程原包的可逆修改
 ├── course/scripts/           # PickOrange环境、重放、ACT桥接等诊断
-├── course/pickorange/        # 双视角VLA服务、评测与轨迹审核
+├── course/pickorange/        # ACT、残差 SAC、VLA 服务、仿真评测与演示采集
 ├── configs/                  # 公共实验计划模板
 ├── scripts/                  # 仓库、来源与计划检查
 ├── tests/                    # 项目回归测试
