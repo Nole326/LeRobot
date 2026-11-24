@@ -110,16 +110,36 @@ def run(args):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("mode", choices=("qpos", "ee"))
-    parser.add_argument("--base", type=Path, required=True)
-    parser.add_argument("--residual", type=Path)
-    parser.add_argument(
-        "--arm-fraction", type=float, choices=(0, 0.25, 0.5, 1), default=1
+    parser.add_argument("mode", nargs="?", choices=("qpos", "ee"))
+    profiles = json.loads(
+        Path(__file__).with_name("evaluation_profiles.json").read_text()
     )
+    parser.add_argument("--profile", choices=profiles)
+    parser.add_argument("--model-root", type=Path, default=Path("models/pickorange"))
+    parser.add_argument("--base", type=Path)
+    parser.add_argument("--residual", type=Path)
+    parser.add_argument("--arm-fraction", type=float, choices=(0, 0.25, 0.5, 1))
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--episodes", type=int, default=50)
     parser.add_argument("--first-seed", type=int, default=731000)
     args = parser.parse_args()
+    if args.profile:
+        if any(
+            value is not None
+            for value in (args.mode, args.base, args.residual, args.arm_fraction)
+        ):
+            parser.error("Choose a named profile or supply individual policy settings")
+        profile = profiles[args.profile]
+        args.mode = profile["mode"]
+        args.base = args.model_root / profile["base"]
+        args.residual = (
+            args.model_root / profile["residual"] if "residual" in profile else None
+        )
+        args.arm_fraction = profile.get("deployment_multiplier", 1)
+    if args.mode is None or args.base is None:
+        parser.error("Specify --profile or supply mode and --base")
+    if args.arm_fraction is None:
+        args.arm_fraction = 1
     if args.episodes < 1 or (not args.residual and args.arm_fraction != 1):
         parser.error(
             "Specify a positive episode count and a residual checkpoint for scaling"

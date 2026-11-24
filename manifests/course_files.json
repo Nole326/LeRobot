@@ -371,18 +371,18 @@
   },
   {
     "path": "course/pickorange/AGENTS.md",
-    "bytes": 5632,
-    "sha256": "28a9af4afcc79ed44ad6096e912c67a50961ed043975157a5384dc1b6f538bea"
+    "bytes": 5865,
+    "sha256": "219c173add6a07ff4a70c6bc84cd89f7435daba3f74af800b73dc910eda3ac49"
   },
   {
     "path": "course/pickorange/README.md",
-    "bytes": 16334,
-    "sha256": "371cd3fb2f92bfce0e5ac958650e7ee90b639c713b2ebec414963e30d76d03c9"
+    "bytes": 16231,
+    "sha256": "4b07adbbfb1e698116216c222f8a470bd71b9f9c22364cb5694722a58dcc734c"
   },
   {
     "path": "course/pickorange/act/README.md",
-    "bytes": 9906,
-    "sha256": "2e6b8bf45db6c08e04276b17a10fcc86c92c5599c139149cf5989dff2a0dc7b7"
+    "bytes": 9913,
+    "sha256": "9ad2dcd06064bc7ca777ab333db662cc0802e14c63a337677759e21c9269954e"
   },
   {
     "path": "course/pickorange/act/act_policy.py",
@@ -411,8 +411,13 @@
   },
   {
     "path": "course/pickorange/act/evaluate.py",
-    "bytes": 4864,
-    "sha256": "452d8add6b8cb3ff8f5752cf783b014f9ad6aa9cd29740db2687f3e9c185ffed"
+    "bytes": 5829,
+    "sha256": "088640d11c034377e99dcc1285be09f1c7e217a3ee860181683427dac38567c6"
+  },
+  {
+    "path": "course/pickorange/act/evaluation_profiles.json",
+    "bytes": 1393,
+    "sha256": "e74e2819ef5b9138a795ab4c0a1edae28741941b7cf8d3fc08e9d5cca283d66a"
   },
   {
     "path": "course/pickorange/act/residual.py",
@@ -661,8 +666,8 @@
   },
   {
     "path": "course/pickorange/sac/README.md",
-    "bytes": 6065,
-    "sha256": "4d88ac9042a9067a80f48d13558a446ec73175c133c6491509971f9bbc793368"
+    "bytes": 6399,
+    "sha256": "671bc4ff234f2d59dd791c535d7a4ea64196f291ae6afee38ea5ac800df84539"
   },
   {
     "path": "course/pickorange/sac/ee.json",

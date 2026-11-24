@@ -100,7 +100,7 @@ motor_target = ik_motor + residual.correction(front_rgb, wrist_rgb, joint_motor,
 joint_target_rad = convert_lerobot_action_to_leisaac(motor_target.reshape(1, 6))[0]
 ```
 
-For EE, the base predicts a TCP position, gripper-link orientation and gripper angle in the units above. Configure the IK tool offset in the child frame of `wrist_roll`, or call `link_origin_target` once for link-origin IK. Pass the calibrated motor targets from IK to the residual. In both modes, keep the control cadence and the checkpoint-specific amplitude profile. The residual module implements deployment; the online SAC trainer and replay service are separate components.
+For EE, the base predicts a TCP position, gripper-link orientation and gripper angle in the units above. Configure the IK tool offset in the child frame of `wrist_roll`, or call `link_origin_target` once for link-origin IK. Pass the calibrated motor targets from IK to the residual. In both modes, keep the control cadence and the checkpoint-specific amplitude profile. The [online SAC guide](../sac/README.md) covers training, replay, resumption and the fixed-seed evaluation profiles.
 
 ## 评测 / Evaluation
 

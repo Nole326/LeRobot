@@ -178,4 +178,4 @@ The upstream generator teleports/blends joint states and changes physics/termina
 
 ## 训练与其他模型 / Training and other models
 
-本目录不含正式训练器。ACT/SmolVLA先走[数据准入与上游训练入口](../../docs/TRAIN_AND_EVALUATE.md)；其训练导出不能直接交给本GR00T服务。π₀.₅与OFT的仓库包装、资源和缺口见[四VLA接口](../../docs/VLA_INTERFACES.md)与[状态表](../../docs/TASKS.md)。新增后端要单独对齐双视角、单位、统计、chunk和实际执行频率。
+ACT 和 GR00T 的残差训练与固定场景评测见本页开头的两个训练指南。SmolVLA 行为克隆见[数据准入与上游训练入口](../../docs/TRAIN_AND_EVALUATE.md)。其他 VLA 的后端、双视角、动作单位及统计见[VLA 接口](../../docs/VLA_INTERFACES.md)。

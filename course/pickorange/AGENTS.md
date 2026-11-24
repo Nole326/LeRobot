@@ -18,7 +18,9 @@
 - 命令与资源说明必须让新使用者从公开仓库操作；权重、数据、个人部署、凭据、设备或私有运维配置不入Git。训练流程见[训练与评测](../../docs/TRAIN_AND_EVALUATE.md)，当前推理服务不等于VLA训练器。
 - 已完成实验的公开范围见[检验摘要](../../docs/PICKORANGE_VALIDATION.md)。只维护可公开的协议／指标和实际代码交付状态，不复制私有实验记录；DiT12为搁置项，不提供虚构训练命令或自行恢复，历史结果也不能算修订源码已重新GPU验收。
 
-学习策略从 [ACT 指南](act/README.md)进入。训练入口为 `python -m course.pickorange.act.train`。更改观测、动作、分段或时间聚合时，同时核对已发布检查点的配置，运行 `tests/test_pickorange_act_data.py`，并用相应控制模式检查导出的权重可重新加载。
+ACT 和 GR00T 的在线训练分别见 [ACT 残差指南](sac/README.md)与 [GR00T 残差指南](groot_sac/README.md)。更改训练或评测设置时同步核对训练时限、控制模式、夹爪力矩、回放及超时处理。
+
+行为克隆从 [ACT 指南](act/README.md)进入。训练入口为 `python -m course.pickorange.act.train`。更改观测、动作、分段或时间聚合时，同时核对已发布检查点的配置，运行 `tests/test_pickorange_act_data.py`，并用相应控制模式检查导出的权重可重新加载。
 
 修改后在根目录的独立CPU环境运行：
 

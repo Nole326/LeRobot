@@ -28,6 +28,31 @@ class TrainingProfiles(unittest.TestCase):
             (128, 10000, 100000, 150000),
         )
 
+    def test_named_evaluation_profiles_select_the_reported_bounds(self):
+        from unittest.mock import patch
+        from course.pickorange.act import evaluate
+
+        for profile, folder, fraction in (
+            ("ACT-2-80k", None, 1),
+            ("Residual-5-80k-gripper", "Residual-5", 0),
+            ("Residual-6-56k-quarter", "Residual-6", 0.25),
+            ("Residual-8-56k-quarter", "Residual-8", 1),
+        ):
+            with (
+                self.subTest(profile=profile),
+                patch.object(evaluate, "run") as run,
+                patch(
+                    "sys.argv", ["evaluate", "--profile", profile, "--out", "result"]
+                ),
+            ):
+                evaluate.main()
+                args = run.call_args.args[0]
+                self.assertEqual(args.arm_fraction, fraction)
+                self.assertEqual(
+                    args.residual.parent.name if args.residual else None, folder
+                )
+                self.assertEqual((args.first_seed, args.episodes), (731000, 50))
+
     def test_terminal_score_bands(self):
         row = dict(
             step=0,

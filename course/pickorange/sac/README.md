@@ -44,6 +44,8 @@ python -m course.pickorange.sac.simulate --runs runs/ee --robot-usd "$SO101_USD"
 
 ### 固定场景评测 / Evaluation
 
+[评测配置表](../act/evaluation_profiles.json)给出报告中已发布模型的基座、权重和部署系数。例如在模型端运行 `python -m course.pickorange.act.evaluate --profile Residual-8-56k-quarter --out runs/eval-ee`，即可按训练幅度评测 EE 四分之一幅权重。自训权重使用以下显式路径。
+
 模型端用 `course.pickorange.act.evaluate` 启动，仿真端用上面的 `sac.simulate` 连接同一目录。默认使用 731000–731049，动态夹爪力矩，关闭探索，开启时间聚合。每场记录在 3,600 和 7,200 个物理步内是否三颗入盘且机械臂归位。纯 ACT 省略 `--residual`。EE 的仿真命令仍需提供机器人 USD。
 
 ```bash
