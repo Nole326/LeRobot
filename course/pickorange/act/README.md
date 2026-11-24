@@ -47,7 +47,7 @@ act.reset_scene()
 motor_target = act.predict(front_rgb, wrist_rgb, joint_motor)
 ```
 
-以下示例在同一关节 ACT 基座上部署四分之一臂幅度的残差策略。
+以下示例在同一关节 ACT 基座上部署四分之一臂幅度的残差策略。两种残差加载器都从权重文件旁的 `config.json` 核对 `action_mode`；下载或移动模型时应保留该文件。
 
 ```python
 import json
@@ -72,7 +72,11 @@ policy.reset()
 motor_target = policy.act(front_rgb, wrist_rgb, joint_motor)
 ```
 
-**EE**　位置单位为米，旋转向量与夹爪角度单位为弧度。示例中的 `ee_controller` 是仿真端已初始化的 SO-101 逆运动学控制器。它接收实测关节弧度和 EE 目标，返回关节弧度及求解误差。弧度与标定电机坐标之间使用 [LeIsaac 的转换函数](../../../third_party/leisaac/source/leisaac/leisaac/utils/robot_utils.py)。执行端仍应用该评测协议规定的驱动和关节限位。
+**EE**　ACT 输出七维目标：机器人基座系中的工具中心点 XYZ（米）、夹爪连杆在基座系中的旋转向量（三维，弧度）和夹爪角度（弧度）。工具中心点相对 SO-101 的夹爪连杆原点（`wrist_roll` 的子连杆）的偏移为 **(0.042393, −0.001200, −0.093031) 米**，沿连杆局部 XYZ 轴度量。工具坐标系与连杆坐标系同向。[EE 权重与工具参考点](https://huggingface.co/Nole326/LeIsaac-SO101-PickOrange/blob/main/ACT/ACT-2/80k/README.md)
+
+示例中的 `ee_controller` 由仿真端提供。若控制器支持工具偏移，使用 [`TCP_OFFSET_M`](ee_command.py) 配置工具中心点，然后按下例直接传入 `ee_target`。若控制器求解的是夹爪连杆原点，使用同一模块的 `link_origin_target(ee_target)` 作为 IK 输入。该函数用目标姿态将局部偏移转到基座系，再从目标位置中减去偏移。两种接法均只应用一次偏移。
+
+控制器以当前实测关节弧度为求解起点，将五维手臂关节解和预测的夹爪角度组成六维关节目标。`command` 示例返回关节目标及求解误差。残差接收 IK 输出对应的标定电机目标；执行端应用协议规定的驱动和关节限位。[LeIsaac 单位转换](../../../third_party/leisaac/source/leisaac/leisaac/utils/robot_utils.py)
 
 ```python
 from leisaac.utils.robot_utils import (
@@ -93,7 +97,7 @@ motor_target = ik_motor + residual.correction(front_rgb, wrist_rgb, joint_motor,
 joint_target_rad = convert_lerobot_action_to_leisaac(motor_target.reshape(1, 6))[0]
 ```
 
-For EE, the base emits a robot-base-frame pose plus a gripper target. Apply IK first and pass calibrated motor targets to the residual. In both modes, keep the control cadence and the checkpoint-specific amplitude profile. The residual module implements deployment; the online SAC trainer and replay service are separate components.
+For EE, the base predicts a TCP position, gripper-link orientation and gripper angle in the units above. Configure the IK tool offset in the child frame of `wrist_roll`, or call `link_origin_target` once for link-origin IK. Pass the calibrated motor targets from IK to the residual. In both modes, keep the control cadence and the checkpoint-specific amplitude profile. The residual module implements deployment; the online SAC trainer and replay service are separate components.
 
 ## 评测 / Evaluation
 

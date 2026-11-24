@@ -1,5 +1,6 @@
 """Inference components for the dual-camera PickOrange residual policy."""
 
+import json
 from pathlib import Path
 
 import numpy as np
@@ -90,8 +91,18 @@ def check_views(front, wrist):
             raise ValueError("Expected two HWC 640 by 480 uint8 RGB images")
 
 
+def checkpoint_config(directory, expected_mode):
+    path = Path(directory) / "config.json"
+    config = json.loads(path.read_text(encoding="utf-8"))
+    mode = config.get("action_mode")
+    if mode != expected_mode:
+        raise ValueError(f"{path}: expected action_mode {expected_mode!r}, got {mode!r}")
+    return config
+
+
 def make_policy(frozen, normalization, weights, device="cpu", arm_fraction=0.5):
     """Attach the residual to a loaded ACT-1 100k policy. Returns a per-episode controller."""
+    checkpoint_config(Path(weights).parent, "absolute_joint_motor")
     if arm_fraction not in (0.0, 0.25, 0.5, 1.0):
         raise ValueError("Expected an arm fraction of 0.0, 0.25, 0.5, or 1.0")
     frozen = frozen.to(device).eval().requires_grad_(False)
@@ -159,10 +170,8 @@ class EEResidual:
     """Apply a learned correction to the EE controller's IK joint target, in motor coordinates."""
 
     def __init__(self, directory, device="cpu", deployment_arm_fraction=1.0):
-        import json
-
         directory = Path(directory)
-        cfg = json.loads((directory / "config.json").read_text())
+        cfg = checkpoint_config(directory, "joint_motor_correction_after_absolute_ee_ik")
         if deployment_arm_fraction not in cfg["deployment_arm_fractions"]:
             raise ValueError("Unsupported deployment amplitude for this checkpoint")
         self.device = torch.device(device)

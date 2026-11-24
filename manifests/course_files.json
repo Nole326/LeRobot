@@ -381,8 +381,8 @@
   },
   {
     "path": "course/pickorange/act/README.md",
-    "bytes": 7162,
-    "sha256": "c14e4692effa995b0788ffb15afebaec866a1d750a3fb255624a4646e8632386"
+    "bytes": 8329,
+    "sha256": "cc335b069b7fccb3b749cdfb948ce98c7d07d7a4ea64c00268084c68063a2b10"
   },
   {
     "path": "course/pickorange/act/act_policy.py",
@@ -396,8 +396,8 @@
   },
   {
     "path": "course/pickorange/act/ee_command.py",
-    "bytes": 818,
-    "sha256": "9d43b4827deff55ab7682999456df30f3c5c535798dc474f9228f37a1b216429"
+    "bytes": 1396,
+    "sha256": "7afbee95e6d0c80246a2a1c0067b0a2b9a44a99f72d734533df6f78c8ffc2f82"
   },
   {
     "path": "course/pickorange/act/ee_loss.py",
@@ -411,8 +411,8 @@
   },
   {
     "path": "course/pickorange/act/residual.py",
-    "bytes": 8808,
-    "sha256": "0028c954de1070cc593c7be916d99726492fd32498a643faa78dcfd502544051"
+    "bytes": 9218,
+    "sha256": "523eb8d0525691919ec2fdf89eab6199b234c4ab80f0d5e1f002061ba4716abf"
   },
   {
     "path": "course/pickorange/act/skill_execution.py",
