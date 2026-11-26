@@ -155,9 +155,9 @@ The OFT boundary requires a matching trained dual-view package with six absolute
 
 ## 视觉控制脚本评测 / Visual control script evaluation
 
-[视觉控制脚本指南](visual/README.md)给出模型辅助版和双 RGB＋关节角＋相机标定版的运行命令、输入边界及 55 秒仿真成绩。两种协议均在首次取图前同步相机外参与图像，默认只保存数值记录。
+PickOrange 的[视觉控制脚本](visual/README.md)作为视觉规则基线。指南给出模型辅助版和双相机版的输入、运行命令及 55 秒仿真成绩。两种协议均在首次取图前同步相机外参与图像，默认只保存数值记录。
 
-The [visual control script guide](visual/README.md) covers commands, inputs and 55-second results for both variants. The evaluator refreshes the first camera frames and their calibration after reset. Debug images require explicit opt-in.
+The [visual controller](visual/README.md) serves as the PickOrange rule-based visual baseline. Its guide covers inputs, commands, and 55-second simulation results for the model-assisted and dual-camera variants. The evaluator refreshes the first camera frames and their calibration after reset. Debug images require explicit opt-in.
 
 ## 特权state控制脚本采集 / Privileged-state control script collection
 

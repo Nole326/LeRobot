@@ -13,7 +13,7 @@
 | PPO、存档恢复 | [TRAINING](TRAINING.md)；`training/train_rl.py`、`training/checkpoint.py`，`algorithms/reference/ppo.py`、`rewards/lift_cube.py`，`configs/rl_lift_cube.yaml` |
 | 策略与评测 | `interfaces/policy.py`、`interfaces/model.py`，`utils.py::build_policy`，`evaluation/evaluate.py`，`configs/eval_lift_cube.yaml` |
 | 视觉控制脚本 | `scripted_liftcube.py`、`joint_chain.py`、`scripts/export_joint_chain.py`、`scripts/evaluate_scripted.py`、[标定与验收](../../docs/SCRIPTED_LIFTCUBE.md)；每回合新建状态机，沿用共同`run_episode`，不接训练协议 |
-| 特权state控制脚本 | `privileged_liftcube.py`、共用评测器的 `--privileged-state`；[使用与数据准入](../../docs/TRAIN_AND_EVALUATE.md)；物体真值单独回调，不放入Observation，不当视觉baseline或已验收专家 |
+| 特权state控制脚本 | `privileged_liftcube.py` 使用共用评测器的 `--privileged-state` 选项。物体真值通过独立回调读取，保持 `Observation` 的视觉输入边界。成绩按特权输入单列，演示准入见[训练与评测指南](../../docs/TRAIN_AND_EVALUATE.md)。 |
 | 受限末端开发接口 | `envs/planar_ee.py`、`envs/factory.py`、[契约](../../docs/PLANAR_EE_DEVELOPMENT.md)；`control_mode: planar_ee_dev`仅自研开发，不当课程正式控制器 |
 | ACT/VLA或任务迁移 | [架构](../../docs/ARCHITECTURE.md)、[迁移路线](../../docs/LIFTCUBE_TRANSFER.md)、[契约](../../docs/INTERFACE_CONTRACTS.md)及上面的策略/环境边界 |
 

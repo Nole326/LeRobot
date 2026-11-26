@@ -78,7 +78,7 @@ Mount local directories at the paths above. Asset preparation downloads and extr
 - 原生成功要求三颗橙子同时满足盘区XYZ条件，且机械臂回位；一颗入盘或曾经命中过盘区是进度，不是整任务成功。 / Native success requires all three objects and the rest pose.
 - 运行前记录实际`physics_dt`、`step_dt`、动作保持和时限；20帧10Hz、128×128桥接条件仅属于该诊断，不是统一策略规格。 / Record real timing; bridge settings are not a task-wide specification.
 - 环境提供双相机与课程允许策略使用双相机是不同问题；按实际考核要求固定front-only或双视角协议，报告真实输入，不把双图结果当单图结果。 / Freeze the permitted view protocol and report it accurately.
-- 保持原生物理、执行器、成功条件及reset前终态；键盘/状态机等上游路径可能启用重力或夹爪辅助，控制脚本采集与视觉baseline必须分组。 / Separate assisted control scripts from visual baselines.
+- 保持原生物理、执行器和成功条件，在重置前记录终态。键盘控制和上游状态机可启用重力或夹爪辅助，采用辅助的控制脚本与视觉基线分别评测。 / Preserve the native physics, actuators, and success criteria, and record the terminal state before reset. Evaluate assisted controllers separately from visual baselines.
 
 ## 已配置环境中的检查 / Checks in a configured runtime
 

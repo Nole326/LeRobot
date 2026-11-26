@@ -30,7 +30,7 @@ qpos 从 60 Hz 的偶数记录取观测，以其后第 2、4、…、30 个物�
 
 默认有效 batch 为 64，每个 microbatch 为 8，共执行 100k 次优化器更新。主网络和视觉骨干的学习率分别为 0.0001 和 0.00001。输出目录包含 `loss.jsonl` 和按更新次数命名的 `checkpoint-<更新次数>/`。每个检查点包含模型配置、权重、归一化统计和执行配置，可直接加载推理。优化器和随机采样状态未保存，训练中断后无法从里程碑原样续训。再次启动训练需指定新的输出目录。可用 `--updates 1 --batch-size 2 --microbatch 1` 验证一次更新及检查点导出。
 
-训练在前 3 次更新、之后每 25 次更新及最后一次更新记录损失。SwanLab 的 `train/loss` 与 `loss.jsonl` 使用相同的优化器更新次数和损失值。默认离线记录，`--check-data` 只检查数据。[SwanLab 配置](../../../docs/SWANLAB.md)
+训练在前 3 次更新、之后每 25 次更新及最后一次更新记录损失。SwanLab 的 `train/loss` 与 `loss.jsonl` 使用相同的优化器更新次数和损失值。默认离线记录，配置方法见 [SwanLab 指南](../../../docs/SWANLAB.md)。`--check-data` 只检查数据。
 
 For qpos, sample every second observation and supervise the next 15 stride-two targets. Both EE modes use the same 30 Hz data. With `ee`, each action chunk stays within one segment and its final two recorded observations carry the segment-end label. With `ee-full`, chunks can cross placement boundaries and the model predicts motion through the full episode. Evaluate either checkpoint in `ee` mode. SwanLab and `loss.jsonl` use the same optimizer steps. Data checks do not create a run. Checkpoints support inference; exact training resumption would also require the optimizer and sampling states.
 
@@ -78,11 +78,11 @@ policy.reset()
 motor_target = policy.act(front_rgb, wrist_rgb, joint_motor)
 ```
 
-**EE**　ACT 输出七维目标：机器人基座系中的工具中心点 XYZ（米）、夹爪连杆在基座系中的旋转向量（三维，弧度）和夹爪角度（弧度）。工具中心点相对 SO-101 的夹爪连杆原点（`wrist_roll` 的子连杆）的偏移为 **(0.042393, −0.001200, −0.093031) 米**，沿连杆局部 XYZ 轴度量。工具坐标系与连杆坐标系同向。[EE 权重与工具参考点](https://huggingface.co/Nole326/LeIsaac-SO101-PickOrange/blob/main/ACT/ACT-2/80k/README.md)
+**EE**　ACT 输出七维目标：机器人基座系中的工具中心点 XYZ（米）、夹爪连杆在基座系中的旋转向量（三维，弧度）和夹爪角度（弧度）。工具中心点相对 SO-101 的夹爪连杆原点（`wrist_roll` 的子连杆）的偏移为 **(0.042393, −0.001200, −0.093031) 米**，沿连杆局部 XYZ 轴度量。工具坐标系与连杆坐标系同向，参考点定义见 [EE 权重说明](https://huggingface.co/Nole326/LeIsaac-SO101-PickOrange/blob/main/ACT/ACT-2/80k/README.md)。
 
 示例中的 `ee_controller` 由仿真端提供。若控制器支持工具偏移，使用 [`TCP_OFFSET_M`](ee_command.py) 配置工具中心点，然后按下例直接传入 `ee_target`。若控制器求解的是夹爪连杆原点，使用同一模块的 `link_origin_target(ee_target)` 作为 IK 输入。该函数用目标姿态将局部偏移转到基座系，再从目标位置中减去偏移。两种接法均只应用一次偏移。
 
-控制器以当前实测关节弧度为求解起点，将五维手臂关节解和预测的夹爪角度组成六维关节目标。`command` 示例返回关节目标及求解误差。残差接收 IK 输出对应的标定电机目标；执行端应用协议规定的驱动和关节限位。[LeIsaac 单位转换](../../../third_party/leisaac/source/leisaac/leisaac/utils/robot_utils.py)
+控制器以当前实测关节弧度为求解起点，将五维手臂关节解和预测的夹爪角度组成六维关节目标。`command` 示例返回关节目标及求解误差。IK 输出经 [LeIsaac 单位转换](../../../third_party/leisaac/source/leisaac/leisaac/utils/robot_utils.py)后，作为标定电机目标传给残差策略。执行端应用协议规定的驱动和关节限位。
 
 ```python
 from leisaac.utils.robot_utils import (

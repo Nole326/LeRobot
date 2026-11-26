@@ -16,8 +16,8 @@
   },
   {
     "path": "course/liftcube/AGENTS.md",
-    "bytes": 20895,
-    "sha256": "b3bd7692c9d943b419c9679d416999b90df1ab2199cb5f482f6a7c4aa1d18d7f"
+    "bytes": 20947,
+    "sha256": "40bb001b122432593acdca8e8f8f0348196dd84b021c8350c0b072d40f4745de"
   },
   {
     "path": "course/liftcube/README.md",
@@ -391,18 +391,18 @@
   },
   {
     "path": "course/pickorange/AGENTS.md",
-    "bytes": 5612,
-    "sha256": "8e3944969b2addd7b6392e91fe8786141008ba216fd9c1c0934905d9d9a19a04"
+    "bytes": 5690,
+    "sha256": "2c0a5a2d8f3ad538f78be7fe0d916dd011b061a66a53793bcd2eea44feb0dfb1"
   },
   {
     "path": "course/pickorange/README.md",
-    "bytes": 16438,
-    "sha256": "38421a38af360a2fe5066d49c7e250caf78220ee0ae77f66803a3f09e795cd9f"
+    "bytes": 16543,
+    "sha256": "807d52dbe505de588ef7cf33c5e22f731303cfc93f7627e019651c298a4a2562"
   },
   {
     "path": "course/pickorange/act/README.md",
-    "bytes": 10104,
-    "sha256": "bbaf4e5517b0a28625954246f6e948fbfeafe49b6ab015eacf292d61fa14832d"
+    "bytes": 10145,
+    "sha256": "267ee635fe83bd84f8fb1318ae70c077432c1bd34c4cdac0773e318327e8df9b"
   },
   {
     "path": "course/pickorange/act/act_policy.py",
@@ -846,8 +846,8 @@
   },
   {
     "path": "course/pickorange/visual/README.md",
-    "bytes": 7527,
-    "sha256": "6c8ff08fca404c492c8e7c2f6cdeb5fd1976cc08146fd4449d93fd15153ab7e4"
+    "bytes": 7679,
+    "sha256": "c3a4c7eb95ae26710fd1e1875147e63368762b2dbd99071a6a24bdaa20da5151"
   },
   {
     "path": "course/pickorange/visual/evaluate.py",

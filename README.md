@@ -29,15 +29,17 @@
 
 ## 当前范围
 
-- **LiftCube 仿真任务**提供环境适配、演示读取、BC 和参考 PPO。前视 RGB 视觉控制脚本与特权state控制脚本共用关节执行和评测入口。配套环境见 [LiftCube 指南](course/liftcube/README.md)，标定、命令和固定场景成绩见[控制脚本指南](docs/SCRIPTED_LIFTCUBE.md)。
-- **PickOrange仿真任务**：采用 [LightwheelAI 的 LeIsaac](https://github.com/LightwheelAI/leisaac) 中的 SO-101 PickOrange 环境，版本固定为 0.4.0。仓库提供 [ACT 行为克隆（qpos 与 EE）](course/pickorange/act/README.md)、[ACT 残差 SAC](course/pickorange/sac/README.md) 和 [GR00T 残差 SAC](course/pickorange/groot_sac/README.md) 的训练与评测代码。双相机 VLA 推理服务（GR00T、SmolVLA、π₀.₅）、仿真评测和轨迹审核见 [PickOrange运行指南](course/pickorange/README.md)。
-- **VLA接口**：[双任务接口导航](docs/VLA_INTERFACES.md)列出各模型的源码与入口：LiftCube使用单front包装，PickOrange使用双相机服务；OFT还需匹配的受训动作头、投影与统计。
-- **控制脚本**：[双任务脚本指南](docs/SCRIPTED_POLICIES.md)集中链接LiftCube视觉控制脚本与特权state控制脚本、PickOrange [特权state控制脚本](course/pickorange/expert/README.md)、官方控制脚本及上游参考。PickOrange自研控制脚本已完成控制、回放与采集流程的实际仿真联合验证；新增[视觉控制脚本](course/pickorange/visual/README.md)，提供显式标定／模型辅助版及仅RGB＋q6＋已知相机标定版，使用独立55秒协议。
-- **后续任务**：包括正式多物体抓放、跨物体泛化和真机部署。
+### 仿真任务
 
-两任务的环境版本、专家脚本、演示数据及四种VLA的权重与验收进度见[任务与适配状态表](docs/TASKS.md)。同为SO-101不等于接口相同，配置、权重、统计与成绩分别管理。
+- **LiftCube 仿真任务**：抓取桌面方块并抬起。仓库提供演示读取、行为克隆（BC）和参考 PPO 实现，环境配置与运行命令见 [LiftCube 运行指南](course/liftcube/README.md)。
+- **PickOrange 仿真任务**：将三颗橙子放入盘中，再让机械臂归位。仿真环境采用 [LightwheelAI 的 LeIsaac](https://github.com/LightwheelAI/leisaac) 0.4.0。仓库提供 [ACT 行为克隆（qpos 与 EE）](course/pickorange/act/README.md)、[ACT 残差 SAC](course/pickorange/sac/README.md) 和 [GR00T 残差 SAC](course/pickorange/groot_sac/README.md) 的训练与评测代码，运行命令见 [PickOrange 运行指南](course/pickorange/README.md)。
 
-从[资源清单](docs/RESOURCES.md)获取模型与演示，按[训练与评测指南](docs/TRAIN_AND_EVALUATE.md)选择任务入口。PickOrange原生辅助评测使用物体真值控制夹爪，与无特权视觉baseline分开报告。
+### VLA 接口与控制脚本
+
+- **VLA 推理接口**：LiftCube 使用前视相机，PickOrange 使用前视和腕部相机。各模型的输入要求和推理入口见 [VLA 接口指南](docs/VLA_INTERFACES.md)。
+- **控制脚本**：[控制脚本指南](docs/SCRIPTED_POLICIES.md)汇总了两项任务的脚本。LiftCube 的前视 RGB 视觉控制脚本与特权state控制脚本共用关节控制接口，其[运行指南](docs/SCRIPTED_LIFTCUBE.md)包含相机标定方法和固定场景评测结果。PickOrange 以[视觉控制脚本](course/pickorange/visual/README.md)作为视觉规则基线，用[特权state控制脚本](course/pickorange/expert/README.md)采集专家演示并进行动作轨迹独立回放检验。
+
+模型权重和演示数据见[资源清单](docs/RESOURCES.md)，各任务的运行命令见[训练与评测指南](docs/TRAIN_AND_EVALUATE.md)，环境版本和模型适配情况见[任务对照表](docs/TASKS.md)。
 
 ## 快速开始
 
@@ -119,7 +121,7 @@ VLA 强化学习实现参考 [RLinf](docs/RLINF.md)，目前尚未接入本项�
 - [SwanLab训练与评测曲线](docs/SWANLAB.md)：仅数值与脱敏配置，默认离线，在线使用私有项目
 - [LiftCube 源码、镜像与运行方法](course/liftcube/README.md)
 - [PickOrange 源码、独立环境与诊断入口](docs/PICK_ORANGE.md)
-- [视觉控制脚本、标定与后续适配](docs/SCRIPTED_LIFTCUBE.md)
+- [LiftCube 控制脚本、相机标定与固定场景评测](docs/SCRIPTED_LIFTCUBE.md)
 - [受限末端开发接口与验证限制](docs/PLANAR_EE_DEVELOPMENT.md)
 - [架构、扩展位置与团队协作](docs/ARCHITECTURE.md)
 - [RLinf 对本项目的帮助与接入边界](docs/RLINF.md)
