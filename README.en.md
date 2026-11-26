@@ -37,7 +37,7 @@ The current stage covers LiftCube and PickOrange as separate policy, data and ev
 ### VLA interfaces and control scripts
 
 - **VLA inference interfaces**: LiftCube uses the front camera. PickOrange uses the front and wrist cameras. The [VLA interface guide](docs/VLA_INTERFACES.md) lists model inputs and inference entry points.
-- **Control scripts**: The [control script guide](docs/SCRIPTED_POLICIES.md) covers visual and privileged-state controllers for both tasks. The LiftCube controllers share a joint-control interface. The [LiftCube controller guide](docs/SCRIPTED_LIFTCUBE.md) covers calibration and fixed-scene results. PickOrange provides a [visual controller](course/pickorange/visual/README.md) for picking and placing and a [privileged-state controller](course/pickorange/expert/README.md) for demonstration collection and independent action-trajectory replay checks.
+- **Control scripts**: The [control script guide](docs/SCRIPTED_POLICIES.md) lists the scripts for both tasks. LiftCube’s front-camera RGB and privileged-state controllers share a joint-control interface, and their [run guide](docs/SCRIPTED_LIFTCUBE.md) documents camera calibration and fixed-scene evaluation results. PickOrange uses its [visual controller](course/pickorange/visual/README.md) as a rule-based visual baseline and its [privileged-state controller](course/pickorange/expert/README.md) to collect expert demonstrations and verify recorded actions through independent replay.
 
 See the [resource list](docs/RESOURCES.md) for weights and demonstrations, the [training and evaluation guide](docs/TRAIN_AND_EVALUATE.md) for commands, and the [task comparison](docs/TASKS.md) for environment versions and model support.
 

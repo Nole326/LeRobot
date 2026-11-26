@@ -37,7 +37,7 @@
 ### VLA 接口与控制脚本
 
 - **VLA 推理接口**：LiftCube 使用前视相机，PickOrange 使用前视和腕部相机。各模型的输入要求和推理入口见 [VLA 接口指南](docs/VLA_INTERFACES.md)。
-- **控制脚本**：两项任务均提供视觉控制脚本和特权state控制脚本，详见[控制脚本指南](docs/SCRIPTED_POLICIES.md)。LiftCube 的两种脚本共用关节控制接口，标定方法和固定场景成绩见 [LiftCube 控制脚本指南](docs/SCRIPTED_LIFTCUBE.md)。PickOrange 的[视觉控制脚本](course/pickorange/visual/README.md)用于抓放，[特权state控制脚本](course/pickorange/expert/README.md)支持专家演示采集和动作轨迹独立回放检验。
+- **控制脚本**：[控制脚本指南](docs/SCRIPTED_POLICIES.md)汇总了两项任务的脚本。LiftCube 的前视 RGB 视觉控制脚本与特权state控制脚本共用关节控制接口，其[运行指南](docs/SCRIPTED_LIFTCUBE.md)包含相机标定方法和固定场景评测结果。PickOrange 以[视觉控制脚本](course/pickorange/visual/README.md)作为视觉规则基线，用[特权state控制脚本](course/pickorange/expert/README.md)采集专家演示并进行动作轨迹独立回放检验。
 
 模型权重和演示数据见[资源清单](docs/RESOURCES.md)，各任务的运行命令见[训练与评测指南](docs/TRAIN_AND_EVALUATE.md)，环境版本和模型适配情况见[任务对照表](docs/TASKS.md)。
 
