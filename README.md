@@ -29,14 +29,17 @@
 
 ## 当前范围
 
-| 仿真任务 | 控制脚本 | 训练与评测 |
-| --- | --- | --- |
-| [LiftCube 运行指南](course/liftcube/README.md) · 抓取并抬起方块 | 前视 RGB 视觉控制脚本和特权state控制脚本共用关节控制接口。[标定与固定场景评测](docs/SCRIPTED_LIFTCUBE.md) | 读取演示，训练并评测行为克隆（BC）和参考 PPO 策略。 |
-| [PickOrange 运行指南](course/pickorange/README.md) · 将三颗橙子放入盘中并归位 | [视觉控制脚本](course/pickorange/visual/README.md)用于抓放，[特权state控制脚本](course/pickorange/expert/README.md)支持专家演示采集与动作轨迹独立回放检验。 | [ACT 行为克隆（qpos 与 EE）](course/pickorange/act/README.md)、[ACT 残差 SAC](course/pickorange/sac/README.md) 和 [GR00T 残差 SAC](course/pickorange/groot_sac/README.md)。 |
+### 仿真任务
 
-PickOrange 使用 [LightwheelAI 的 LeIsaac](https://github.com/LightwheelAI/leisaac) 0.4.0。LiftCube 的 VLA 接口使用前视图像，PickOrange 的 VLA 服务使用前视和腕部图像。各模型的输入和启动方式见 [VLA 接口指南](docs/VLA_INTERFACES.md)。
+- **LiftCube 仿真任务**：抓取桌面方块并抬起。仓库提供演示读取、行为克隆（BC）和参考 PPO 实现，环境配置与运行命令见 [LiftCube 运行指南](course/liftcube/README.md)。
+- **PickOrange 仿真任务**：将三颗橙子放入盘中，再让机械臂归位。仿真环境采用 [LightwheelAI 的 LeIsaac](https://github.com/LightwheelAI/leisaac) 0.4.0。仓库提供 [ACT 行为克隆（qpos 与 EE）](course/pickorange/act/README.md)、[ACT 残差 SAC](course/pickorange/sac/README.md) 和 [GR00T 残差 SAC](course/pickorange/groot_sac/README.md) 的训练与评测代码，运行命令见 [PickOrange 运行指南](course/pickorange/README.md)。
 
-模型权重与演示数据见[资源清单](docs/RESOURCES.md)。按任务查找[控制脚本](docs/SCRIPTED_POLICIES.md)、[训练与评测命令](docs/TRAIN_AND_EVALUATE.md)或[适配状态](docs/TASKS.md)。
+### VLA 接口与控制脚本
+
+- **VLA 推理接口**：LiftCube 使用前视相机，PickOrange 使用前视和腕部相机。各模型的输入要求和推理入口见 [VLA 接口指南](docs/VLA_INTERFACES.md)。
+- **控制脚本**：两项任务均提供视觉控制脚本和特权state控制脚本，详见[控制脚本指南](docs/SCRIPTED_POLICIES.md)。LiftCube 的两种脚本共用关节控制接口，标定方法和固定场景成绩见 [LiftCube 控制脚本指南](docs/SCRIPTED_LIFTCUBE.md)。PickOrange 的[视觉控制脚本](course/pickorange/visual/README.md)用于抓放，[特权state控制脚本](course/pickorange/expert/README.md)支持专家演示采集和动作轨迹独立回放检验。
+
+模型权重和演示数据见[资源清单](docs/RESOURCES.md)，各任务的运行命令见[训练与评测指南](docs/TRAIN_AND_EVALUATE.md)，环境版本和模型适配情况见[任务对照表](docs/TASKS.md)。
 
 ## 快速开始
 

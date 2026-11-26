@@ -29,14 +29,17 @@ The current stage covers LiftCube and PickOrange as separate policy, data and ev
 
 ## Current scope
 
-| Simulation task | Control scripts | Training and evaluation |
-| --- | --- | --- |
-| [LiftCube run guide](course/liftcube/README.md) · Grasp and lift a cube | The front-camera RGB and privileged-state controllers share a joint-control interface. [Calibration and fixed-scene evaluation](docs/SCRIPTED_LIFTCUBE.md) | Load demonstrations and train and evaluate behavior cloning (BC) and reference PPO policies. |
-| [PickOrange run guide](course/pickorange/README.md) · Place three oranges on the plate and return the arm to rest | The [visual controller](course/pickorange/visual/README.md) handles picking and placing. The [privileged-state controller](course/pickorange/expert/README.md) supports demonstration collection and independent action-trajectory replay checks. | [ACT behavior cloning (qpos and EE)](course/pickorange/act/README.md), [ACT residual SAC](course/pickorange/sac/README.md), and [GR00T residual SAC](course/pickorange/groot_sac/README.md). |
+### Simulation tasks
 
-PickOrange uses [LightwheelAI’s LeIsaac](https://github.com/LightwheelAI/leisaac) 0.4.0. LiftCube VLA interfaces use the front camera. PickOrange VLA services use the front and wrist cameras. The [VLA interface guide](docs/VLA_INTERFACES.md) lists the inputs and launch instructions for each model.
+- **LiftCube simulation task**: Grasp a cube on the table and lift it. The repository includes a demonstration loader, behavior cloning (BC), and a reference PPO implementation. See the [LiftCube run guide](course/liftcube/README.md) for environment setup and commands.
+- **PickOrange simulation task**: Place three oranges on the plate and return the arm to rest. The environment uses [LightwheelAI’s LeIsaac](https://github.com/LightwheelAI/leisaac) 0.4.0. The repository includes training and evaluation code for [ACT behavior cloning (qpos and EE)](course/pickorange/act/README.md), [ACT residual SAC](course/pickorange/sac/README.md), and [GR00T residual SAC](course/pickorange/groot_sac/README.md). See the [PickOrange run guide](course/pickorange/README.md) for commands.
 
-Find model weights and demonstrations in the [resource list](docs/RESOURCES.md). Browse [control scripts](docs/SCRIPTED_POLICIES.md), [training and evaluation commands](docs/TRAIN_AND_EVALUATE.md), or [integration status](docs/TASKS.md) by task.
+### VLA interfaces and control scripts
+
+- **VLA inference interfaces**: LiftCube uses the front camera. PickOrange uses the front and wrist cameras. The [VLA interface guide](docs/VLA_INTERFACES.md) lists model inputs and inference entry points.
+- **Control scripts**: The [control script guide](docs/SCRIPTED_POLICIES.md) covers visual and privileged-state controllers for both tasks. The LiftCube controllers share a joint-control interface. The [LiftCube controller guide](docs/SCRIPTED_LIFTCUBE.md) covers calibration and fixed-scene results. PickOrange provides a [visual controller](course/pickorange/visual/README.md) for picking and placing and a [privileged-state controller](course/pickorange/expert/README.md) for demonstration collection and independent action-trajectory replay checks.
+
+See the [resource list](docs/RESOURCES.md) for weights and demonstrations, the [training and evaluation guide](docs/TRAIN_AND_EVALUATE.md) for commands, and the [task comparison](docs/TASKS.md) for environment versions and model support.
 
 ## Quick start
 
