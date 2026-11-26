@@ -29,15 +29,14 @@
 
 ## 当前范围
 
-- **LiftCube 仿真任务**提供环境适配、演示读取、BC 和参考 PPO。前视 RGB 视觉控制脚本与特权state控制脚本共用关节执行和评测入口。配套环境见 [LiftCube 指南](course/liftcube/README.md)，标定、命令和固定场景成绩见[控制脚本指南](docs/SCRIPTED_LIFTCUBE.md)。
-- **PickOrange仿真任务**：采用 [LightwheelAI 的 LeIsaac](https://github.com/LightwheelAI/leisaac) 中的 SO-101 PickOrange 环境，版本固定为 0.4.0。仓库提供 [ACT 行为克隆（qpos 与 EE）](course/pickorange/act/README.md)、[ACT 残差 SAC](course/pickorange/sac/README.md) 和 [GR00T 残差 SAC](course/pickorange/groot_sac/README.md) 的训练与评测代码。双相机 VLA 推理服务（GR00T、SmolVLA、π₀.₅）、仿真评测和轨迹审核见 [PickOrange运行指南](course/pickorange/README.md)。
-- **VLA接口**：[双任务接口导航](docs/VLA_INTERFACES.md)列出各模型的源码与入口：LiftCube使用单front包装，PickOrange使用双相机服务；OFT还需匹配的受训动作头、投影与统计。
-- **控制脚本**：[双任务脚本指南](docs/SCRIPTED_POLICIES.md)集中链接LiftCube视觉控制脚本与特权state控制脚本、PickOrange [特权state控制脚本](course/pickorange/expert/README.md)、官方控制脚本及上游参考。PickOrange自研控制脚本已完成控制、回放与采集流程的实际仿真联合验证；新增[视觉控制脚本](course/pickorange/visual/README.md)，提供显式标定／模型辅助版及仅RGB＋q6＋已知相机标定版，使用独立55秒协议。
-- **后续任务**：包括正式多物体抓放、跨物体泛化和真机部署。
+| 仿真任务 | 控制脚本 | 训练与评测 |
+| --- | --- | --- |
+| [LiftCube 运行指南](course/liftcube/README.md) · 抓取并抬起方块 | 前视 RGB 视觉控制脚本和特权state控制脚本共用关节控制接口。[标定与固定场景评测](docs/SCRIPTED_LIFTCUBE.md) | 读取演示，训练并评测行为克隆（BC）和参考 PPO 策略。 |
+| [PickOrange 运行指南](course/pickorange/README.md) · 将三颗橙子放入盘中并归位 | [视觉控制脚本](course/pickorange/visual/README.md)用于抓放，[特权state控制脚本](course/pickorange/expert/README.md)支持专家演示采集与动作轨迹独立回放检验。 | [ACT 行为克隆（qpos 与 EE）](course/pickorange/act/README.md)、[ACT 残差 SAC](course/pickorange/sac/README.md) 和 [GR00T 残差 SAC](course/pickorange/groot_sac/README.md)。 |
 
-两任务的环境版本、专家脚本、演示数据及四种VLA的权重与验收进度见[任务与适配状态表](docs/TASKS.md)。同为SO-101不等于接口相同，配置、权重、统计与成绩分别管理。
+PickOrange 使用 [LightwheelAI 的 LeIsaac](https://github.com/LightwheelAI/leisaac) 0.4.0。LiftCube 的 VLA 接口使用前视图像，PickOrange 的 VLA 服务使用前视和腕部图像。各模型的输入和启动方式见 [VLA 接口指南](docs/VLA_INTERFACES.md)。
 
-从[资源清单](docs/RESOURCES.md)获取模型与演示，按[训练与评测指南](docs/TRAIN_AND_EVALUATE.md)选择任务入口。PickOrange原生辅助评测使用物体真值控制夹爪，与无特权视觉baseline分开报告。
+模型权重与演示数据见[资源清单](docs/RESOURCES.md)。按任务查找[控制脚本](docs/SCRIPTED_POLICIES.md)、[训练与评测命令](docs/TRAIN_AND_EVALUATE.md)或[适配状态](docs/TASKS.md)。
 
 ## 快速开始
 

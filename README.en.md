@@ -29,15 +29,14 @@ The current stage covers LiftCube and PickOrange as separate policy, data and ev
 
 ## Current scope
 
-- **LiftCube simulation** includes environment adapters, demonstration loading, BC and reference PPO. The front RGB and privileged-state controllers share the joint interface and evaluator. See the [runtime guide](course/liftcube/README.md) and [controller configurations, commands and results](docs/SCRIPTED_LIFTCUBE.md).
-- **PickOrange simulation task** uses the SO-101 PickOrange environment from [LightwheelAI’s LeIsaac](https://github.com/LightwheelAI/leisaac), pinned to version 0.4.0. The repository includes training and evaluation code for [ACT behavior cloning (qpos and EE)](course/pickorange/act/README.md), [ACT residual SAC](course/pickorange/sac/README.md), and [GR00T residual SAC](course/pickorange/groot_sac/README.md). The [PickOrange run guide](course/pickorange/README.md) covers dual-camera inference with GR00T, SmolVLA, and π₀.₅, simulation evaluation, and trajectory audits.
-- **VLA interfaces:** the [two-task interface guide](docs/VLA_INTERFACES.md) links model backends for both tasks: single-front wrappers for LiftCube and dual-view services for PickOrange. OFT still requires matching trained heads, projections and statistics.
-- **Control scripts:** the [two-task script guide](docs/SCRIPTED_POLICIES.md) links LiftCube policies, the upstream PickOrange control script and related references. The [PickOrange privileged-state control script](course/pickorange/expert/README.md) has been validated in simulation for control, demonstration collection and independent action-trajectory replay. The [PickOrange visual control script](course/pickorange/visual/README.md) provides a model-assisted variant and an RGB, six-joint state and camera calibration variant, each with a 55-second evaluation protocol.
-- **Future work** includes multi-object manipulation, cross-object generalization and hardware deployment.
+| Simulation task | Control scripts | Training and evaluation |
+| --- | --- | --- |
+| [LiftCube run guide](course/liftcube/README.md) · Grasp and lift a cube | The front-camera RGB and privileged-state controllers share a joint-control interface. [Calibration and fixed-scene evaluation](docs/SCRIPTED_LIFTCUBE.md) | Load demonstrations and train and evaluate behavior cloning (BC) and reference PPO policies. |
+| [PickOrange run guide](course/pickorange/README.md) · Place three oranges on the plate and return the arm to rest | The [visual controller](course/pickorange/visual/README.md) handles picking and placing. The [privileged-state controller](course/pickorange/expert/README.md) supports demonstration collection and independent action-trajectory replay checks. | [ACT behavior cloning (qpos and EE)](course/pickorange/act/README.md), [ACT residual SAC](course/pickorange/sac/README.md), and [GR00T residual SAC](course/pickorange/groot_sac/README.md). |
 
-See the [task and adaptation matrix](docs/TASKS.md) for runtimes, expert scripts, demonstrations and checkpoint/validation status across the four VLA families. A shared SO-101 robot does not make the interfaces interchangeable; keep configurations, checkpoints, statistics and scores separate.
+PickOrange uses [LightwheelAI’s LeIsaac](https://github.com/LightwheelAI/leisaac) 0.4.0. LiftCube VLA interfaces use the front camera. PickOrange VLA services use the front and wrist cameras. The [VLA interface guide](docs/VLA_INTERFACES.md) lists the inputs and launch instructions for each model.
 
-Obtain weights and demonstrations from [resources](docs/RESOURCES.md), then follow the [training and evaluation guide](docs/TRAIN_AND_EVALUATE.md). PickOrange's native-assisted evaluation uses object truth for gripper control and is reported separately from non-privileged visual baselines.
+Find model weights and demonstrations in the [resource list](docs/RESOURCES.md). Browse [control scripts](docs/SCRIPTED_POLICIES.md), [training and evaluation commands](docs/TRAIN_AND_EVALUATE.md), or [integration status](docs/TASKS.md) by task.
 
 ## Quick start
 
