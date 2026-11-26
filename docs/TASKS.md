@@ -17,7 +17,7 @@ PickOrange 自研 [特权state控制脚本](../course/pickorange/expert/README.m
 | 环境ID / Environment ID | `LeIsaac-SO101-LiftCube-v0` | `LeIsaac-SO101-PickOrange-v0` |
 | 运行栈 / Runtime | 课程配套Isaac Sim4.5.0 / IsaacLab2.1.1 / LeIsaac0.1.2镜像，Python3.10.15 | 独立Isaac Sim/IsaacLab运行环境；公开冻结LeIsaac0.4.0 / IsaacLab2.3.0源码，诊断入口要求Python3.11覆盖层；无同等配套镜像锁 / Separate runtime and Python3.11 overlays; pinned sources, not a turnkey image |
 | 代码 / Code | `course/liftcube/src/starter/` | `course/pickorange/`模型评测、`course/scripts/`诊断与`third_party/leisaac/`任务源码 / Separate evaluation, diagnostics and pinned task source |
-| RGB | 包装后单front，默认64×64；规则可显式用匹配标定的128/256 / One resized front stream | 公开环境front+wrist，各480×640；桥接诊断另用128×128 / Two native views; separate bridge resizing |
+| RGB | 包装后单front，默认64×64；视觉控制脚本可显式用匹配标定的128/256 / One resized front stream | 公开环境front+wrist，各480×640；桥接诊断另用128×128 / Two native views; separate bridge resizing |
 | q与其他状态 / State | 实测q6；速度/末端兼容槽补零，上次发送目标另列 / Measured q6, declared padding and previous commands | 原生关节弧度及其他仿真诊断字段；策略输入须单独选许可字段 / Native joint radians and diagnostic fields; an explicit policy whitelist is required |
 | 动作 / Actions | 六维绝对motor，适配器映射弧度 / Absolute motor targets mapped to radians | `so101leader`原生action manager有scale/offset；motor→绝对弧度→raw action须明确转换 / Explicit conversion through native scale/offset |
 | 时序与时限 / Timing and horizon | 默认30Hz策略、60Hz环境两tick保持；参考640环境tick | 从实际`physics_dt`、`step_dt`和运行配置读取；20帧10Hz桥接只是诊断 / Read actual clocks and run limits; bridge timing is diagnostic only |
@@ -42,13 +42,13 @@ The PickOrange VLA results below cover experiments through 2026-11-05. LiftCube 
 
 | 资源 / Resource | LiftCube | PickOrange |
 | --- | --- | --- |
-| 视觉脚本 / Visual script | **已有公开实现与实际评测。** [规则策略与评测入口](../course/liftcube/README.md)。既有100回合结果为45/100，条件为front 256×256、q6及显式相机标定辅助；不能称为不使用标定的纯视觉结果，也不是高可靠专家。 / Implemented and evaluated with explicit calibration assistance. | [模型辅助版及双 RGB＋q6＋相机标定版的运行入口与 55 秒评测结果](../course/pickorange/visual/README.md#结果与审计--results-and-audit)。 / Runner and 55-second evaluation results for both calibrated visual variants. |
-| 特权state脚本 / privileged state control scripts | **已有SO101开发控制脚本源码与CPU测试，真实成功率待验。** [PrivilegedLiftCube](../course/liftcube/src/starter/privileged_liftcube.py)显式读取cube真值，复用原控制保护；[执行与采集准入](TRAIN_AND_EVALUATE.md)。上游Franka状态机不直接适用。 / Implemented development candidate; physical grasp acceptance pending. | **已有自研[特权state控制脚本](../course/pickorange/expert/README.md)，已完成控制执行、回放检验与采集流程的实际仿真联合验证。** 同时保留官方采集状态机源码。 [任务状态机](../third_party/leisaac/source/leisaac/leisaac/datagen/state_machine/pick_orange.py)与[生成入口](../third_party/leisaac/scripts/datagen/state_machine/generate.py)已收录；其直接写关节状态等限制见[采集指南](../course/pickorange/README.md)。生成数据必须通过回放检验后才能用于BC。 / Control execution, independent replay and collection jointly validated in simulation; upstream generator retained with physics/state-write caveats. |
+| 视觉控制脚本 / Visual control script | [前视 RGB、六维关节反馈与相机标定 / Calibrated front RGB and joint feedback](SCRIPTED_LIFTCUBE.md)；16 s: 47/50 (94%). | [模型辅助版及双 RGB＋q6＋相机标定版的运行入口与 55 秒评测结果](../course/pickorange/visual/README.md#结果与审计--results-and-audit)。 / Runner and 55-second evaluation results for both calibrated visual variants. |
+| 特权state控制脚本 / Privileged-state control script | [读取方块位置与朝向 / Cube position and yaw](SCRIPTED_LIFTCUBE.md)；16 s: 49/50 (98%). | **已有自研[特权state控制脚本](../course/pickorange/expert/README.md)，已完成控制执行、回放检验与采集流程的实际仿真联合验证。** 同时保留官方采集状态机源码。 [任务状态机](../third_party/leisaac/source/leisaac/leisaac/datagen/state_machine/pick_orange.py)与[生成入口](../third_party/leisaac/scripts/datagen/state_machine/generate.py)已收录；其直接写关节状态等限制见[采集指南](../course/pickorange/README.md)。生成数据必须通过回放检验后才能用于BC。 / Control execution, independent replay and collection jointly validated in simulation; upstream generator retained with physics/state-write caveats. |
 | 网络演示 / Online demonstrations | **有候选资源。** [azazdeaz/teleop_so101_leisaac_lift_cube](https://huggingface.co/datasets/azazdeaz/teleop_so101_leisaac_lift_cube)：17回合、front+wrist、30fps。已核对元数据、统计与任务文本；未完成全量下载、逐回合成功和当前环境重放验收。 / Metadata checked; full replay and training admission remain open. | [三套项目演示](../course/pickorange/expert/README.md)各含 100 条，包括 GR00T qpos、脚本 qpos 和 GR00T EE。 / Three replay-verified collections of 100 episodes each. [External candidates](RESOURCES.md#专家演示--demonstrations). |
 
-特权state控制脚本使用物体真值，只能作为另行声明的采集工具，不能冒充视觉规则baseline。官方PickOrange生成流程会改变重力、夹爪控制及终止方式，并在setup/回位/成功检查中写关节状态；使用前须与冻结的评测环境逐项对齐，不能仅依据状态机结束就认定原生任务成功。
+特权state控制脚本使用物体真值，只能作为另行声明的采集工具，不能冒充视觉控制脚本的基线成绩。官方PickOrange生成流程会改变重力、夹爪控制及终止方式，并在setup/回位/成功检查中写关节状态；使用前须与冻结的评测环境逐项对齐，不能仅依据状态机结束就认定原生任务成功。
 
-privileged state control scripts are data-generation tools, not visual baselines. The official PickOrange generation setup can change gravity, gripper control and termination; audit those differences against the evaluation contract.
+privileged-state control scripts are data-generation tools, not visual baselines. The official PickOrange generation setup can change gravity, gripper control and termination; audit those differences against the evaluation contract.
 
 历史候选`H2Ozone/lift_cube`另有动作范围不匹配记录：约62.64%的帧至少一维请求超出当前声明范围。这不是直接裁剪原标签的理由；其映射、标定和原生请求/执行时限幅对照重放尚未完成，不能与上表17回合数据集混为同一份数据。
 
@@ -88,7 +88,7 @@ Code, external checkpoints and accepted task policies are distinct. Validate vie
 ## 当前开发顺序 / Development order
 
 1. 分别冻结任务、观测、动作、物理与评分配置；沿各自入口检查真实RGB/q及终态。 / Freeze each task's own contracts and verify observations and terminal capture.
-2. LiftCube优先形成可复现的规则结果、合格演示以及ACT/SmolVLA对照；其他VLA按匹配程度接入。 / Establish rule and ACT/SmolVLA comparisons with accepted demonstrations.
+2. LiftCube优先形成可复现的控制脚本评测结果、合格演示以及ACT/SmolVLA对照；其他VLA按匹配程度接入。 / Compare the visual control script with ACT and SmolVLA with accepted demonstrations.
 3. PickOrange以已测N1.5任务基座为开发起点，推进可归因的RL对照、SmolVLA统一协议基线和π₀.₅诊断；OFT先补受训包或选择BC。DiT12暂搁置。控制脚本采集与BC准入独立审核。 / Build on N1.5, standardize SmolVLA evaluation, diagnose PI05 and resolve OFT training assets; DiT12 is deferred.
 4. 两任务独立配置、数据划分、统计、checkpoint和结果目录；比较时保留任务、视角、控制与预算信息。 / Keep data, normalization, checkpoints and evaluation records separate.
 

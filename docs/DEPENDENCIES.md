@@ -18,13 +18,13 @@ Follow the [PickOrange guide](PICK_ORANGE.md). Its diagnostic launchers expect a
 
 Kitchen/SO101 assets are external and listed below. `course/constraints-isaac51.txt` records a conflicting historical dependency experiment, not a supported unified installation recipe. Complete model backends need their own compatible environments and task adapters.
 
-## Rule and planar-control development
+## Scripted controllers and planar control
 
-The [LiftCube visual-rule baseline](SCRIPTED_LIFTCUBE.md) supports NumPy/SciPy with a verified fixed SO-101 joint chain, or LeRobot `RobotKinematics` with Placo and a matching URDF. The offline chain exporter additionally requires the runtime's USD Python API.
+The [LiftCube visual control script](SCRIPTED_LIFTCUBE.md) supports NumPy/SciPy with a verified fixed SO-101 joint chain, or LeRobot `RobotKinematics` with Placo and a matching URDF. The offline chain exporter additionally requires the runtime's USD Python API.
 
-The [PickOrange visual-rule evaluator](../course/pickorange/visual/README.md) uses the PickOrange simulation environment, SO-101 USD, scene assets, NumPy, SciPy, OpenCV and SwanLab 0.10.3. Install Pillow to save optional debug images. Its CPU tests use the pinned OpenCV headless package in the [source-check workflow](../.github/workflows/source-check.yml). The evaluator's `--check` and `--help` use only the Python standard library.
+The [PickOrange visual control script evaluator](../course/pickorange/visual/README.md) uses the PickOrange simulation environment, SO-101 USD, scene assets, NumPy, SciPy, OpenCV and SwanLab 0.10.3. Install Pillow to save optional debug images. Its CPU tests use the pinned OpenCV headless package in the [source-check workflow](../.github/workflows/source-check.yml). The evaluator's `--check` and `--help` use only the Python standard library.
 
-The optional [planar EE layer](PLANAR_EE_DEVELOPMENT.md) uses NumPy/SciPy and a matching fixed joint chain, without Placo. Use the existing compatible application environment; neither controller requires demonstration data or trained weights. Robot/TCP calibration, camera/table transforms and workspace validation are external inputs, not supplied by an incomplete template. The simulator-pose camera provider is an explicitly opted-in development path, not the unreleased formal calibration SDK.
+The optional [planar EE layer](PLANAR_EE_DEVELOPMENT.md) uses NumPy/SciPy and a matching fixed joint chain, without Placo. Use the existing compatible application environment; neither controller requires demonstration data or trained weights. The [LiftCube simulation profiles](../course/liftcube/configs/scripted) include the matching joint chain, TCP and workspace calibration. Recalibrate these values when changing the robot or scene. The simulator-pose camera provider is an explicitly opted-in development path, not the unreleased formal calibration SDK.
 
 ## Optional VLA backends
 

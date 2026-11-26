@@ -29,6 +29,12 @@ class JointChainTests(unittest.TestCase):
             np.testing.assert_allclose(target[:3,3],[0,0,-.1])
             recovered=kin.inverse_kinematics(q,target)
             np.testing.assert_allclose(kin.forward_kinematics(recovered),target,atol=1e-8)
+            feedback=q.copy();feedback[3]=float(USD_HIGH_DEG[3])+.001
+            target=kin.forward_kinematics(np.minimum(feedback,USD_HIGH_DEG[:5]))
+            recovered=kin.inverse_kinematics(feedback,target)
+            self.assertGreater(feedback[3],USD_HIGH_DEG[3])
+            self.assertTrue(np.all(recovered <= USD_HIGH_DEG[:5]))
+            np.testing.assert_allclose(kin.forward_kinematics(recovered),target,atol=1e-7)
             for field,value in (('upper',111.),('axis','X')):
                 data=self.data(); data['joints'][0][field]=value; path.write_text(json.dumps(data))
                 with self.assertRaises(ValueError):

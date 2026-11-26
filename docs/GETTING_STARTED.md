@@ -10,17 +10,17 @@ Build one minimal loop before increasing model size or training budget: read obs
 
 Start with the [interface contracts](INTERFACE_CONTRACTS.md), then check [dependencies](DEPENDENCIES.md) and [training validation](TRAINING_VALIDATION.md) for the selected task. Use its published environment parameters and scoring rules.
 
-先按[任务对照](TASKS.md)选择LiftCube或PickOrange，再按[资源清单](RESOURCES.md)获取模型/演示、按[训练与评测](TRAIN_AND_EVALUATE.md)选择入口。LiftCube已有配套镜像、视觉脚本和参考训练；PickOrange使用独立环境与[双视角推理/评测入口](../course/pickorange/README.md)。两任务不混用依赖、统计或评分。
+先按[任务对照](TASKS.md)选择LiftCube或PickOrange，再按[资源清单](RESOURCES.md)获取模型/演示、按[训练与评测](TRAIN_AND_EVALUATE.md)选择入口。LiftCube已有配套镜像、视觉控制脚本和参考训练；PickOrange使用独立环境与[双视角推理/评测入口](../course/pickorange/README.md)。两任务不混用依赖、统计或评分。
 
 Choose a task in the comparison, obtain its resources and follow the execution guide. LiftCube has a matching image and reference implementations; PickOrange has a separate runtime and dual-view rollout entry points. Keep task dependencies and results separate.
 
-按目标选择入口，避免把所有训练前提都套到规则推理上：
+按目标选择入口，避免将训练依赖引入控制脚本的运行环境：
 
 | 目标 / Goal | 入口与前提 / Entry and prerequisites |
 | --- | --- |
 | PickOrange接口与重放 / PickOrange interfaces and replay | [任务指南](PICK_ORANGE.md)；独立仿真/模型环境、真实动作offset与终态，诊断不作正式评测 / Separate runtime, native action mapping and terminal capture; diagnostics are not benchmarks |
 | PickOrange 模型选型 / Model selection | [ACT 权重与模型卡](RESOURCES.md#pickorange-act-权重--pickorange-act-checkpoints)提供推理配置与固定场景成绩。[VLA 检验摘要](PICKORANGE_VALIDATION.md)记录协议、任务成绩及 RL 资源需求 / ACT exports and held-out results, plus VLA and RL validation |
-| 视觉规则抓放 / Visual-rule grasping | [LiftCube 规则指南](SCRIPTED_LIFTCUBE.md) · [PickOrange 规则指南](../course/pickorange/visual/README.md)。两者均可先运行 `--check`，实际闭环使用各自的仿真环境与标定。 / Check the entry point first, then use the task-specific simulator and calibration. |
+| 视觉控制脚本抓放 / Visual control script grasping | [LiftCube 控制脚本指南](SCRIPTED_LIFTCUBE.md) · [PickOrange 控制脚本指南](../course/pickorange/visual/README.md)。两者均可先运行 `--check`，实际闭环使用各自的仿真环境与标定。 / Check the entry point first, then use the task-specific simulator and calibration. |
 | 三维末端开发 / Planar EE development | [开发契约](PLANAR_EE_DEVELOPMENT.md)；独立标定、有效初始姿态及匹配策略，物理精度未验收 / Separate calibration, valid starting pose and compatible policy; tracking not accepted |
 | LiftCube BC/PPO | [SmallCNN 训练与评测](../course/liftcube/TRAINING.md)。行为克隆使用通过回放检验的演示。 / SmallCNN training and evaluation with replay-verified demonstrations for BC. |
 | PickOrange BC / RL | [双相机 ACT](../course/pickorange/act/README.md)、[ACT 残差 SAC](../course/pickorange/sac/README.md)、[GR00T 残差 SAC](../course/pickorange/groot_sac/README.md) / Task-specific training and fixed-seed evaluation. |

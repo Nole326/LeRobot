@@ -1,8 +1,8 @@
 # PickOrange 仿真任务 / PickOrange simulation task
 
-环境与资产见[环境指南](../../docs/PICK_ORANGE.md)，演示与权重见[资源清单](../../docs/RESOURCES.md)。下表按训练与评测方法给出入口。双相机 VLA 服务、视觉规则和控制脚本采集的命令见后文。
+环境与资产见[环境指南](../../docs/PICK_ORANGE.md)，演示与权重见[资源清单](../../docs/RESOURCES.md)。下表按训练与评测方法给出入口。双相机 VLA 服务、视觉控制脚本和特权state控制脚本采集的命令见后文。
 
-Use the [environment guide](../../docs/PICK_ORANGE.md) to set up LeIsaac and the [resource list](../../docs/RESOURCES.md) to obtain demonstrations and checkpoints. Choose a training or evaluation method below. Later sections cover VLA inference, visual rules and demonstration collection.
+Use the [environment guide](../../docs/PICK_ORANGE.md) to set up LeIsaac and the [resource list](../../docs/RESOURCES.md) to obtain demonstrations and checkpoints. Choose a training or evaluation method below. Later sections cover VLA inference, visual control scripts and demonstration collection.
 
 | 方法 / Method | 运行指南 / Guide |
 | --- | --- |
@@ -22,7 +22,7 @@ Use the [environment guide](../../docs/PICK_ORANGE.md) to set up LeIsaac and the
 | `service_smolvla.py` | Edge SmolVLA双视角任务权重、原统计与处理器，30 Hz；共享评测／审核，CPU验证 / Dual-view task service; CPU-validated integration |
 | `service_evo1.py` | 实验性 Evo-1 服务，使用配套训练统计和独立 30 Hz 协议 / Experimental service with matching statistics and a dedicated 30 Hz protocol |
 | `openvla_oft.py` | 双相机、六关节OFT接口；需匹配的受训包，不是可运行的已受训策略 / Dual-view boundary; trained package required |
-| [视觉规则评测 / Visual-rule evaluation](visual/README.md) | 模型辅助版与双 RGB＋q6＋相机标定版，使用独立 55 秒开发协议 / Model-assisted and RGB/q6/calibration variants under separate 55-second protocols |
+| [视觉控制脚本评测 / Visual control script evaluation](visual/README.md) | 模型辅助版与双 RGB＋q6＋相机标定版，使用独立 55 秒开发协议 / Model-assisted and RGB/q6/calibration variants under separate 55-second protocols |
 | `evaluate.py` | 单持续仿真进程，显式seed序列、原生成功与超时、reset前终态、逐步轨迹与逐回合结果 / Full-episode development runner |
 | `audit.py` | CPU核对闭合轨迹、动作映射、连续性、查询索引和原生终态；不自动收入BC / Closed-trajectory audit |
 | [官方特权state控制脚本](../../third_party/leisaac/scripts/datagen/state_machine/generate.py) | 已收录上游状态机采集入口；采用不同物理/状态写入机制，使用限制见下文 / Upstream privileged generation, with explicit caveats |
@@ -153,15 +153,15 @@ OFT 包须声明 front+wrist 的训练顺序、六维绝对 motor 目标、30步
 
 The OFT boundary requires a matching trained dual-view package with six absolute motor targets, a 30-step continuous head and BOUNDS statistics. A vanilla backbone or single-view package cannot substitute for it.
 
-## 视觉规则评测 / Visual-rule evaluation
+## 视觉控制脚本评测 / Visual control script evaluation
 
-[视觉规则指南](visual/README.md)给出模型辅助版和双 RGB＋关节角＋相机标定版的运行命令、输入边界及 55 秒仿真成绩。两种协议均在首次取图前同步相机外参与图像，默认只保存数值记录。
+[视觉控制脚本指南](visual/README.md)给出模型辅助版和双 RGB＋关节角＋相机标定版的运行命令、输入边界及 55 秒仿真成绩。两种协议均在首次取图前同步相机外参与图像，默认只保存数值记录。
 
-The [visual-rule guide](visual/README.md) covers commands, inputs and 55-second results for both variants. The evaluator refreshes the first camera frames and their calibration after reset. Debug images require explicit opt-in.
+The [visual control script guide](visual/README.md) covers commands, inputs and 55-second results for both variants. The evaluator refreshes the first camera frames and their calibration after reset. Debug images require explicit opt-in.
 
-## 特权state控制脚本采集 / Privileged state control script collection
+## 特权state控制脚本采集 / Privileged-state control script collection
 
-两个任务的视觉规则与控制脚本入口见[脚本指南](../../docs/SCRIPTED_POLICIES.md)。PickOrange 提供自研控制脚本和官方状态机采集入口。
+两个任务的视觉控制脚本与特权state控制脚本入口见[脚本指南](../../docs/SCRIPTED_POLICIES.md)。PickOrange 提供自研控制脚本和官方状态机采集入口。
 
 仓库已含官方[状态机](../../third_party/leisaac/source/leisaac/leisaac/datagen/state_machine/pick_orange.py)和生成脚本，无需另下载控制脚本模型。在匹配环境中，**仅作为辅助控制脚本原型**运行：
 

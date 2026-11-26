@@ -6,9 +6,9 @@
 
 For current LiftCube, follow the training guide and SO101 data-acceptance notes. Synthetic trainer/recovery tests and live environment-interface checks have different scopes; neither establishes accepted demonstration data or a successful learned policy.
 
-[视觉规则基准](SCRIPTED_LIFTCUBE.md)不经过训练入口，无需执行下文ACT优化诊断；[末端开发层](PLANAR_EE_DEVELOPMENT.md)的三维控制和物理精度单独验收。以下20帧/双RGB工具属于较早的独立诊断，不是当前LiftCube训练命令。
+[视觉控制脚本](SCRIPTED_LIFTCUBE.md)不经过训练入口，无需执行下文ACT优化诊断；[末端开发层](PLANAR_EE_DEVELOPMENT.md)的三维控制和物理精度单独验收。以下20帧/双RGB工具属于较早的独立诊断，不是当前LiftCube训练命令。
 
-The rule baseline bypasses training; its grasp results are not BC/PPO results. Validate planar-control accuracy separately. The dual-RGB, 20-frame tools below are legacy standalone diagnostics, not the current LiftCube trainer.
+The visual control script bypasses training; its grasp results are not BC/PPO results. Validate planar-control accuracy separately. The dual-RGB, 20-frame tools below are legacy standalone diagnostics, not the current LiftCube trainer.
 
 `course/scripts/training_contracts.py` 提供独立的末帧缓冲和随机数状态工具，不修改上游环境、奖励或策略实现。验证入口为 `validate_training_readiness.py`。
 

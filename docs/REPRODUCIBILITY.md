@@ -31,11 +31,11 @@ Simulation and BC application dependencies may conflict in NumPy/packaging versi
 1. Confirm container permissions, resources, device mappings, mounts and cache rules.
 2. Verify actual runtime and module paths; obtain compatible assets.
 3. Verify reset/step, camera updates, unit conversions, timing, episode boundaries and final observations.
-4. For [rule inference](SCRIPTED_LIFTCUBE.md), check independent robot/camera calibration before a short authorized rollout, then freeze the scene set. Demonstrations and ACT optimization are not prerequisites.
+4. For [visual control script execution](SCRIPTED_LIFTCUBE.md), check independent robot/camera calibration before a short authorized rollout, then freeze the scene set. Demonstrations and ACT optimization are not prerequisites.
 5. For learning, separately validate the selected trainer, device, data processing and synchronized checkpoints/RNG; follow the [current LiftCube guide](../course/liftcube/TRAINING.md) rather than automatically running legacy ACT diagnostics. Replay/data acceptance is required when demonstrations are used.
 6. Accept the actual task's action SDK, observation restrictions and native scoring before formal evaluation or hardware deployment.
 
-The rule runner dispatches six joint targets. The separate [planar EE development layer](PLANAR_EE_DEVELOPMENT.md) is not an approved replacement for an externally specified controller, and its physical height tracking is not yet accepted. Publishable aggregate development results appear in task guides; raw trajectories, device logs and deployment-specific records stay outside Git. Reproduce results with matching code, calibration and scenario identities, not by combining percentages from different protocols.
+The visual control script evaluator dispatches six joint targets. The separate [planar EE development layer](PLANAR_EE_DEVELOPMENT.md) is not an approved replacement for an externally specified controller, and its physical height tracking is not yet accepted. Publishable aggregate development results appear in task guides; raw trajectories, device logs and deployment-specific records stay outside Git. Reproduce results with matching code, calibration and scenario identities, not by combining percentages from different protocols.
 
 ## Fixture recovery
 

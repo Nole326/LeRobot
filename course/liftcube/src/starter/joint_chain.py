@@ -60,7 +60,9 @@ class JointChainKinematics:
             return np.r_[pose[:3, 3]-target[:3, 3],
                 .1*orientation_weight*Rotation.from_matrix(target[:3, :3].T @ pose[:3, :3]).as_rotvec()]
 
-        fit = least_squares(residual, initial,
-            bounds=(np.deg2rad(USD_LOW_DEG[:5].astype(float)),
-                    np.deg2rad(USD_HIGH_DEG[:5].astype(float))), max_nfev=100)
+        bounds = (np.deg2rad(USD_LOW_DEG[:5].astype(float)),
+                  np.deg2rad(USD_HIGH_DEG[:5].astype(float)))
+        # Compliant joint feedback can sit just beyond a stop. Only the solver
+        # seed is projected; the measured pose and IK target remain unchanged.
+        fit = least_squares(residual, np.clip(initial, *bounds), bounds=bounds, max_nfev=100)
         return np.rad2deg(fit.x)

@@ -17,6 +17,25 @@ if AVAILABLE:
 
 @unittest.skipUnless(AVAILABLE, "Requires course NumPy/Torch (no simulator)")
 class ScriptedLiftCubeTests(unittest.TestCase):
+    @unittest.skipUnless(importlib.util.find_spec("scipy"), "Packaged joint-chain profiles require SciPy")
+    def test_packaged_profiles_select_the_expected_localization(self):
+        from contextlib import redirect_stderr, redirect_stdout
+        from starter.scripts.evaluate_scripted import main
+
+        configs = Path(__file__).resolve().parents[1] / "course/liftcube/configs/scripted"
+        for profile, flags in (("front_rgb", ["--runtime-camera-calibration"]),
+                               ("privileged_state", ["--privileged-state"]),
+                               ("privileged_state", ["--privileged-teacher"])):
+            with self.subTest(profile=profile, flags=flags), redirect_stdout(io.StringIO()) as output:
+                main(["--calibration", str(configs / (profile + ".json")), "--check", *flags])
+                self.assertEqual(json.loads(output.getvalue())["status"], "calibration_checks_passed")
+        for profile, flags in (("privileged_state", []), ("front_rgb", ["--privileged-state"]),
+                               ("privileged_state", ["--privileged-state", "--runtime-camera-calibration"])):
+            with self.subTest(profile=profile, flags=flags), redirect_stderr(io.StringIO()):
+                with self.assertRaises(SystemExit) as error:
+                    main(["--calibration", str(configs / (profile + ".json")), "--check", *flags])
+                self.assertEqual(error.exception.code, 2)
+
     def calibration(self):
         return dict(schema="so101-front-rgb-rule-v1", evidence="synthetic test only",
             image_shape=[64, 64, 3], K=[[50, 0, 32], [0, 50, 32], [0, 0, 1]],
@@ -54,6 +73,26 @@ class ScriptedLiftCubeTests(unittest.TestCase):
         q[5] = 100
         return q
 
+    def test_lost_cube_can_move_across_the_image(self):
+        from starter.scripted_geometry import GeometricLiftCube
+        policy = object.__new__(GeometricLiftCube)
+        policy.c = self.calibration()
+        policy.c.update(clear_retry_view=True, camera_to_base=np.asarray(policy.c['camera_to_base']))
+        policy.pixel = np.array([14., 32.])
+        pose = np.eye(4)
+        pose[2, 3] = .18
+        policy._pose = lambda q: pose
+        image = self.image()
+        q = self.initial()
+        self.assertFalse(policy._lost_after_lift(image, q))
+        self.assertTrue(policy._lost_after_lift(np.roll(image, 18, axis=1), q))
+        self.assertFalse(policy._lost_after_lift(np.zeros_like(image), q))
+        policy.target = np.ones(3)
+        policy.hover_motor = q
+        policy._transition('localize')
+        self.assertEqual(policy.stable, 0)
+        self.assertTrue(all(x is None for x in (policy.pixel, policy.target, policy.hover_motor)))
+
     def test_detection_and_ambiguity(self):
         np.testing.assert_allclose(red_centroid(self.image()), [32,32])
         for image in (np.zeros((64,64,3), np.uint8), np.zeros((32,32,3), np.uint8)):
@@ -63,6 +102,58 @@ class ScriptedLiftCubeTests(unittest.TestCase):
         image[5:8,5:8,0] = 255
         with self.assertRaisesRegex(ValueError, "2 components"):
             red_centroid(image)
+
+    def test_arm_travel_speed_respects_tracking_aperture_and_contact(self):
+        p = ScriptedLiftCube(dict(self.calibration(), arm_travel_speed=2.), self.kin())
+        q = self.initial()
+        p.last = q.copy()
+        p.phase = 'hover'
+        p.travel_gain = p._travel_gain(q)
+        self.assertEqual(p.travel_gain, 2.)
+        np.testing.assert_allclose(p._limit_motion(np.array([4,2,0,0,0,8.])), [2,1,0,0,0,1])
+        p.last[0] += 7.
+        self.assertEqual(p._travel_gain(q), 1.)
+        p.last = q.copy()
+        for phase in ('descend', 'close', 'lift'):
+            p.phase = phase
+            self.assertEqual(p._travel_gain(q), 1.)
+        p.jaw_blocked = True
+        self.assertEqual(p._travel_gain(q), 2.)
+        for speed in (True, float('nan'), 2.1):
+            with self.assertRaisesRegex(ValueError, 'arm_travel_speed'):
+                ScriptedLiftCube(dict(self.calibration(), arm_travel_speed=speed), self.kin())
+
+    def test_open_in_parallel_and_wait_for_measured_aperture(self):
+        p = ScriptedLiftCube(dict(self.calibration(), parallel_approach=True), self.kin())
+        q = self.initial()
+        q[5] = 10
+        for _ in range(12):
+            sent = p.act(self.obs(q))
+            opening = sent[5] > q[5]
+            moving = np.max(np.abs(sent[:5]-q[:5])) > .01
+            if opening and moving:
+                break
+            q = sent.copy()
+        self.assertTrue(opening and moving)
+        self.assertEqual(p.phase, 'hover')
+        self.assertFalse(p._jaw_ready(q))
+        q[5] = p.c['open_motor']
+        self.assertTrue(p._jaw_ready(q))
+
+    @unittest.skipUnless(importlib.util.find_spec("scipy"), "Requires SciPy")
+    def test_pad_plan_keeps_lowest_finger_above_table(self):
+        from starter.scripted_geometry import GeometricLiftCube
+        policy = GeometricLiftCube.__new__(GeometricLiftCube)
+        shape = np.array([[-.012, 0., -.103], [.04, -.006, -.105], [.04, .006, -.105]])
+        policy.c = dict(visible_plane_z=.015, grasp_z=.012, pad_clearance_vertices_m=shape)
+        policy.face_yaw = .25
+        policy.retries = 1
+        poses = policy._pad_grasps(np.array([.15, -.10, .012]))
+        for pose in poses:
+            world_height = .012 + (shape - pose['tcp_offset_m']) @ pose['rotation'][2]
+            self.assertAlmostEqual(world_height.min(), .0025)
+        tilt = [abs(p['rotation'][2, 0]) for p in poses]
+        self.assertEqual(tilt, sorted(tilt))
 
     def test_configured_resolution_keeps_projection_and_detection_contract(self):
         old=validate_calibration(self.calibration())
@@ -101,6 +192,64 @@ class ScriptedLiftCubeTests(unittest.TestCase):
         for _ in range(4):
             p.act(self.obs(q))
         self.assertEqual(p.phase,'descend')
+
+    def test_descend_contact_window_requires_lateral_alignment(self):
+        for config,dx,phase in [({},0,'descend'),({'relaxed_close_window':True},0,'close'),
+                                ({'relaxed_close_window':True},.006,'descend'),
+                                ({'face_aligned_grasp':True},0,'close'),
+                                ({'face_aligned_grasp':True,'relaxed_close_window':False},0,'descend')]:
+            p=ScriptedLiftCube(dict(self.calibration(),**config),self.kin())
+            q=self.initial()
+            p.last=q.copy()
+            p._transition('descend')
+            p.target=p._pose(q)[:3,3]+[dx,0,-.004]
+            p._solve=lambda xyz,seed,grip,rotation=None:q.copy()
+            for _ in range(3):
+                p._step(self.image(),q)
+            self.assertEqual(p.phase,phase)
+
+    def test_privileged_close_window_requires_planned_face_and_xy_alignment(self):
+        from starter.privileged_liftcube import PrivilegedLiftCube
+        for tilt, dx, dz, expected in [(20, 0, .007, 'close'), (None, 0, .007, 'descend'),
+                                         (20, .006, .007, 'descend'), (20, 0, .009, 'descend')]:
+            p = PrivilegedLiftCube(dict(self.calibration(), face_aligned_grasp=True), self.kin())
+            q = self.initial()
+            p.last = q.copy()
+            p._transition('descend')
+            p.planned_tilt = tilt
+            p.target = p._pose(q)[:3, 3] + [dx, 0, -dz]
+            p._solve = lambda xyz, seed, grip, rotation=None: q.copy()
+            for _ in range(3):
+                p._step(self.image(), q)
+            self.assertEqual(p.phase, expected)
+
+    @unittest.skipUnless(importlib.util.find_spec('scipy'), 'Requires SciPy')
+    def test_cube_outline_recovers_tabletop_yaw_from_oblique_rgb(self):
+        from scipy.spatial import Delaunay
+        from starter.scripted_geometry import fit_cube_outline
+        c=self.calibration()
+        center=np.array([0.,0.,c['visible_plane_z']])
+        eye=center+[0.,-.27,.22]
+        forward=(center-eye)/np.linalg.norm(center-eye)
+        right=np.array([1.,0.,0.])
+        camera=np.eye(4)
+        camera[:3,:3]=np.column_stack((right,np.cross(forward,right),forward))
+        camera[:3,3]=eye
+        c.update(camera_to_base=camera,K=[[300,0,128],[0,300,128],[0,0,1]],image_shape=[256,256,3])
+        c=validate_calibration(c)
+        yaw=.31
+        corners=np.array([[x,y,z] for x in (-.015,.015) for y in (-.015,.015) for z in (-.015,.015)])
+        corners[:,:2]=corners[:,:2]@[[np.cos(yaw),np.sin(yaw)],[-np.sin(yaw),np.cos(yaw)]]
+        uv=(center+corners-eye)@camera[:3,:3]@c['K'].T
+        outline=Delaunay(uv[:,:2]/uv[:,2:])
+        y,x=np.indices((256,256))
+        image=np.zeros((256,256,3),dtype=np.uint8)
+        image[:,:,0]=255*(outline.find_simplex(np.stack((x,y),axis=-1))>=0)
+        pixel=red_centroid(image,c['image_shape'])
+        point,angle=fit_cube_outline(image,pixel,c)
+        np.testing.assert_allclose(point,center,atol=.0015)
+        self.assertIsNotNone(angle)
+        self.assertLess(abs((angle-yaw+np.pi/4)%(np.pi/2)-np.pi/4),.1)
 
     def test_slew_preserves_joint_direction(self):
         p=ScriptedLiftCube(self.calibration(),self.kin())
@@ -168,17 +317,34 @@ class ScriptedLiftCubeTests(unittest.TestCase):
         p.reset(); self.assertIsNone(p.sent)
         np.testing.assert_array_equal(p.bias,np.zeros(5))
 
-    def test_invalid_steady_bias_holds_instead_of_clipping(self):
+    def test_steady_bias_is_limited_by_remaining_joint_travel(self):
+        for direction in (-1, 1):
+            with self.subTest(direction=direction):
+                p=SteadyBiasScriptedLiftCube(self.calibration(),self.kin())
+                nominal=self.initial(); nominal[0]=direction*99
+                p.last=nominal.copy(); p.phase='hover'
+                p._step=lambda image,q: nominal.copy()
+                q=nominal.copy(); q[0]=direction*97
+                for _ in range(30):
+                    before=p.sent.copy() if p.sent is not None else q.copy()
+                    sent=p.act(self.obs(q))
+                    self.assertLessEqual(np.max(np.abs(sent-before)),1.0001)
+                    self.assertLessEqual(np.max(np.abs(sent[:5])),100)
+                self.assertIsNone(p.failure_reason)
+                self.assertEqual(p.phase,'hover')
+                self.assertAlmostEqual(p.bias[0],direction)
+                self.assertAlmostEqual(sent[0],direction*100)
+                np.testing.assert_array_equal(p.last,nominal)
+
+    def test_steady_bias_follows_a_changing_joint_margin(self):
         p=SteadyBiasScriptedLiftCube(self.calibration(),self.kin())
-        nominal=self.initial(); nominal[0]=99
-        p.last=nominal.copy(); p.phase='hover'; p._step=lambda image,q: nominal.copy()
-        q=nominal.copy(); q[0]=97
-        for _ in range(20):
-            before=p.sent.copy() if p.sent is not None else q.copy()
-            sent=p.act(self.obs(q))
-            if p.failure_reason:
-                np.testing.assert_array_equal(sent,before); break
-        self.assertEqual(p.phase,'failed')
+        q=self.initial(); q[0]=99
+        p.last=q.copy(); p.sent=q.copy(); p.bias[0]=3; p.phase='hover'
+        p._step=lambda image,q: q.copy()
+        sent=p.act(self.obs(q))
+        self.assertIsNone(p.failure_reason)
+        self.assertEqual(p.bias[0],1)
+        self.assertEqual(sent[0],100)
 
     def test_contact_close_uses_jaw_feedback_and_keeps_grasp_target(self):
         c=self.calibration();c['contact_close']=True
@@ -201,20 +367,224 @@ class ScriptedLiftCubeTests(unittest.TestCase):
         self.assertIsNone(p.previous_jaw)
         self.assertEqual(p.grasp_motor,c['close_motor'])
 
-    def test_contact_close_without_obstruction_can_finish_empty(self):
+    def test_contact_during_close_recovers_arm_without_reopening(self):
+        c=dict(self.calibration(),contact_close=True,hold_contact_on_lift=True,contact_preload_motor=1.)
+        p=ScriptedLiftCube(c,self.kin())
+        q=self.initial();q[5]=15
+        p.last=q.copy();p.last[5]=13
+        p.phase='close';p.target=np.array([0.,0.,c['grasp_z']])
+        p.contact_stable=2;p.previous_jaw=15.
+        sent=p.act(self.obs(q))
+        self.assertTrue(p.jaw_blocked)
+        self.assertEqual(p.grasp_motor,12.)
+        p._retry('wrist tracking lag')
+        self.assertTrue(p.resume_loaded)
+        self.assertEqual(p.target[2],c['lift_z'])
+        self.assertEqual(p._recover(q)[5],12.)
+        self.assertEqual(p.phase,'lift')
+        p._solve=lambda xyz,seed,grip,rotation=None:np.r_[seed[:5],grip]
+        self.assertEqual(p.act(self.obs(q))[5],12.)
+        self.assertLessEqual(sent[5],13.)
+
+    def test_loaded_close_probes_upward_before_tracking_guard(self):
+        c = dict(self.calibration(), contact_close=True, probe_loaded_close=True)
+        p = ScriptedLiftCube(c, self.kin())
+        q = self.initial()
+        q[5] = 15
+        p.last = q.copy()
+        p.last[5] = 13
+        p.last[3] -= 7
+        p.phase = 'close'
+        p.target = np.array([0., 0., c['grasp_z']])
+        p.act(self.obs(q))
+        self.assertEqual(p.phase, 'close')
+        q[5] -= .3
+        p.act(self.obs(q))
+        self.assertEqual(p.phase, 'lift')
+        self.assertEqual(p.retries, 0)
+        self.assertLess(p.grasp_motor, q[5])
+
+    def test_retry_takes_up_jaw_slack_before_and_during_lift(self):
+        c = dict(self.calibration(), contact_close=True, hold_contact_on_lift=True,
+                 probe_loaded_close=True, follow_retry_close=True)
+        p = ScriptedLiftCube(c, self.kin())
+        q = self.initial()
+        q[5] = 29
+        p.retries, p.phase = 1, "close"
+        p.last = q.copy()
+        p.last[5] -= 2
+        p.last[3] -= 7
+        p.target = np.array([0., 0., c["grasp_z"]])
+        p.act(self.obs(q))
+        p.act(self.obs(q))
+        self.assertTrue(p.jaw_blocked)
+        self.assertEqual(p.phase, "close")
+        q[5] = 27
+        p.act(self.obs(q))
+        self.assertEqual(p.grasp_motor, p.contact_motor-1.5)
+        p._begin_lift()
+        p._solve = lambda xyz, seed, grip, rotation=None: np.r_[seed[:5], grip]
+        q[5] = 25
+        p.act(self.obs(q))
+        self.assertEqual(p.grasp_motor, p.contact_motor-1.5)
+
+    def test_slipped_cube_releases_loaded_latch_and_relocalizes(self):
+        from starter.privileged_liftcube import PrivilegedLiftCube
+        c = dict(self.calibration(), contact_close=True, hold_contact_on_lift=True,
+                 retry_dropped_cube=True)
+        cube = np.array([0., 0., .09])
+        p = PrivilegedLiftCube(c, self.kin(), lambda: cube.copy())
+        q = self.initial()
+        q[5] = 15
+        p.anchor = cube.copy()
+        p.pick_offset = cube-p._pose(q)[:3, 3]
+        p.grasp_motor = 13.
+        p.last = q.copy()
+        p.last[5] = 13
+        p.target = np.array([0., 0., c['lift_z']])
+        p.phase, p.jaw_blocked = 'lift', True
+        p._solve = lambda xyz, measured, grip, rotation=None: np.r_[measured[:5], grip]
+        cube[0] += .03
+        p.act(self.obs(q))
+        p.act(self.obs(q))
+        self.assertFalse(p.jaw_blocked)
+        self.assertEqual(p.phase, 'unload')
+        self.assertFalse(p.resume_loaded)
+        self.assertTrue(p.open_on_retreat)
+        self.assertIsNone(p.failure_reason)
+
+    def test_privileged_replans_from_hover_when_cube_moves(self):
+        from starter.privileged_liftcube import PrivilegedLiftCube
+        c = dict(self.calibration(), retry_dropped_cube=True, joint_hover_approach=True)
+        cube = np.array([0., 0., .09])
+        p = PrivilegedLiftCube(c, self.kin(), lambda: cube.copy())
+        q = self.initial()
+        p.last = q.copy()
+        p.anchor = cube.copy()
+        p.phase = 'hover'
+        p.target = np.array([0., 0., c['hover_z']])
+        cube[0] += .025
+        p.act(self.obs(q))
+        self.assertEqual(p.phase, 'localize')
+        for _ in range(2):
+            p.act(self.obs(q))
+        self.assertEqual(p.phase, 'hover', p.failure_reason)
+        self.assertAlmostEqual(p.target[0], cube[0])
+        self.assertIsNotNone(p.hover_motor)
+
+    def test_privileged_stall_retracts_before_switching_face_pair(self):
+        from starter.privileged_liftcube import PrivilegedLiftCube
+        c = dict(self.calibration(), face_aligned_grasp=True)
+        p = PrivilegedLiftCube(c, self.kin())
+        q = self.initial()
+        p.last = p.sent = q.copy()
+        p.phase, p.face_pair = "descend", 0
+        p.target = np.array([0., 0., c["grasp_z"]])
+        pose = np.eye(4)
+        pose[2, 3] = c["grasp_z"]
+        p._pose = lambda _: pose.copy()
+        p._retry("Arm stopped progressing during descend")
+        self.assertEqual(p.next_face_pair, 1)
+        self.assertEqual(p.phase, "unload")
+        p._recover(q)
+        self.assertEqual(p.phase, "retreat")
+        self.assertEqual(p.retreat_pose[2, 3], c["hover_z"])
+        np.testing.assert_equal(p.retreat_pose[:3, :3], pose[:3, :3])
+        p.reset()
+        self.assertIsNone(p.next_face_pair)
+
+    @unittest.skipUnless(importlib.util.find_spec("scipy"), "Requires SciPy")
+    def test_privileged_transport_preserves_height_and_lifts_clear_first(self):
+        from starter.privileged_liftcube import PrivilegedLiftCube
+        from starter.scripted_liftcube import GraspStall
+        c = dict(self.calibration(), face_aligned_grasp=True)
+        p = PrivilegedLiftCube(c, self.kin())
+        q = self.initial()
+        p.last = q.copy()
+        xyz = np.array([.08, -.12, c["grasp_z"]])
+        def solve(pos, initial, grip, rotation):
+            if pos[2] == c["lift_z"] and np.allclose(rotation, np.eye(3)):
+                raise GraspStall("Upright waypoint unavailable")
+            return initial.copy()
+        p._solve = solve
+        p._plan_lift(xyz, q)
+        np.testing.assert_allclose(p.lift_destination, [*xyz[:2], c["lift_z"]])
+        p.target = xyz.copy()
+        p._begin_lift()
+        np.testing.assert_allclose(p.target, [*xyz[:2], c["hover_z"]])
+        self.assertTrue(p.clearing_cube)
+
+    def test_loaded_wrist_lag_allows_other_joints_to_advance(self):
+        for cls in (ScriptedLiftCube, SteadyBiasScriptedLiftCube):
+            p = cls(dict(self.calibration(), pace_loaded_lift=True), self.kin())
+            q = self.initial()
+            p.phase, p.jaw_blocked, p.grasp_motor = 'lift', True, 13.
+            p.last = q.copy()
+            p.last[3] += 7.5
+            p.last[5] = p.grasp_motor
+            if isinstance(p, SteadyBiasScriptedLiftCube):
+                p.sent = p.last.copy()
+                p.bias[3] = 1.
+            p._step = lambda image, measured: p.last + np.array([0, 1, 0, 1, 0, 0])
+            sent = p.act(self.obs(q))
+            self.assertEqual(p.phase, 'lift')
+            self.assertEqual(p.retries, 0)
+            self.assertAlmostEqual(sent[3] - q[3], 7.5)
+            self.assertGreater(sent[1], q[1])
+            self.assertEqual(sent[5], 13.)
+
+    def test_empty_close_retreats_reopens_and_reacquires_new_image(self):
         c=self.calibration();c['contact_close']=True
         p=ScriptedLiftCube(c,self.kin());q=self.initial();q[5]=30
         p.last=q.copy();p.phase='close';p.target=np.array([0,0,c['grasp_z']])
         for _ in range(100):
             before=q.copy();q=p.act(self.obs(q))
             self.assertLessEqual(np.max(np.abs(q-before)),1.00001)
-            if p.phase=='lift':break
-        self.assertEqual(p.phase,'lift',p.failure_reason)
-        self.assertFalse(p.jaw_blocked)  # Proxy never declares success.
-        self.assertEqual(p.grasp_motor,0)
+            if p.phase=='unload':break
+        self.assertEqual(p.phase,'unload',p.failure_reason)
+        self.assertEqual(p.retries,1)
+        observed=set()
+        image=np.roll(self.image(),2,axis=1)
+        for _ in range(190):
+            before=q.copy();q=p.act(self.obs(q,image))
+            self.assertLessEqual(np.max(np.abs(q-before)),1.00001)
+            observed.add(p.phase)
+            if p.phase=='hover':break
+        self.assertTrue({'reopen','localize','hover'} <= observed)
+        np.testing.assert_allclose(p.pixel,[34,32])
+        self.assertAlmostEqual(p.target[0],pixel_to_base(p.pixel,p.c)[0]+.003)
         c['contact_close']='yes'
         with self.assertRaisesRegex(ValueError,'boolean'):
             validate_calibration(c)
+
+    def test_tracking_lag_releases_command_and_preserves_loaded_jaw(self):
+        for cls in (ScriptedLiftCube,SteadyBiasScriptedLiftCube):
+            with self.subTest(cls=cls):
+                p=cls(self.calibration(),self.kin())
+                q=self.initial();q[5]=14
+                p.last=q.copy();p.last[3]+=8.5
+                if isinstance(p,SteadyBiasScriptedLiftCube):
+                    p.sent=p.last.copy();p.bias[3]=2
+                p.phase='lift';p.target=p._pose(q)[:3,3].copy()
+                p._step=lambda image,q:p.last.copy()
+                p.act(self.obs(q))
+                self.assertEqual(p.phase,'unload')
+                before=p.last.copy()
+                for _ in range(15):
+                    sent=p.act(self.obs(q))
+                    self.assertLessEqual(np.max(np.abs(sent-before)),1.00001)
+                    self.assertEqual(sent[5],14)
+                    before=sent
+                    if p.phase=='lift':break
+                self.assertEqual(p.phase,'lift')
+                self.assertLessEqual(np.max(np.abs(sent[:5]-q[:5])),1)
+                self.assertEqual(p.retries,1)
+                for _ in range(8):
+                    p._retry('persistent jam')
+                self.assertEqual(p.phase,'unload')
+                self.assertIsNone(p.failure_reason)
+                p.reset()
+                self.assertEqual(p.retries,0)
 
     def test_complete_synthetic_sequence_and_reset(self):
         p = ScriptedLiftCube(self.calibration(), self.kin())
@@ -222,7 +592,8 @@ class ScriptedLiftCubeTests(unittest.TestCase):
         phases = set()
         for _ in range(320):
             old = q.copy()
-            q = p.act(self.obs(q))
+            image = np.roll(self.image(), -8, axis=0) if p.phase == 'lift' else self.image()
+            q = p.act(self.obs(q,image))
             self.assertLessEqual(float(np.max(np.abs(q-old))), 1.0001)
             phases.add(p.phase)
             if p.phase == "hold":
@@ -235,20 +606,26 @@ class ScriptedLiftCubeTests(unittest.TestCase):
         self.assertIsNone(p.target)
         self.assertIsNone(p.last)
 
-    def test_missing_cube_latches_hold_not_success(self):
+    def test_missing_cube_is_reacquired_when_visible_again(self):
         p = ScriptedLiftCube(self.calibration(), self.kin())
         q = self.initial()
         for _ in range(4):
             q = p.act(self.obs(q, np.zeros((64,64,3), np.uint8)))
-        self.assertEqual(p.phase, "failed")
-        np.testing.assert_array_equal(q, p.act(self.obs(q)))
+        self.assertEqual(p.phase, "localize")
+        self.assertIsNone(p.failure_reason)
+        for _ in range(3):
+            q = p.act(self.obs(q))
+        self.assertEqual(p.phase, "hover")
 
     def test_privileged_teacher_is_explicit_and_does_not_need_red_pixels(self):
         from starter.privileged_liftcube import PrivilegedLiftCube
-        p = PrivilegedLiftCube(self.calibration(), self.kin(), read_cube=lambda: np.array([0, 0, -.01]))
+        cube = np.array([0., 0., -.01])
+        p = PrivilegedLiftCube(self.calibration(), self.kin(), read_cube=lambda: cube.copy())
         q = self.initial()
         blank = np.zeros((64, 64, 3), np.uint8)
         for _ in range(320):
+            if p.phase == 'lift':
+                cube[2] = p._pose(q)[2, 3]-.10
             q = p.act(self.obs(q, blank))
             if p.phase == 'hold':
                 break
@@ -262,6 +639,64 @@ class ScriptedLiftCubeTests(unittest.TestCase):
             missing.act(self.obs(self.initial(), blank))
         self.assertIn('reader', missing.failure_reason)
 
+    def test_cube_visible_on_table_during_lift_triggers_regrasp(self):
+        p=ScriptedLiftCube(self.calibration(),self.kin())
+        q=self.initial();q[5]=12
+        p.last=q.copy();p.pixel=np.array([32,32]);p.target=p._pose(q)[:3,3].copy()
+        p._transition('lift')
+        p._step=lambda image,q: p.last.copy()
+        for tick in (6,9,12):
+            p.ticks=tick
+            p.act(self.obs(q))
+        self.assertEqual(p.phase,'unload')
+        self.assertFalse(p.resume_loaded)
+
+    @unittest.skipUnless(importlib.util.find_spec('scipy'), 'Adaptive orientation requires SciPy')
+    def test_privileged_orientation_reverts_to_reference_for_next_target(self):
+        from starter.privileged_liftcube import PrivilegedLiftCube
+        calibration = self.calibration()
+        calibration['adaptive_orientation'] = True
+        policy = PrivilegedLiftCube(calibration, self.kin())
+        reference = policy.c['grasp_rotation'].copy()
+        at_limit = True
+
+        def solve(position, measured, grip, rotation=None):
+            pose = np.r_[position, 0., 0., grip]
+            if at_limit and np.allclose(rotation, reference):
+                pose[4] = 99.
+            return pose
+
+        def pose(q):
+            result = np.eye(4)
+            result[:3, 3] = q[:3]
+            return result
+
+        policy._solve = solve
+        policy._pose = pose
+        point = np.array([.06, -.30, .04])
+        policy._select_orientations(point)
+        self.assertFalse(np.allclose(policy.c['grasp_rotation'], reference))
+        policy.reset()
+        at_limit = False
+        policy._select_orientations(point)
+        np.testing.assert_allclose(policy.c['grasp_rotation'], reference)
+
+    def test_rgb_orientation_plans_once_after_stable_image(self):
+        c = self.calibration()
+        c['adaptive_orientation'] = True
+        policy = SteadyBiasScriptedLiftCube(c, self.kin())
+        policy.phase = 'localize'
+        q = self.initial()
+        policy.last = q.copy()
+        targets = []
+        policy._select_orientations = lambda point: targets.append(point.copy())
+        policy._solve = lambda *args, **kwargs: q.copy()
+        for _ in range(3):
+            policy.act(self.obs(q))
+        self.assertEqual(len(targets), 1)
+        np.testing.assert_allclose(targets[0][:2], policy.target[:2])
+        self.assertEqual(policy.phase, 'hover')
+
     def test_out_of_range_ik_and_lag_rejected(self):
         p = ScriptedLiftCube(self.calibration(), self.kin())
         with self.assertRaises(ValueError):
@@ -270,8 +705,8 @@ class ScriptedLiftCubeTests(unittest.TestCase):
         p.last[0] += 10
         p.phase = "hold"
         p.act(self.obs(self.initial()))
-        self.assertEqual(p.phase, "failed")
-        self.assertIn("lag", p.failure_reason)
+        self.assertEqual(p.phase, "unload")
+        self.assertIn("lag", p.retry_reason)
 
     def test_unreachable_ik_does_not_clip(self):
         kin = self.kin()
@@ -393,6 +828,25 @@ class ScriptedLiftCubeTests(unittest.TestCase):
         c['grasp_presets'][0]['rotation'][0][0]=2
         with self.assertRaises(ValueError):GeometricLiftCube(c,kin)
 
+    def test_aligned_retry_descends_despite_hover_height_error(self):
+        from starter.scripted_geometry import GeometricLiftCube
+        c = dict(self.calibration(), kinematics_backend='joint_chain', gravity_compensation=True,
+                 tcp_offset_m=[0,0,0], grasp_asset_sha256='0'*64,
+                 grasp_presets=[dict(tilt=0, rotation=np.eye(3).tolist(), tcp_offset_m=[0,0,0])])
+        kin = self.kin()
+        kin.asset_sha256 = c['grasp_asset_sha256']
+        p = GeometricLiftCube(c, kin)
+        q = self.initial()
+        p.last, p.hover_motor = q.copy(), q.copy()
+        p.pixel = np.array([32., 32.])
+        p.phase, p.retries, p.ticks = 'hover', 4, 210
+        pose = p._pose(q)
+        p.target = pose[:3, 3] + [0.,0.,.006]
+        for _ in range(3):
+            p._step(self.image(), q)
+        self.assertEqual(p.phase, 'descend')
+        self.assertEqual(p.target[2], c['grasp_z'])
+
     def test_runtime_calibration_uses_camera_base_only_and_records_reset(self):
         if importlib.util.find_spec('scipy') is None:
             self.skipTest('Runtime calibration requires SciPy')
@@ -446,7 +900,7 @@ class ScriptedLiftCubeTests(unittest.TestCase):
             self.assertIsNone(new.failure_reason)
             if expected=='localize':
                 held=new.act(self.obs(q,image))
-                self.assertEqual(new.phase,'failed')
+                self.assertEqual(new.phase,'localize')
                 np.testing.assert_array_equal(held,q)
         invalid=dict(c,plan_while_opening='yes')
         with self.assertRaisesRegex(ValueError,'must be boolean'):validate_calibration(invalid)

@@ -19,22 +19,22 @@
 
 ## 按任务找入口
 
-两任务的 VLA 源码见[推理接口](docs/VLA_INTERFACES.md)，视觉规则和特权state控制脚本见[脚本指南](docs/SCRIPTED_POLICIES.md)。公开模型与数据从[资源清单](docs/RESOURCES.md)获取，各入口的验收状态以[任务对照](docs/TASKS.md)为准。
+两任务的 VLA 源码见[推理接口](docs/VLA_INTERFACES.md)，视觉视觉控制脚本和特权state控制脚本见[脚本指南](docs/SCRIPTED_POLICIES.md)。公开模型与数据从[资源清单](docs/RESOURCES.md)获取，各入口的验收状态以[任务对照](docs/TASKS.md)为准。
 
-PickOrange 视觉规则入口为 `course/pickorange/visual/evaluate.py`，提供模型辅助版与 `--input-contract rgb-q-calibration` 版，分别按各自的协议验收。调试图需显式启用 `--save-debug-images`。修改后运行 `tests/test_pickorange_visual.py` 的 CPU 检查。
+PickOrange 视觉控制脚本入口为 `course/pickorange/visual/evaluate.py`，提供模型辅助版与 `--input-contract rgb-q-calibration` 版，分别按各自的协议验收。调试图需显式启用 `--save-debug-images`。修改后运行 `tests/test_pickorange_visual.py` 的 CPU 检查。
 
 | 任务 | 修改位置与必读入口 |
 | --- | --- |
 | 仓库检查、文档、来源清单 | `scripts/`、`tests/`、`manifests/`；[来源说明](docs/IMPORT_MANIFEST.md) |
-| 固定版本与基准复现 | [版本说明](docs/BASELINE.md)区分初始源码tag与规则策略基准；新开发从最新main，复现固定commit与外部标定身份，不混用旧tag功能 |
+| 固定版本与基准复现 | [版本说明](docs/BASELINE.md)区分初始源码tag与视觉控制脚本基线；新开发从最新main，复现固定commit与外部标定身份，不混用旧tag功能 |
 | SO101 接口、LiftCube 数据/训练/评测 | `course/liftcube/src/starter/`；[LiftCube AGENTS](course/liftcube/AGENTS.md) |
-| LiftCube视觉规则基线 | `starter/scripted_liftcube.py`、`scripted_geometry.py`、`joint_chain.py`与`starter.scripts.evaluate_scripted`；[标定及验收](docs/SCRIPTED_LIFTCUBE.md)，实际相机标定辅助须显式启用，不得以合成标定启动仿真 |
+| LiftCube视觉控制脚本 | `starter/scripted_liftcube.py`、`scripted_geometry.py`、`joint_chain.py`与`starter.scripts.evaluate_scripted`；[标定及验收](docs/SCRIPTED_LIFTCUBE.md)，实际相机标定辅助须显式启用，不得以合成标定启动仿真 |
 | 自研受限末端开发接口 | `starter/envs/planar_ee.py`、`envs/factory.py`、`tests/test_planar_ee.py`及[开发契约](docs/PLANAR_EE_DEVELOPMENT.md)；三维绝对XY/夹爪，非课程正式IK；旧关节策略不得自动接入 |
 | PickOrange任务与诊断 | [任务指南](docs/PICK_ORANGE.md)、`course/scripts/`及冻结上游任务源码；[目录AGENTS](course/scripts/AGENTS.md)、[部署边界](docs/REPRODUCIBILITY.md) |
 | PickOrange 双视角评测与数据采集 | `course/pickorange/`、`course/pickorange/expert/`。[目录 AGENTS](course/pickorange/AGENTS.md)、[模型运行指南](course/pickorange/README.md)、[脚本专家演示采集](course/pickorange/expert/README.md)。模型服务使用各自的后端、权重、归一化与评测协议 |
 | PickOrange 学习策略 | [ACT 训练与部署](course/pickorange/act/README.md)提供 qpos、分段 EE 的输入输出及采样频率。[ACT 残差 SAC](course/pickorange/sac/README.md) 和 [GR00T 残差 SAC](course/pickorange/groot_sac/README.md)分别维护基座、奖励与固定集评测。 |
 | PickOrange 模型发布与验收 | [资源清单](docs/RESOURCES.md)列出公开权重与数据，[检验摘要](docs/PICKORANGE_VALIDATION.md)记录评测和资源需求。新增外部权重时核对模型包、运行入口及评测证据 |
-| 控制脚本、数据/权重获取、离线训练 | [资源清单](docs/RESOURCES.md)、[训练与评测](docs/TRAIN_AND_EVALUATE.md)；LiftCube显式`--privileged-teacher`，PickOrange自研[控制脚本](course/pickorange/expert/README.md)通过原生动作与回放检验采集；上游状态机的直接写状态不自动满足BC准入 |
+| 控制脚本、数据/权重获取、离线训练 | [资源清单](docs/RESOURCES.md)、[训练与评测](docs/TRAIN_AND_EVALUATE.md)；LiftCube 特权state控制脚本使用 `--privileged-state`，PickOrange自研[控制脚本](course/pickorange/expert/README.md)通过原生动作与回放检验采集；上游状态机的直接写状态不自动满足BC准入 |
 | 训练与评测曲线 | [SwanLab指南](docs/SWANLAB.md)、`starter/logging/swanlab.py`与`starter.scripts.train_lerobot`；共享数值记录，保留本地证据，不另造每模型日志器 |
 | ACT、SmolVLA、OpenVLA-OFT、π₀.₅、GR00T 接入 | 对应任务的策略包装；[架构](docs/ARCHITECTURE.md)、[接口契约](docs/INTERFACE_CONTRACTS.md)、该任务的子级 AGENTS |
 | 单front VLA与chunk生命周期 | `starter/models/`的SmolVLA/PI05/GR00T/OFT包装、共享chunk/backend I/O及[推理接口](docs/VLA_INTERFACES.md)；GR00T可显式在模型侧接收不同输入尺寸，环境保持不变；CPU替身通过不等于真实模型或GPU验收 |

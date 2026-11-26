@@ -17,7 +17,7 @@ All three collections passed independent trajectory replay. Each release aligns 
 | 采集来源 / Source | 控制模式 / Control | 轨迹 / Episodes | 记录时刻 / Records | 动作频率 / Rate |
 | --- | --- | ---: | ---: | ---: |
 | [GR00T N1.5](https://huggingface.co/datasets/Nole326/LeIsaac-SO101-PickOrange/blob/main/vla-gr00t-qpos/dataset.json) | qpos | 100 | 59,380 | 60 Hz |
-| [特权 state 控制脚本 / Privileged state control script](https://huggingface.co/datasets/Nole326/LeIsaac-SO101-PickOrange/blob/main/privileged-state-script/dataset.json) | qpos | 100 | 131,741 | 30 Hz |
+| [特权state控制脚本 / Privileged-state control script](https://huggingface.co/datasets/Nole326/LeIsaac-SO101-PickOrange/blob/main/privileged-state-script/dataset.json) | qpos | 100 | 131,741 | 30 Hz |
 | [GR00T N1.5](https://huggingface.co/datasets/Nole326/LeIsaac-SO101-PickOrange/blob/main/vla-gr00t-ee/dataset.json) | EE | 100 | 26,563 | 30 Hz |
 
 物理仿真为 60 Hz，相机为 30 Hz。EE 动作包含基座坐标系下的位置、旋转向量和夹爪角度。末端演示的 300 个单颗片段共用所属轨迹的视频。两种 ACT 如何读取这些数据见[训练指南](../act/README.md)。
