@@ -1,0 +1,16 @@
+seed: 1000
+device: cpu
+
+env:
+  id: LeIsaac-SO101-LiftCube-v0
+  camera: front
+  image_height: 256
+  image_width: 256
+  max_episode_steps: 960
+  control_hz: 30
+  n_envs: 1
+  sim_device: cuda:0
+
+eval:
+  num_episodes: 50
+  deterministic: true

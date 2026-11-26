@@ -6,8 +6,8 @@ Visual rules and privileged state control scripts serve different purposes. Link
 
 | 任务与类型 / Task and type | 源码 / Source | 运行与状态 / Usage and status |
 | --- | --- | --- |
-| LiftCube视觉规则 | [RGB定位与状态机](../course/liftcube/src/starter/scripted_liftcube.py)、[几何抓取](../course/liftcube/src/starter/scripted_geometry.py)、[关节链](../course/liftcube/src/starter/joint_chain.py) | [标定与运行指南](SCRIPTED_LIFTCUBE.md)。已有100回合45次成功的独立标定辅助协议；不是免标定专家 |
-| LiftCube 特权state控制脚本 | [PrivilegedLiftCube](../course/liftcube/src/starter/privileged_liftcube.py)、[真值访问边界](../course/liftcube/src/starter/envs/lift_cube_privileged.py) | 共用[evaluate_scripted](../course/liftcube/src/starter/scripts/evaluate_scripted.py)，显式`--privileged-teacher`；CPU测试通过，真实抓取待验 |
+| LiftCube 前视 RGB 几何脚本 | [视觉定位与关节控制](../course/liftcube/src/starter/scripted_liftcube.py)、[几何抓取](../course/liftcube/src/starter/scripted_geometry.py) | [RGB 配置](../course/liftcube/configs/scripted/front_rgb.json)，使用重置后的相机外参 |
+| LiftCube 特权 state 控制脚本 | [方块定位与抓取](../course/liftcube/src/starter/privileged_liftcube.py) | [特权 state 配置](../course/liftcube/configs/scripted/privileged_state.json)，使用方块位置与朝向 |
 | PickOrange 自研控制脚本 | [控制与采集入口](../course/pickorange/expert/README.md) | 原生关节目标、独立回放检验与同步双相机采集；已完成控制执行、回放检验与采集流程的实际仿真联合验证 |
 | PickOrange 官方控制脚本 | LeIsaac官方[PickOrange状态机](../third_party/leisaac/source/leisaac/leisaac/datagen/state_machine/pick_orange.py)及[采集入口](../third_party/leisaac/scripts/datagen/state_machine/generate.py) | [运行与物理限制](../course/pickorange/README.md#特权state控制脚本采集--privileged-state-control-script-collection)。已收录；生成器改变物理并直接写关节状态，数据须独立验收 |
 | PickOrange 视觉规则 | [RGB 检测、几何 IK 与状态机](../course/pickorange/visual/README.md) | 提供模型辅助版及双 RGB＋q6＋相机标定版。双相机版由 RGB 恢复支撑平面和物体尺寸。55 秒与 25 秒协议分别报告。 |
@@ -15,21 +15,9 @@ Visual rules and privileged state control scripts serve different purposes. Link
 
 ## LiftCube
 
-在配套环境中，从`course/liftcube`运行，设置`PYTHONPATH=$PWD/src:/leisaac/source/leisaac`。视觉脚本与特权state控制脚本使用同一个评测器，但标定要求不同：
+两套脚本共用 `starter.scripts.evaluate_scripted`。运行指南提供课程仿真标定、两种定位模式的命令，以及同一组场景的 8 秒和 16 秒成功率。[LiftCube 控制脚本指南](SCRIPTED_LIFTCUBE.md)
 
-```bash
-# 视觉策略：仅检查外部标定与IK，不启动模拟器
-python -m starter.scripts.evaluate_scripted \
-  --calibration /calibration/liftcube-visual.json --check
-
-# 特权state控制脚本：使用固定姿态标定，不启用grasp_presets或plan_while_opening
-python -m starter.scripts.evaluate_scripted --privileged-teacher \
-  --calibration /calibration/liftcube-control.json --check
-```
-
-真实运行需要显式`--run-simulation`、匹配配置和新输出目录，见[视觉指南](SCRIPTED_LIFTCUBE.md)及[控制脚本步骤](TRAIN_AND_EVALUATE.md#2-liftcube特权state控制脚本--liftcube-privileged-state-control-script)。模板不是有效标定；普通视觉输入不读取物体位置。显式运行时相机标定辅助应单独报告。
-
-Both variants reuse the same evaluator. Calibration checks are CPU-only; actual simulation requires explicit execution and a fresh output directory. Runtime camera-calibration assistance must be reported separately.
+Both controllers use `starter.scripts.evaluate_scripted`. The [controller guide](SCRIPTED_LIFTCUBE.md) includes the simulation calibrations, commands for each localization mode and success rates on the same scenes at both time limits.
 
 ## PickOrange
 

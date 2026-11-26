@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+新增 LiftCube 前视 RGB 与特权 state 控制脚本的固定场景配置、标定及 8 秒和 16 秒评测结果。
+
+Added calibrated front RGB and privileged-state LiftCube controllers, fixed-seed configurations and success rates at 8 and 16 seconds.
+
 补齐 PickOrange 的训练与固定场景评测导航。ACT 指南区分关节目标、分段末端目标和完整轨迹末端目标。ACT 与 GR00T 残差指南列出各自的基座、权重加载方式和评测配置。
 
 The PickOrange guides cover joint-space ACT, segmented and full-episode end-effector ACT, and residual SAC on ACT and GR00T. Each residual guide identifies its base model, checkpoint loader and fixed-seed evaluation settings.

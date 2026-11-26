@@ -1,8 +1,49 @@
-# LiftCube视觉规则基线 / Visual rule baseline
+# LiftCube 控制脚本 / LiftCube scripted controllers
 
-入口为 `starter.scripts.evaluate_scripted`，策略在 `starter/scripted_liftcube.py`。流程：张开夹爪 → RGB定位 → 上方接近 → 下降 → 闭合 → 抬升 → 保持。没有学习模型、训练步骤或演示标签依赖。
+评测入口是 `starter.scripts.evaluate_scripted`。前视 RGB 几何脚本从图像定位方块；特权 state 控制脚本从仿真读取方块的位置和朝向。两者都依次完成开爪接近、下降、闭合与抬升，并由环境判定成功。
 
-Entry point: `starter.scripts.evaluate_scripted`. The policy opens, localizes the cube from RGB, approaches, descends, closes, lifts and holds. It uses no learned policy or demonstration labels.
+The evaluator runs two SO-101 controllers. One locates the cube in a calibrated front image; the other reads its position and yaw from the simulator. Both command the same six joints and use native LiftCube scoring.
+
+## 固定场景评测 / Fixed-seed evaluation
+
+两种脚本使用同一组 50 个场景（seed 1000–1049），沿用原生 60 Hz 物理和 30 Hz 控制。每场最多执行 960 个环境步。下表按首次满足环境成功条件的步数统计，8 秒和 16 秒分别包含第 480、960 步。
+
+Both controllers ran on the same 50 seeds at 60 Hz physics and 30 Hz control. The two columns count first successes by steps 480 and 960 in the same episodes.
+
+| 脚本 / Controller | 定位输入 / Localization | 8 s | 16 s |
+| --- | --- | ---: | ---: |
+| [前视 RGB / Front RGB](../course/liftcube/configs/scripted/front_rgb.json) | 前视图、关节反馈、重置后相机外参 / Front image, joint feedback and per-reset camera extrinsics | 43/50 (86%) | 47/50 (94%) |
+| [特权 state / Privileged state](../course/liftcube/configs/scripted/privileged_state.json) | 方块位置与朝向、关节反馈 / Cube position, yaw and joint feedback | 44/50 (88%) | 49/50 (98%) |
+
+在课程仿真环境中，从 `course/liftcube` 运行。先完成两项标定和运动学检查，再用[评测配置](../course/liftcube/configs/scripted/eval.yaml)分别启动。两组臂关节移动速度系数分别为 1.5 和 2。
+
+From `course/liftcube` in the course simulator environment, check both calibrations, then run each controller. The RGB and privileged controllers use arm travel speed multipliers of 1.5 and 2 respectively.
+
+```bash
+export PYTHONPATH="$PWD/src:/leisaac/source/leisaac${PYTHONPATH:+:$PYTHONPATH}"
+/isaac-sim/python.sh -m starter.scripts.evaluate_scripted --calibration configs/scripted/front_rgb.json --check
+/isaac-sim/python.sh -m starter.scripts.evaluate_scripted --calibration configs/scripted/privileged_state.json --privileged-state --check
+/isaac-sim/python.sh -m starter.scripts.evaluate_scripted --calibration configs/scripted/front_rgb.json --runtime-camera-calibration --config configs/scripted/eval.yaml --output outputs/liftcube-rgb --run-simulation
+/isaac-sim/python.sh -m starter.scripts.evaluate_scripted --calibration configs/scripted/privileged_state.json --privileged-state --config configs/scripted/eval.yaml --output outputs/liftcube-state --run-simulation
+```
+
+环境在方块中心相对机器人基座的高度超过 0.20 m 时判定成功。每个输出目录中的 `episodes.csv` 记录每场的 seed、成功标志与环境步数。分别统计成功且 `length <= 480` 和 `length <= 960` 的场次，除以完成的场数即可得到两列成功率。`--privileged-teacher` 仍可作为 `--privileged-state` 的别名。
+
+LiftCube scores a success when the cube center rises more than 0.20 m above the robot base. In `episodes.csv`, count successful episodes with `length <= 480` and `length <= 960` and divide each count by the number of completed episodes. The previous flag `--privileged-teacher` remains an alias for `--privileged-state`.
+
+## 抓取与重试 / Grasp and retry
+
+标定文件中的 `parallel_approach: true` 可用于视觉和特权 state 控制脚本。目标定位稳定后，机械臂在开爪过程中向方块上方移动。空抓退让后也可以边张爪边重新接近，下降前检查实际开度。
+
+Set `parallel_approach: true` in the calibration file to enable simultaneous arm motion and jaw opening in either controller. Once the target is stable, the arm approaches the hover pose as the jaw opens. The same behavior applies after retreating from a missed grasp. Descent requires the measured jaw aperture to reach the configured opening.
+
+视觉脚本可另设 `fast_loaded_clearance: true`，与 `fast_clearance`、`probe_loaded_close` 配套使用。夹爪反馈显示已夹持、实测末端高于抓取位置 6 mm 后，加快初段抬升。
+
+The visual controller also supports `fast_loaded_clearance: true` with `fast_clearance` and `probe_loaded_close`. Initial lift speed increases once the gripper reports contact and the measured end effector clears the grasp height by 6 mm.
+
+`arm_travel_speed` 调整向悬停位移动、退让和带载上升时的五个臂关节速度，范围 1–2，默认 1。带载上升须先确认夹持且实测末端高于抓取位置 12 mm。关节跟踪误差从 4 增至 7 个电机单位时，提速倍数逐渐回落至 1；下探和夹爪仍按原速度执行。
+
+`arm_travel_speed` scales arm motion during approach, retreat and loaded lift. It ranges from 1 (default) to 2. Faster lifting requires grasp feedback and 12 mm of measured clearance above the grasp height. As joint tracking error rises from 4 to 7 motor units, the multiplier falls back to 1. Descent and jaw motion retain their original rates.
 
 本版本作为LiftCube开发基准保留，便于后续标定与控制接口适配。它不是完整多物体任务或真机部署的验收版本；相机真实位姿辅助模式与固定外参模式分别记录。
 
@@ -32,16 +73,22 @@ This is a geometry/rule comparator, not a substitute for the required RL method 
 - 整个红色连通域可能同时包含顶面和侧面，不能把它的质心机械地当作顶面中心。平面高度须与检测方式配套，并用独立位置参考核验；不能根据单个测试场景的物体真值回填偏移。
 - 运动学可使用固定SO101关节链（NumPy/SciPy），或LeRobot官方`RobotKinematics`/Placo。前者从匹配USD导出固定几何，不读取实时场景；后者按`URDF角度 = USD角度 × joint_sign + joint_offset_deg`转换。夹爪独立使用公共motor单位，不把motor直接当角度。
 - 固定抓取方向只适用于其可达区域；SO101五轴不能实现任意六自由度位姿。IK检查位置误差≤3mm、旋转误差≤0.15rad，并拒绝超限解，不靠裁剪修复不可达目标。
-- Cartesian参考每次至多移动4mm，朝向沿最短旋转每次至多推进0.02rad；最终关节请求按统一比例插值，每次最多变化1motor单位（30Hz下30单位/s）。位置和朝向均到位后才进入下一阶段。这不等于实际关节速度上限或完整路径碰撞保证。臂关节命令领先实测超过8单位时锁定失败。
+- Cartesian参考每次至多移动4mm，朝向沿最短旋转每次至多推进0.02rad；最终关节请求按统一比例插值，每次最多变化1motor单位（30Hz下30单位/s）。位置和朝向均到位后才进入下一阶段。这不等于实际关节速度上限或完整路径碰撞保证。接近、下降、闭合或抬升阶段任一臂轴的候选指令与实测相差超过 8 motor 时，撤回该指令并进入恢复。
 - 路径从上一发送目标继续推进，不以滞后反馈重新起算参考，避免重力下垂不断拖低接近轨迹；到位判断和跟踪保护仍使用实测关节。This command-referenced path does not replace measured-state arrival and lag checks.
-- 可选`gravity_compensation: true`使用`SteadyBiasScriptedLiftCube`：只在接近/下降/抬升的名义目标稳定后按q反馈积分，臂轴偏置限±3motor，夹爪不补偿；名义路径与发送目标分开记录。仍拒绝原范围外请求，保持1motor/策略步及8motor领先保护。不能用补偿追赶碰撞；触发保护后保持最后发送值。
+- 可选`gravity_compensation: true`使用`SteadyBiasScriptedLiftCube`：只在接近/下降/抬升的名义目标稳定后按q反馈积分。臂轴偏置同时受±3motor和当前目标距关节边界的余量约束，夹爪不补偿；名义路径与发送目标分开记录。仍拒绝原范围外请求，保持1motor/策略步及8motor领先保护。进入恢复时清空补偿，用实测关节位置卸去累积的位置偏差。
+
+Steady-bias correction is bounded by both ±3 motor units and each nominal target's remaining joint travel. This prevents the correction from pushing an otherwise valid target past a joint boundary; nominal targets, command-rate limits and tracking checks retain their existing semantics.
 - 起始TCP必须已在标定工作区且不低于hover高度；脚本不会盲目执行回零/抬臂恢复。下降后允许夹爪遮挡；闭合完成请求后停留0.5策略秒，不把夹爪实际无法完全闭合作为必然失败。
 - 可选`contact_close: true`将闭合请求限制为至多领先实测夹爪2motor。连续三次位置变化小于0.1motor且反馈领先上一命令至少1.5motor时，保持当前夹爪目标，停留0.5策略秒后抬升；没有停滞则仍可闭合到原目标。`jaw_contact_proxy`只表示位置反馈停滞，也可能来自桌面等障碍，不是力测量或抓取成功；`grasp_motor`单独记录。原动作限速、臂跟踪保护、执行器及评分不变，缺省false保留原闭合行为。
-- 失败后保持最后命令，直到原生终止或评测预算结束；不是硬件急停。`hold`只表示控制流程结束，不表示抓取成功。成功率仍来自原生任务评分，失败和超时均保留。
+- 接近、下降或闭合受阻后，脚本从实测关节位置退让、张爪并重新定位。RGB 几何脚本启用 `clear_retry_view` 时，抬升途中会检查整张前视图。连续观测到方块留在原处或与夹爪分离时，脚本抬爪让出视野，清除上一次目标，再用稳定的红色轮廓计算抓取位置。单帧遮挡不会触发放手。特权 state 脚本使用方块位置、高度和朝向重新规划。允许重抓直至环境判定成功或超时。
 
-Only front RGB and measured joint positions reach the policy. Detection is color/connected-component based; localization uses a calibrated plane, not per-episode object state. IK and motor bounds are checked, commands are rate-limited, and faults latch a hold until the episode ends. Native environment scoring alone determines success. Fixed orientation, occlusion, initial-pose assumptions and the absence of full collision checking limit the operating envelope.
+The geometric controller uses front RGB, camera calibration and measured joint positions. With `clear_retry_view` enabled, it searches the whole front image during the lift. Repeated sightings of the cube at the pick location or separated from the fingers trigger a retreat. The controller then clears the old target and localizes the cube again. A single occluded frame does not trigger a release. The privileged controller replans using the cube pose. The environment ends each episode on success or timeout.
 
 A whole-object color centroid can include top and side faces; it is not automatically the top-face center. Validate the detection plane independently instead of fitting offsets to a test scene's hidden object pose. A reachable commanded waypoint also does not prove that the physical arm reaches it under gravity and contact.
+
+前视 RGB 脚本与特权 state 控制脚本都可使用同一姿态选择方法。前者从图像和相机标定计算目标，后者读取方块位置。在标定文件中将 `grasp_presets` 设为空数组、将 `plan_while_opening` 设为 false，再设置 `"adaptive_orientation": true`。脚本先检查原抓取和抬升姿态。当目标接近关节边界或位置误差偏大时，再按方块相对基座的方位选择手腕朝向与倾角。接近和下降共用一个姿态，抬升单独选择。候选姿态需要大于 2 motor 的关节余量且位置误差小于 2.5 mm。如果候选均未达到该条件，原姿态仍须通过常规 IK 检查。缺省使用固定姿态。此选项需要 SciPy。
+
+For front RGB or privileged localization, use empty grasp presets, disable planning while opening, and set `"adaptive_orientation": true` in the calibration file to try alternative wrist orientations when the calibrated waypoints leave little joint travel or have excessive position error. Approach and descent share one orientation. Lift is checked separately. If no candidate meets the tighter margins, the fixed reference goes through the standard IK checks. The default uses fixed orientations.
 
 ### 随机化相机的标定 / Randomized-camera calibration
 
@@ -68,6 +115,10 @@ Usually only the calibration reader and coordinate conversion change: normalize 
 ## 可选几何抓取模式 / Optional geometric mode
 
 在外部标定文件中填入非空`grasp_presets`，入口会选择`starter.scripted_geometry.GeometricLiftCube`；默认空数组继续使用原策略。此模式要求`kinematics_backend: "joint_chain"`与`gravity_compensation: true`。每个预设包括`tilt`标签、固定工具`rotation`和`tcp_offset_m`，不包含物体位置或按seed编写的动作。
+
+几何视觉脚本可在标定中启用 `"fast_clearance": true`。夹爪到达闭合目标或触发接触代理后等待 8 个策略步，离桌阶段每步最多移动 0.5 motor。默认分别为 15 步和 0.25 motor。两种设置都依据实测关节的 FK 高度判断何时进入运输。
+
+Set `"fast_clearance": true` with geometric grasp presets for an eight-tick dwell after closure and a clearance rate of 0.5 motor units per policy tick. The defaults are 15 ticks and 0.25 motor units per tick.
 
 可参考[固定资产示例](../course/liftcube/configs/scripted_grasps.example.json)，先核对资产及其3cm方块、夹爪开度和名义净空假设，再将`presets`复制为自己标定文件的`grasp_presets`，并按配置模板填写资产信息。入口拒绝预设与关节链来源资产不匹配。示例不包含相机、工作区、桌面、FK独立核验等必要标定，不能单独启动。更换资产或抓取对象须重新验证相关几何，不盲用这些数字。
 
@@ -146,23 +197,7 @@ The joint-chain backend uses NumPy/SciPy and fixed geometry exported from the ma
 
 URDF后端另需兼容的LeRobot `lerobot.model.kinematics.RobotKinematics` 与Placo。优先用已有兼容依赖；不要升级课程Python/Torch来满足新包。实现兼容LeRobot v0.4.2单次IK迭代接口。URDF及标定不随仓库伪造提供。
 
-在配套容器、`course/liftcube`目录中：
-
-```bash
-export PYTHONPATH="$PWD/src:/leisaac/source/leisaac${PYTHONPATH:+:$PYTHONPATH}"
-# No environment construction, GPU allocation or automatic Docker launch:
-/isaac-sim/python.sh -m starter.scripts.evaluate_scripted --help
-/isaac-sim/python.sh -m starter.scripts.evaluate_scripted \
-  --calibration /path/to/calibration.json --check
-
-# Only after runtime authorization, calibration and resource acceptance:
-/isaac-sim/python.sh -m starter.scripts.evaluate_scripted \
-  --calibration /path/to/calibration.json \
-  --config configs/eval_lift_cube.yaml \
-  --output /path/to/new-output --run-simulation
-```
-
-默认沿用4回合、每回合640环境tick、30Hz策略/60Hz环境，不扩预算、不改物理或成功条件。每回合新建状态机，调用共同`run_episode`。自有运行器用`finally`关闭环境，不触发训练或真机连接；输出目录已存在时拒绝覆盖。
+本文开头给出了两种脚本的完整命令。打包的 `configs/scripted/eval.yaml` 运行 50 场、每场最多 960 步；通用 `configs/eval_lift_cube.yaml` 的默认值是 4 场、640 步，使用时须匹配标定图像尺寸。每场重置策略，结果写入新的输出目录。
 
 Outputs: `manifest.json` identifies calibration, kinematics data/code, config, base policy, actual policy class/code and runner versions; each episode writes a flushed JSONL trace and RGB NPZ (reset plus post-step/terminal images), and completed episodes enter the shared `metrics.json`/`episodes.csv`. `run-status.json` distinguishes finished runs from errors. A partial episode is not counted as a complete failure. Recorded RGB and diagnostics stay outside Git.
 
@@ -205,7 +240,7 @@ The unchanged assisted controller completed 30 scenes with 13 native successes, 
 
 冻结seed1000–1099，每回合至多640环境tick，front256、实测6D q及每reset实际相机标定辅助，原60Hz环境/30Hz策略、原物理/限位/执行器/原生成功判据不变。100回合完整结束并通过轨迹、动作映射、原生终态审核：45成功、55失败，成功平均9.468、中位9.383仿真秒；失败中16次跟踪保护、2次阶段超时、37次无脚本错误但未达原生成功。
 
-这组使用冻结开发入口的定位调度版本，对应公共几何模式的`plan_while_opening: true`。公共移植已复用完整记录输入进行逐命令/阶段等价检查，最大命令差0；没有另把公共CLI重跑100次。准确复现仍需同版本环境及匹配标定，仓库只提供模板与获取/核验方式，不附私有标定、原始轨迹或图像。该成绩不属于自研末端执行层，也不能作为未来正式标定/控制SDK或真机的成绩。
+这组使用冻结开发入口的定位调度版本，对应公共几何模式的`plan_while_opening: true`。公共移植已复用完整记录输入进行逐命令/阶段等价检查，最大命令差0；没有另把公共CLI重跑100次。复现这组历史数据需使用当时的环境和标定。当前 50 场配置见本文开头。该成绩不属于自研末端执行层，也不能作为未来正式标定/控制SDK或真机的成绩。
 
 The frozen development scheduling runner completed all 100 scenes (seeds1000–1099): 45 successes, 55 failures; successful mean/median times were 9.468/9.383 simulation seconds. Failures comprised 16 tracking guards, 2 stage timeouts and 37 native failures without a script error. The public equivalent uses geometric mode with `plan_while_opening: true`; its port was checked for exact command/stage equivalence on complete recorded inputs, rather than rerunning another 100 physical episodes through the CLI. Reproduction requires matching calibration and environment identity. This result does not validate the planar EE development controller, an unreleased official SDK, new objects or hardware.
 
@@ -258,6 +293,20 @@ Two external controller experiments preserved the original physics, actuators, l
 反馈闭合的开发场景17/18分别在566/532tick成功，19仍不可达；原闭合方案在同三个开发场景中仅17成功。开发集改善没有转化为广泛场景稳定性。更早同seed的TCP选参和随后抬高/倾斜诊断均独立保留，不混入上表，也不把成功轨迹自动作为BC数据。
 
 The frozen independent set completed all ten episodes: 1 success, 6 unreachable preflights, 1 approach timeout, 1 rejected wrist target and 1 empty grasp. All full traces and native terminal scoring were audited. This is a finite-set result, not a population estimate or the formal multi-object benchmark. Development improvements (2/3 versus 1/3 in the original three scenes) remain separate.
+
+只调整末段闭合窗口时，设 `relaxed_close_window: true` 并保留原抓取姿态（`face_aligned_grasp: false`）。该组合沿用原来的定位、悬停和下降目标。
+
+在 `contact_close: true` 下可用 `hold_contact_on_lift: true` 检验带载恢复。夹爪根据关节位置反馈检测到持续阻挡后，在抬升时保持该位置目标。如果此时腕部跟踪滞后，先让臂关节指令回到实测位置，再保持夹爪目标继续抬升。未检测到夹持的空抓沿用张开重试流程。`contact_preload_motor` 默认为 0，设为 1 会在首次确认阻挡时把目标开度再减小约 1.1°；保持期间该偏移只施加一次。
+
+带载抬升可启用 `pace_loaded_lift`。夹爪保持闭合时，每个臂关节的位置目标最多领先实测位置 7.5 个 motor 单位，其他关节可继续沿抬升轨迹运动。稳态补偿后的目标使用相同上限。原有每步限速和 8 个单位的跟踪保护继续生效。
+
+RGB 几何脚本可启用 `low_fingertip_grasp`。脚本从已标定的零倾角姿态开始，依次尝试 −5°、−10°、−15° 和其余标定姿态，并检查接近、闭合与抬升目标的可达性。中间姿态复用零倾角对应的工具中心点。夹取深度由 `grasp_z` 单独设置，调整时应同时检查固定指和活动指距方块底面及桌面的间隙。
+
+启用 `face_aligned_grasp: true` 后，控制器按方块两对相对侧面选择抓姿。RGB 脚本用红色轮廓拟合 30 mm 方块的朝向，特权 state 脚本直接读取底座坐标系中的方块朝向。控制器在竖直至倾斜 30° 的姿态中检查悬停和抓取位置是否可达。首次接近优先选两指高度接近的一对侧面。特权 state 脚本在接近受阻或方块掉落后，先在当前腕姿下抬到悬停高度，再重新定位，优先换到正交的另一对侧面。若原抬升终点不可达，则预先检查相同高度的其他位置和腕姿，先垂直提离桌面，再转入高位运输。
+
+末段闭爪窗口容许 TCP 横向误差 5 mm、低于目标 3 mm、高于目标 6 mm。特权 state 脚本已选定可达侧面抓姿时，高于目标的容差为 8 mm，给接近桌面的低侧指尖留出空间。朝向和关节跟踪须连续三个控制时刻达标。
+
+对 SO‑101 前视 RGB 脚本，`follow_retry_close: true` 配合 `hold_contact_on_lift: true` 用于检查夹持开度。轮廓可辨时，按方块沿闭合方向的投影宽度核对指垫间距。首次遇阻时开度仍过宽，脚本在相同平面位置抬高 3.5 mm，再张爪闭合一次。完整重抓使用重新拟合的方块中心，夹持反馈触发后最多再收紧 1.5 motor，以免滑脱时一直追到全闭。重抓试提达到 30 mm 后，连续检查原位置是否仍能看到方块。
 
 软件测试覆盖检测歧义、投影、IK残差/动作范围、状态机、限速、失败锁定、状态重置、不读取补零/metadata，以及2tick保持和原生终帧记录。假运动学与替身环境只能验证软件流程。
 

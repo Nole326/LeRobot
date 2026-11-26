@@ -31,25 +31,9 @@ Inference wrappers are not trainers. Use each model's own optimizer/loss and che
 
 ## 2. LiftCube特权state控制脚本 / LiftCube privileged state control script
 
-控制脚本在`starter.privileged_liftcube.PrivilegedLiftCube`，读取cube相对机器人base的真实位置，复用现有开爪→定位→下降→闭合→抬升控制及限位/限速/跟踪保护；不改物理或成功条件。它是**尚未真实仿真验收的开发候选**，不能作为视觉baseline。
+特权 state 控制脚本读取方块在机器人基座坐标系中的位置与朝向，选择可达的相对侧面夹持。评测器记录关节指令、反馈和环境终态。使用 `--privileged-state` 选择该模式；标定预检、仿真命令与结果见[控制脚本指南](SCRIPTED_LIFTCUBE.md)。若用于训练数据，先按下节进行轨迹回放检验与格式转换。
 
-The control script explicitly reads object truth outside `Observation`, retaining controller safety and native scoring. It is a development candidate, not a validated expert or a visual baseline.
-
-在LiftCube配套环境内，工作目录`course/liftcube`，设置`PYTHONPATH=$PWD/src:/leisaac/source/leisaac`。使用与实际机器人/TCP对应的独立标定；沿[标定指南](SCRIPTED_LIFTCUBE.md)准备至少三个FK检查。控制脚本使用固定抓取/抬升姿态和高度：标定不得启用`grasp_presets`或`plan_while_opening`。相机矩阵沿用标定格式，但定位不使用RGB或相机外参；物体尺寸/高度变化需重新检查路径。
-
-```bash
-python -m starter.scripts.evaluate_scripted --privileged-teacher \
-  --calibration /calibration/liftcube-control.json --check
-
-python -m starter.scripts.evaluate_scripted --privileged-teacher \
-  --calibration /calibration/liftcube-control.json \
-  --config configs/eval_lift_cube.yaml \
-  --output /outputs/liftcube/script-demo --run-simulation
-```
-
-第一条只作CPU标定/IK检查；第二条真实运行仿真。记录中显式标注特权输入，保留原始请求、发送/反馈、终态及RGB；输出目录必须新建。它仍是评测轨迹格式，不是可直接喂给LeRobot的专家数据。先验证实际抓取和回放检验，再转换、筛选及重新分训练/验证集。
-
-The runner records evaluation trajectories, not an automatically accepted LeRobot dataset. Validate task success and replay before conversion and training.
+The privileged-state controller uses the cube position and yaw in the robot base frame to select a reachable pair of faces. The evaluator records joint commands, feedback and the simulator outcome. The [controller guide](SCRIPTED_LIFTCUBE.md) gives the calibration checks and simulation commands. For training data, apply the replay and conversion checks below.
 
 ## 3. 数据准入 / Data admission
 

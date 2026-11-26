@@ -13,7 +13,7 @@
 | PPO、存档恢复 | [TRAINING](TRAINING.md)；`training/train_rl.py`、`training/checkpoint.py`，`algorithms/reference/ppo.py`、`rewards/lift_cube.py`，`configs/rl_lift_cube.yaml` |
 | 策略与评测 | `interfaces/policy.py`、`interfaces/model.py`，`utils.py::build_policy`，`evaluation/evaluate.py`，`configs/eval_lift_cube.yaml` |
 | 视觉规则脚本 | `scripted_liftcube.py`、`joint_chain.py`、`scripts/export_joint_chain.py`、`scripts/evaluate_scripted.py`、[标定与验收](../../docs/SCRIPTED_LIFTCUBE.md)；每回合新建状态机，沿用共同`run_episode`，不接训练协议 |
-| 特权state控制脚本 | `privileged_liftcube.py`、同一规则runner的`--privileged-teacher`；[使用与数据准入](../../docs/TRAIN_AND_EVALUATE.md)；物体真值单独回调，不放入Observation，不当视觉baseline或已验收专家 |
+| 特权state控制脚本 | `privileged_liftcube.py`、共用评测器的 `--privileged-state`；[使用与数据准入](../../docs/TRAIN_AND_EVALUATE.md)；物体真值单独回调，不放入Observation，不当视觉baseline或已验收专家 |
 | 受限末端开发接口 | `envs/planar_ee.py`、`envs/factory.py`、[契约](../../docs/PLANAR_EE_DEVELOPMENT.md)；`control_mode: planar_ee_dev`仅自研开发，不当课程正式控制器 |
 | ACT/VLA或任务迁移 | [架构](../../docs/ARCHITECTURE.md)、[迁移路线](../../docs/LIFTCUBE_TRANSFER.md)、[契约](../../docs/INTERFACE_CONTRACTS.md)及上面的策略/环境边界 |
 
@@ -22,9 +22,9 @@
 开发时按下面的顺序推进；每一步只运行其所需检查：
 
 - **修环境或动作接口**：沿 `envs/factory.py → LiftCubeEnvAdapter.reset/step → Observation/ActionSpec` 追踪数据；先用 `tests/test_so101_adapter.py` 的替身环境覆盖单位、形状与边界，再补真实环境短测。
-- **运行规则基准**：走`starter.scripts.evaluate_scripted`，先按规则指南检查外部标定；不需要演示、训练权重或`build_policy()`。不要为此运行BC/ACT优化验证。正式标定迁移只修改读取/坐标边界，控制SDK改变时再处理执行层，复用未变验证。
+- **运行规则基准**：走`starter.scripts.evaluate_scripted`，先按规则指南检查所选配置的标定；不需要演示、训练权重或`build_policy()`。不要为此运行BC/ACT优化验证。正式标定迁移只修改读取/坐标边界，控制SDK改变时再处理执行层，复用未变验证。
 - **接入演示数据**：沿 `data/hf_adapter.py → schema/validator → loader → training/train_bc.py` 检查字段、episode划分和标签单位；先验证一小批真实样本，再做获准的小批拟合。合成单测不替代真实数据映射验收。
-- **特权state控制脚本**：显式定位回调只供`PrivilegedLiftCube`；复用视觉控制器的保护和原生评分，不把真值写进公共观测。当前为固定标定姿态/高度的开发候选，拒绝视觉grasp_presets与开爪规划；CPU通过不能更新为成功专家。权重与演示来源见[资源清单](../../docs/RESOURCES.md)。
+- **特权state控制脚本**：显式定位回调只供`PrivilegedLiftCube`；复用视觉控制器的保护和原生评分，不把真值写进公共观测。评测配置使用方块位置和朝向选择抓取侧面。使用 `--privileged-state` 启用，并与 RGB 模式分别记录。权重与演示来源见[资源清单](../../docs/RESOURCES.md)。
 - **新增 ACT/VLA**：在实际接入时新增 `starter/models/` 包装，核对 `interfaces/policy.py` 中 `act/forward/update/save/load` 及调用者。推理先接 `evaluation.evaluate.load_policy` 的 `--policy-class`；训练再接 `utils.build_policy`、数据预处理和对应算法。现有BC/PPO依赖SmallCNN的具体实现，不能仅满足协议或替换模型名就宣称可训练；后端依赖保持可选。
 - **处理动作chunk**：`act()`向执行层返回当前一个六维目标，预测chunk可在包装内缓存；规格中的策略频率须与 `envs/timing.py` 一致。公共`run_episode`在两端和异常退出调用可选`policy.reset()`清缓存、不重seed；旧无reset策略兼容。复用`models/joint_chunk.py`；任务文本变化走`set_task()`，接管后显式reset，不能跨回合沿用旧动作。
 - **SmolVLA单front推理**：见[推理接口](../../docs/VLA_INTERFACES.md)和`tests/test_vla_interfaces.py`。本地适配JSON通过`--policy-class starter.models.smolvla:SmolVLAFrontPolicy`加载；相机首槽、缺槽mask、六维motor和显式统计严格核对。CPU替身/mask检查不等于完整权重或GPU/仿真通过；不将新包装接入SmallCNN训练器。

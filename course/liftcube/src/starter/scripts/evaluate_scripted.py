@@ -1,4 +1,4 @@
-"""Calibrated visual rule baseline. --help/--check never create an environment."""
+"""Check or evaluate the calibrated RGB and privileged-state LiftCube controllers."""
 import argparse
 import hashlib
 import inspect
@@ -77,17 +77,22 @@ class RecordedEnv:
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--calibration", required=True, type=Path)
-    parser.add_argument("--config", type=Path, help="Existing eval_lift_cube.yaml (required for simulation)")
+    parser.add_argument("--config", type=Path, help="Evaluation YAML (required for simulation)")
     parser.add_argument("--output", type=Path, help="New output directory (never overwritten)")
     parser.add_argument("--runtime-camera-calibration", action="store_true",
         help="Opt-in matching simulator camera/base API, not a hardware capability claim")
-    parser.add_argument("--privileged-teacher", action="store_true",
-        help="Use explicit cube truth instead of vision; development data candidate, not visual baseline")
+    parser.add_argument("--privileged-state", "--privileged-teacher", dest="privileged_teacher",
+        action="store_true", help="Localize from the simulator's cube position and yaw")
     mode = parser.add_mutually_exclusive_group(required=True)
     mode.add_argument("--check", action="store_true", help="CPU calibration and IK checks only")
-    mode.add_argument("--run-simulation", action="store_true", help="Requires separate runtime authorization")
+    mode.add_argument("--run-simulation", action="store_true", help="Run episodes in the course simulator")
     args = parser.parse_args(argv)
     c = load_calibration(args.calibration)
+    localization = "privileged_state" if args.privileged_teacher else "front_rgb"
+    if c.get("localization", localization) != localization:
+        parser.error(f"Calibration selects {c['localization']}, but the command selects {localization}")
+    if args.privileged_teacher and args.runtime_camera_calibration:
+        parser.error("--runtime-camera-calibration applies to RGB localization")
     if c.get("kinematics_backend", "urdf") == "joint_chain":
         from starter.joint_chain import JointChainKinematics
         kin = JointChainKinematics(c["chain_path"], c["tcp_offset_m"], c["joint_names"])
@@ -102,8 +107,6 @@ def main(argv=None):
     if args.privileged_teacher:
         from starter.privileged_liftcube import PrivilegedLiftCube
         policy_class = PrivilegedLiftCube
-        if args.runtime_camera_calibration:
-            parser.error('Privileged localization does not use runtime camera calibration')
     check_kinematics(policy_class(c, kin))
     if args.check:
         print(json.dumps({"status": "calibration_checks_passed", "simulation_run": False}))
@@ -116,6 +119,7 @@ def main(argv=None):
     from starter.evaluation.evaluate import run_episode
     from starter.logging.metrics import RunManifest, try_git_hash, write_eval_outputs
     from starter.logging.swanlab import ScalarWriter, log_episode
+    from starter.utils import seed_all
 
     cfg = resolve_config(args.config)
     e = cfg.get("env", {})
@@ -146,6 +150,9 @@ def main(argv=None):
         "policy_class_sha256": hashlib.sha256(Path(inspect.getfile(policy_class)).read_bytes()).hexdigest(),
         "runtime_camera_calibration": args.runtime_camera_calibration,
         "plan_while_opening": c.get("plan_while_opening", False),
+        "parallel_approach": c.get("parallel_approach", False),
+        "arm_travel_speed": c.get("arm_travel_speed", 1.),
+        "fast_loaded_clearance": c.get("fast_loaded_clearance", False),
         "camera_calibration_code_sha256": (hashlib.sha256(Path(__file__).parents[1].joinpath("camera_calibration.py").read_bytes()).hexdigest()
                                            if args.runtime_camera_calibration else None),
         "runner_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest()})
@@ -160,15 +167,19 @@ def main(argv=None):
         env = make_env(cfg)
         for episode in range(count):
             # A fresh state machine cannot leak target/stage across resets.
-            policy = policy_class(c, kin)
             if args.privileged_teacher:
-                from starter.privileged_liftcube import read_cube_in_base
-                policy.read_cube = lambda: read_cube_in_base(env)
+                from starter.privileged_liftcube import read_cube_in_base, read_cube_yaw_in_base
+                policy = policy_class(c, kin, read_cube=lambda: read_cube_in_base(env),
+                                      read_yaw=lambda: read_cube_yaw_in_base(env))
+            else:
+                policy = policy_class(c, kin)
             with (args.output / f"episode-{episode:04d}.jsonl").open("x", encoding="utf-8") as stream:
                 recorded = RecordedEnv(env, stream, runtime_camera_calibration=args.runtime_camera_calibration)
                 recorded.policy = policy
                 try:
-                    record = run_episode(recorded, policy, seed=manifest.seed+episode,
+                    seed = manifest.seed + episode
+                    seed_all(seed)
+                    record = run_episode(recorded, policy, seed=seed,
                         episode_id=episode, deterministic=True, checkpoint=None, max_episode_steps=horizon)
                     records.append(record)
                     stream.write(json.dumps({"episode_result": record.to_dict(),

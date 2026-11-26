@@ -8,9 +8,9 @@ A cube-lifting task with an environment adapter, demonstration reader, BC, refer
 
 ## 当前状态 / Status
 
-模型/演示链接与固定版本见[资源清单](../../docs/RESOURCES.md)，控制脚本、训练和评测步骤见[使用指南](../../docs/TRAIN_AND_EVALUATE.md)。新增特权state控制脚本显式使用cube真值、复用原控制保护，目前只有CPU检查，尚未验收真实抓取；不作为视觉baseline。
+前视 RGB 几何脚本使用相机标定和关节反馈定位抓取目标。特权 state 控制脚本直接读取方块在基座坐标系中的位置和朝向。两者共用关节控制和环境评分。模型与演示见[资源清单](../../docs/RESOURCES.md)。
 
-See the resource and execution guides for assets and task-specific steps. The explicit object-truth control script is a CPU-tested development candidate, not a validated expert or visual baseline.
+The RGB controller localizes the cube using a calibrated front camera and joint feedback. The privileged controller reads the cube position and yaw in the robot base frame. Both use the same joint interface and simulator scoring.
 
 六关节环境交互与BC/PPO参考训练基础已接入，规则脚本可独立于训练使用。候选演示尚未通过正式BC准入；[四种VLA的单front包装与共享chunk层](../../docs/VLA_INTERFACES.md)已有CPU接口检查，完整模型及GPU/闭环尚未验收，ACT接入仍在开发。训练和恢复用法见[训练指南](TRAINING.md)，任务迁移与采集方案见[开发路线](../../docs/LIFTCUBE_TRANSFER.md)。
 
@@ -19,7 +19,7 @@ Joint-environment interaction and BC/PPO reference foundations are connected; th
 | 环节 / Component | 当前实现 / Implementation |
 | --- | --- |
 | 参考SmallCNN / Reference SmallCNN | RGB＋关节位置＋上一执行命令，屏蔽兼容补零字段 / RGB, joint positions and previous commands; compatibility padding is ignored |
-| 规则基线 / Rule baseline | [视觉定位＋IK状态机](../../docs/SCRIPTED_LIFTCUBE.md)；实际标定辅助定位调度变体45/100，成功中位9.38仿真秒；旧几何原版13/30、固定标定1/10分组 / Assisted scheduling variant: 45/100, median successful time 9.38 simulation seconds; earlier 13/30 and fixed-calibration 1/10 protocols kept separate |
+| 控制脚本 / Scripted controllers | [固定场景评测与运行命令 / Results and commands](../../docs/SCRIPTED_LIFTCUBE.md)。固定 50 场、16 秒内成功 / Success within 16 s on 50 fixed seeds: RGB 47/50 (94%), privileged state 49/50 (98%). |
 | 受限末端开发接口 / Planar EE development | 可选[绝对XY＋夹爪执行层](../../docs/PLANAR_EE_DEVELOPMENT.md)，固定高度/接近轴参考，物理定高未验收；不是正式IK或已有关节抓取策略的移植 / Opt-in absolute XY + jaw layer; physical height tracking unaccepted, not official IK or a port of the joint grasp policy |
 | BC→RL | 30Hz策略在60Hz环境中保持两tick；严格匹配模型与数据规格 / 30Hz decisions hold for two 60Hz ticks; model/data contracts are checked |
 | 存档恢复 / Checkpoint recovery | BC按epoch、PPO按完整回合/更新边界保存模型、Adam、进度与RNG；合成CPU恢复通过 / Model, Adam, progress and RNG at epoch/completed-rollout boundaries; synthetic CPU recovery checked |
