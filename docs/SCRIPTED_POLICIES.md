@@ -1,16 +1,16 @@
-# 两个任务的规则脚本与特权state控制脚本 / Rules and state control scripts
+# 两个任务的视觉控制脚本与特权state控制脚本 / Visual and privileged-state control scripts
 
-视觉规则策略用于方法baseline；特权state控制脚本读取物体真值，供数据生成与诊断。二者分别标注输入、控制方式和成绩。下表链接仓库内的实际源码，上游文件保留原目录、固定版本和许可证，不再复制一份同名脚本。
+视觉控制脚本从相机图像定位目标。特权state控制脚本直接读取仿真中的物体状态，用于抓取对照、诊断和演示采集。下表列出各任务的实现与运行入口。
 
-Visual rules and privileged state control scripts serve different purposes. Links below point to checked-in code. Upstream files remain in their pinned directories with their licenses intact.
+Visual and privileged-state control scripts serve different purposes. Links below point to checked-in code. Upstream files remain in their pinned directories with their licenses intact.
 
 | 任务与类型 / Task and type | 源码 / Source | 运行与状态 / Usage and status |
 | --- | --- | --- |
-| LiftCube 前视 RGB 几何脚本 | [视觉定位与关节控制](../course/liftcube/src/starter/scripted_liftcube.py)、[几何抓取](../course/liftcube/src/starter/scripted_geometry.py) | [RGB 配置](../course/liftcube/configs/scripted/front_rgb.json)，使用重置后的相机外参 |
-| LiftCube 特权 state 控制脚本 | [方块定位与抓取](../course/liftcube/src/starter/privileged_liftcube.py) | [特权 state 配置](../course/liftcube/configs/scripted/privileged_state.json)，使用方块位置与朝向 |
-| PickOrange 自研控制脚本 | [控制与采集入口](../course/pickorange/expert/README.md) | 原生关节目标、独立回放检验与同步双相机采集；已完成控制执行、回放检验与采集流程的实际仿真联合验证 |
-| PickOrange 官方控制脚本 | LeIsaac官方[PickOrange状态机](../third_party/leisaac/source/leisaac/leisaac/datagen/state_machine/pick_orange.py)及[采集入口](../third_party/leisaac/scripts/datagen/state_machine/generate.py) | [运行与物理限制](../course/pickorange/README.md#特权state控制脚本采集--privileged-state-control-script-collection)。已收录；生成器改变物理并直接写关节状态，数据须独立验收 |
-| PickOrange 视觉规则 | [RGB 检测、几何 IK 与状态机](../course/pickorange/visual/README.md) | 提供模型辅助版及双 RGB＋q6＋相机标定版。双相机版由 RGB 恢复支撑平面和物体尺寸。55 秒与 25 秒协议分别报告。 |
+| LiftCube 前视 RGB 视觉控制脚本 | [视觉定位与关节控制](../course/liftcube/src/starter/scripted_liftcube.py)、[几何抓取](../course/liftcube/src/starter/scripted_geometry.py) | [RGB 配置](../course/liftcube/configs/scripted/front_rgb.json)，使用重置后的相机外参 |
+| LiftCube 特权state控制脚本 | [方块定位与抓取](../course/liftcube/src/starter/privileged_liftcube.py) | [特权state控制脚本配置](../course/liftcube/configs/scripted/privileged_state.json)，使用方块位置与朝向 |
+| PickOrange 自研特权state控制脚本 | [控制与采集入口](../course/pickorange/expert/README.md) | 原生关节目标、独立回放检验与同步双相机采集；已完成控制执行、回放检验与采集流程的实际仿真联合验证 |
+| PickOrange 官方特权state控制脚本 | LeIsaac官方[PickOrange状态机](../third_party/leisaac/source/leisaac/leisaac/datagen/state_machine/pick_orange.py)及[采集入口](../third_party/leisaac/scripts/datagen/state_machine/generate.py) | [运行与物理限制](../course/pickorange/README.md#特权state控制脚本采集--privileged-state-control-script-collection)。已收录；生成器改变物理并直接写关节状态，数据须独立验收 |
+| PickOrange 视觉控制脚本 | [RGB 检测、几何 IK 与状态机](../course/pickorange/visual/README.md) | 提供模型辅助版及双 RGB＋q6＋相机标定版。双相机版由 RGB 恢复支撑平面和物体尺寸。55 秒与 25 秒协议分别报告。 |
 | 上游抬升状态机参考 | Isaac Lab [lift_cube_sm.py](../third_party/isaaclab/scripts/environments/state_machine/lift_cube_sm.py) | 基于Franka与特权位姿，不可直接用于SO101；用于研究状态机分阶段设计 |
 
 ## LiftCube
@@ -38,7 +38,7 @@ This runs GPU simulation. Bound wall time independently: the demo count limits s
 
 ## 来源与复用 / Provenance
 
-- SO101视觉与state包装由本项目维护；控制保护和评测入口共用，定位输入分开。
+- SO-101 视觉控制脚本与特权state控制脚本共用关节执行和评测入口，分别使用图像和仿真真值定位。
 - PickOrange状态机来自[LeIsaac](https://github.com/LightwheelAI/leisaac)固定commit `24d3bcd3f1e4585740fc79921782c41617237812`，Apache-2.0。
 - Franka抬升参考来自[Isaac Lab](https://github.com/isaac-sim/IsaacLab)固定commit `3c6e67bb5c7ada942a6d1884ab69338f57596f77`，BSD-3-Clause。
 - 许可证与附属声明见[第三方说明](../THIRD_PARTY_NOTICES.md)。演示、模型与场景资产按各自许可另行获取，不随脚本打包。

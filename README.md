@@ -29,10 +29,10 @@
 
 ## 当前范围
 
-- **LiftCube 仿真任务**提供环境适配、演示读取、BC 和参考 PPO。前视 RGB 几何脚本与特权 state 控制脚本共用关节执行和评测入口。配套环境见 [LiftCube 指南](course/liftcube/README.md)，标定、命令和固定场景成绩见[控制脚本指南](docs/SCRIPTED_LIFTCUBE.md)。
+- **LiftCube 仿真任务**提供环境适配、演示读取、BC 和参考 PPO。前视 RGB 视觉控制脚本与特权state控制脚本共用关节执行和评测入口。配套环境见 [LiftCube 指南](course/liftcube/README.md)，标定、命令和固定场景成绩见[控制脚本指南](docs/SCRIPTED_LIFTCUBE.md)。
 - **PickOrange仿真任务**：采用 [LightwheelAI 的 LeIsaac](https://github.com/LightwheelAI/leisaac) 中的 SO-101 PickOrange 环境，版本固定为 0.4.0。仓库提供 [ACT 行为克隆（qpos 与 EE）](course/pickorange/act/README.md)、[ACT 残差 SAC](course/pickorange/sac/README.md) 和 [GR00T 残差 SAC](course/pickorange/groot_sac/README.md) 的训练与评测代码。双相机 VLA 推理服务（GR00T、SmolVLA、π₀.₅）、仿真评测和轨迹审核见 [PickOrange运行指南](course/pickorange/README.md)。
 - **VLA接口**：[双任务接口导航](docs/VLA_INTERFACES.md)列出各模型的源码与入口：LiftCube使用单front包装，PickOrange使用双相机服务；OFT还需匹配的受训动作头、投影与统计。
-- **规则与控制脚本**：[双任务脚本指南](docs/SCRIPTED_POLICIES.md)集中链接LiftCube视觉／state脚本、PickOrange [特权state控制脚本](course/pickorange/expert/README.md)、官方控制脚本及上游参考。PickOrange自研控制脚本已完成控制、回放与采集流程的实际仿真联合验证；新增[视觉规则策略](course/pickorange/visual/README.md)，提供显式标定／模型辅助版及仅RGB＋q6＋已知相机标定版，使用独立55秒协议。
+- **控制脚本**：[双任务脚本指南](docs/SCRIPTED_POLICIES.md)集中链接LiftCube视觉控制脚本与特权state控制脚本、PickOrange [特权state控制脚本](course/pickorange/expert/README.md)、官方控制脚本及上游参考。PickOrange自研控制脚本已完成控制、回放与采集流程的实际仿真联合验证；新增[视觉控制脚本](course/pickorange/visual/README.md)，提供显式标定／模型辅助版及仅RGB＋q6＋已知相机标定版，使用独立55秒协议。
 - **后续任务**：包括正式多物体抓放、跨物体泛化和真机部署。
 
 两任务的环境版本、专家脚本、演示数据及四种VLA的权重与验收进度见[任务与适配状态表](docs/TASKS.md)。同为SO-101不等于接口相同，配置、权重、统计与成绩分别管理。
@@ -51,7 +51,7 @@ python scripts/check_project.py
 
 该检查不启动仿真或训练。运行 LiftCube 请按[镜像与环境说明](course/liftcube/README.md#运行环境--runtime)获取配套镜像；PickOrange使用[独立部署入口](docs/PICK_ORANGE.md)，不要混用两套依赖或启动脚本。
 
-只运行规则基线无需演示或训练权重，但需要匹配的机器人与相机标定；从[规则脚本指南](docs/SCRIPTED_LIFTCUBE.md)的离线标定检查开始。BC/PPO训练另按[训练指南](course/liftcube/TRAINING.md)准备数据和接口。
+运行视觉控制脚本需要匹配的机器人与相机标定。请从[控制脚本指南](docs/SCRIPTED_LIFTCUBE.md)的离线标定检查开始。BC/PPO训练另按[训练指南](course/liftcube/TRAINING.md)准备数据和接口。
 
 项目版本见[基准说明](docs/BASELINE.md)与 [CHANGELOG](CHANGELOG.md)。参与开发请从最新 `main` 创建功能分支，流程见[贡献指南](CONTRIBUTING.md)。
 
@@ -89,7 +89,7 @@ LiftCube集成代码位于 `course/liftcube/src/starter/`；PickOrange运行入�
 ## 开发路线
 
 1. 分别冻结LiftCube与PickOrange的环境、输入、动作和成功判据，补齐各自运行入口。
-2. 保留LiftCube规则、演示准入及ACT/小规模VLA路线；当前重点推进PickOrange的VLA基线、可归因RL对照与其他模型能力验收。
+2. 保留LiftCube 控制脚本、演示准入及ACT/小规模VLA路线；当前重点推进PickOrange的VLA基线、可归因RL对照与其他模型能力验收。
 3. 根据已验收的数据和模型推进微调、RL及必要消融，记录完整回合和失败原因。
 4. 正式多物体环境发布后，再恢复跨物体迁移、泛化和真机对齐。
 
@@ -119,7 +119,7 @@ VLA 强化学习实现参考 [RLinf](docs/RLINF.md)，目前尚未接入本项�
 - [SwanLab训练与评测曲线](docs/SWANLAB.md)：仅数值与脱敏配置，默认离线，在线使用私有项目
 - [LiftCube 源码、镜像与运行方法](course/liftcube/README.md)
 - [PickOrange 源码、独立环境与诊断入口](docs/PICK_ORANGE.md)
-- [视觉规则基准、标定与后续适配](docs/SCRIPTED_LIFTCUBE.md)
+- [视觉控制脚本、标定与后续适配](docs/SCRIPTED_LIFTCUBE.md)
 - [受限末端开发接口与验证限制](docs/PLANAR_EE_DEVELOPMENT.md)
 - [架构、扩展位置与团队协作](docs/ARCHITECTURE.md)
 - [RLinf 对本项目的帮助与接入边界](docs/RLINF.md)

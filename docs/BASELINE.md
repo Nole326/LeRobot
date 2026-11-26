@@ -2,11 +2,11 @@
 
 本仓库区分历史源码快照与任务策略基准：
 
-- `v0.1.0-baseline`、`v0.1.1-baseline`固定初始上游源码、工具和文档，不包含后续LiftCube规则脚本或训练权重。两个标签均不移动或覆盖。
-- LiftCube视觉规则开发基准从提交[48824f2](https://github.com/Nole326/LeRobot/commit/48824f2f7791b63ec88502c6a44dee1f8d7ada5f)开始；配置、标定来源和各组结果见[规则指南](SCRIPTED_LIFTCUBE.md)。它不是课程正式多物体或真机验收版本。
+- `v0.1.0-baseline`、`v0.1.1-baseline`固定初始上游源码、工具和文档，不包含后续LiftCube视觉控制脚本或训练权重。两个标签均不移动或覆盖。
+- LiftCube视觉控制脚本的开发基线从提交[48824f2](https://github.com/Nole326/LeRobot/commit/48824f2f7791b63ec88502c6a44dee1f8d7ada5f)开始；配置、标定来源和各组结果见[控制脚本指南](SCRIPTED_LIFTCUBE.md)。它不是课程正式多物体或真机验收版本。
 - 日常开发从最新`main`创建分支；复现实验时固定实际使用的commit及外部文件身份，不因沿用“基准”名称而混用不同版本。
 
-The initial `v0.1.0-baseline` and `v0.1.1-baseline` tags pin source/tools/documentation and remain immutable. The LiftCube rule-policy development reference starts at commit 48824f2; see its [guide](SCRIPTED_LIFTCUBE.md) for calibration and results. It is not an accepted formal multi-object or hardware version. Branch new work from current main, and pin the actual commit and external inputs for reproduction.
+The initial `v0.1.0-baseline` and `v0.1.1-baseline` tags pin source/tools/documentation and remain immutable. The LiftCube visual control script development reference starts at commit 48824f2; see its [guide](SCRIPTED_LIFTCUBE.md) for calibration and results. It is not an accepted formal multi-object or hardware version. Branch new work from current main, and pin the actual commit and external inputs for reproduction.
 
 ## 获取固定版本 / Retrieve the pinned baseline
 
@@ -17,9 +17,9 @@ python scripts/check_project.py
 git rev-parse HEAD
 ```
 
-上述命令用于历史快照，标签克隆处于detached HEAD，不含后续LiftCube开发。需要规则基准时，正常克隆后执行`git switch --detach 48824f2f7791b63ec88502c6a44dee1f8d7ada5f`；该固定提交同样不附标定、镜像、演示或权重。检查只需Git与Python 3.11+标准库，不使用GPU。
+上述命令用于历史快照，标签克隆处于detached HEAD，不含后续LiftCube开发。需要视觉控制脚本基线时，正常克隆后执行`git switch --detach 48824f2f7791b63ec88502c6a44dee1f8d7ada5f`；该固定提交同样不附标定、镜像、演示或权重。检查只需Git与Python 3.11+标准库，不使用GPU。
 
-The commands above retrieve the historical source snapshot. For the rule reference, use an ordinary clone and check out commit 48824f2 with `git switch --detach`; obtain calibrated external inputs separately. The source checks require only Git and Python 3.11+, not a GPU. Start ongoing development from current main rather than an old tag.
+The commands above retrieve the historical source snapshot. For the visual control script baseline, use an ordinary clone and check out commit 48824f2 with `git switch --detach`; obtain calibrated external inputs separately. The source checks require only Git and Python 3.11+, not a GPU. Start ongoing development from current main rather than an old tag.
 
 ## v0.1.1固定内容 / Contents frozen in v0.1.1
 

@@ -51,7 +51,7 @@ Modes: `offline` stores locally, `online` explicitly uploads, and `disabled` is 
 | `starter.scripts.train_lerobot` | ACT/SmolVLA上游训练的`train/*`与`eval/*`，累计优化更新 / Native optimizer steps |
 | [PickOrange ACT](../course/pickorange/act/README.md) | `train/loss`，横轴为已完成的优化器更新次数，与本地 `loss.jsonl` 一致。 / Training loss by optimizer update. |
 | `starter.evaluation.evaluate` | `eval/*`，完整回合数；长度、return、sim秒、终止及完成前缀成功率 / Completed episodes |
-| `starter.scripts.evaluate_scripted` | 同上；标注视觉规则或特权state控制脚本 / Rule/control script identity kept separate |
+| `starter.scripts.evaluate_scripted` | 同上；标注视觉控制脚本或特权state控制脚本 / Record the visual or privileged-state control script used |
 | `course/pickorange/evaluate.py` | `eval/*`完整回合，`inference/*`查询序号；原生辅助标记 / Episodes and query counters |
 | [`course/pickorange/visual/evaluate.py`](../course/pickorange/visual/README.md) | `control/*` 按仿真步记录盘内数量和归位状态，`eval/*` 按完整回合记录成功率。使用离线数值记录。 / Offline scalars for plate count and rest status by simulator step, and success rate by completed episode. |
 

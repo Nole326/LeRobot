@@ -12,9 +12,9 @@ Choose the task first. LiftCube uses the front camera. PickOrange has a separate
 | GR00T | [N1.5包装](../course/liftcube/src/starter/models/gr00t.py)；LiftCube N1.6任务权重接入待补 | [N1.5服务](../course/pickorange/service.py)／[N1.6服务](../course/pickorange/service_n16.py)，各用匹配后端 |
 | OpenVLA-OFT | [单front包装](../course/liftcube/src/starter/models/openvla_oft.py) | [双相机接口](../course/pickorange/openvla_oft.py)；两任务均缺匹配受训完整包 |
 
-LiftCube运行步骤见下文；PickOrange的下载、服务／仿真命令和审核步骤统一见[双相机运行指南](../course/pickorange/README.md)。规则和特权state控制脚本使用[脚本指南](SCRIPTED_POLICIES.md)。
+LiftCube运行步骤见下文；PickOrange的下载、服务／仿真命令和审核步骤统一见[双相机运行指南](../course/pickorange/README.md)。视觉控制脚本和特权state控制脚本使用[脚本指南](SCRIPTED_POLICIES.md)。
 
-For LiftCube, continue below. For PickOrange, use the linked dual-view runner guide; visual rules and state control scripts have a separate script guide.
+For LiftCube, continue below. For PickOrange, use the linked dual-view runner guide; visual and privileged-state control scripts have a separate script guide.
 
 共用的是模型加载辅助、动作单位工具及[SwanLab数值记录](SWANLAB.md)。PickOrange各服务共用`service.py`的IPC循环、`evaluate.py`与`audit.py`；SmolVLA、π₀.₅ 和 Evo-1 共用双 RGB 与六维关节状态打包。LiftCube的观测类、限幅执行与回合chunk管理仍由自身包装处理，不把两套环境强行合成一个工厂。
 

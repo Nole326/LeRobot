@@ -1,6 +1,6 @@
 # SO-101 LiftCube
 
-模型与脚本入口：[双任务VLA导航](../../docs/VLA_INTERFACES.md) · [视觉／state脚本](../../docs/SCRIPTED_POLICIES.md)。相同工具共用源码，环境与控制配置按任务区分。 / Shared interface and script guides link the actual code for both tasks.
+模型与脚本入口：[双任务VLA导航](../../docs/VLA_INTERFACES.md) · [视觉控制脚本与特权state控制脚本](../../docs/SCRIPTED_POLICIES.md)。相同工具共用源码，环境与控制配置按任务区分。 / Shared interface and script guides link the actual code for both tasks.
 
 抓取桌面方块并抬升的任务，包含环境适配器、演示读取、BC、参考PPO和评测入口。当前与[PickOrange](../../docs/PICK_ORANGE.md)分别推进；环境版本、相机和动作差异见[任务对照](../../docs/TASKS.md)。正式多物体抓放留待后续。
 
@@ -8,13 +8,13 @@ A cube-lifting task with an environment adapter, demonstration reader, BC, refer
 
 ## 当前状态 / Status
 
-前视 RGB 几何脚本使用相机标定和关节反馈定位抓取目标。特权 state 控制脚本直接读取方块在基座坐标系中的位置和朝向。两者共用关节控制和环境评分。模型与演示见[资源清单](../../docs/RESOURCES.md)。
+视觉控制脚本使用前视 RGB、相机标定和关节反馈定位抓取目标。特权state控制脚本直接读取方块在基座坐标系中的位置和朝向。两者共用关节控制和环境评分。模型与演示见[资源清单](../../docs/RESOURCES.md)。
 
-The RGB controller localizes the cube using a calibrated front camera and joint feedback. The privileged controller reads the cube position and yaw in the robot base frame. Both use the same joint interface and simulator scoring.
+The visual control script localizes the cube using a calibrated front camera and joint feedback. The privileged-state control script reads the cube position and yaw in the robot base frame. Both use the same joint interface and simulator scoring.
 
-六关节环境交互与BC/PPO参考训练基础已接入，规则脚本可独立于训练使用。候选演示尚未通过正式BC准入；[四种VLA的单front包装与共享chunk层](../../docs/VLA_INTERFACES.md)已有CPU接口检查，完整模型及GPU/闭环尚未验收，ACT接入仍在开发。训练和恢复用法见[训练指南](TRAINING.md)，任务迁移与采集方案见[开发路线](../../docs/LIFTCUBE_TRANSFER.md)。
+六关节环境交互与BC/PPO参考训练基础已接入，视觉控制脚本可独立于训练使用。候选演示尚未通过正式BC准入；[四种VLA的单front包装与共享chunk层](../../docs/VLA_INTERFACES.md)已有CPU接口检查，完整模型及GPU/闭环尚未验收，ACT接入仍在开发。训练和恢复用法见[训练指南](TRAINING.md)，任务迁移与采集方案见[开发路线](../../docs/LIFTCUBE_TRANSFER.md)。
 
-Joint-environment interaction and BC/PPO reference foundations are connected; the rule runner is independent of training. Candidate demonstrations are not accepted for formal BC. [Four single-front VLA wrappers/shared chunks](../../docs/VLA_INTERFACES.md) have CPU interface checks, not full-model/GPU/rollout acceptance; ACT integration remains in development. See the [training guide](TRAINING.md) and [task-transfer plan](../../docs/LIFTCUBE_TRANSFER.md).
+Joint-environment interaction and BC/PPO reference foundations are connected; the visual control script evaluator is independent of training. Candidate demonstrations are not accepted for formal BC. [Four single-front VLA wrappers/shared chunks](../../docs/VLA_INTERFACES.md) have CPU interface checks, not full-model/GPU/rollout acceptance; ACT integration remains in development. See the [training guide](TRAINING.md) and [task-transfer plan](../../docs/LIFTCUBE_TRANSFER.md).
 
 | 环节 / Component | 当前实现 / Implementation |
 | --- | --- |
@@ -52,7 +52,7 @@ If the distributor replaces the image, confirm the release and compatibility bef
 
 | 内容 / Field | 当前约定 / Contract |
 | --- | --- |
-| 图像 / Image | 单front RGB、uint8 HWC；参考模型默认64×64，规则入口可显式设128/256并匹配标定 / One front stream; 64×64 by default, optionally 128/256 square for the calibrated rule runner |
+| 图像 / Image | 单front RGB、uint8 HWC；参考模型默认64×64，视觉控制脚本入口可显式设128/256并匹配标定 / One front stream; 64×64 by default, optionally 128/256 square for the calibrated visual control script |
 | 本体 / Proprioception | 6关节位置 / joint positions; 6速度补零 / zero velocity slots; 6上一执行命令 / previous applied commands; 可选3维末端位置补零 / optional 3 zero EE slots |
 | 默认动作 / Default action | 6维绝对电机目标 / absolute motor targets; arm −100…100, gripper 0…100；三维末端开发模式单列 / planar development mode has a separate contract |
 | 转换 / Conversion | 按关节限位映射到弧度 / per-joint mapping to radians |
@@ -63,15 +63,15 @@ If the distributor replaces the image, confirm the release and compatibility bef
 
 The default evaluation runs four episodes with at most 640 environment ticks each. These are starter defaults, not the final course protocol; use the course's published episode count, success criteria and time limit for formal evaluation.
 
-参考BC/PPO配置在训练和推理中均默认使用64×64；这不是对所有encoder的强制尺寸。规则128/256输入须同步环境resize、`image_shape`和内参K，不能只改图像尺寸。其他模型更改输入需另验数据/权重兼容性。物体真值只供许可奖励或独立评分/诊断，不能进入策略；关节动作不能直接当成受限末端动作。
+参考BC/PPO配置在训练和推理中均默认使用64×64；这不是对所有encoder的强制尺寸。视觉控制脚本的 128/256输入须同步环境resize、`image_shape`和内参K，不能只改图像尺寸。其他模型更改输入需另验数据/权重兼容性。物体真值只供许可奖励或独立评分/诊断，不能进入策略；关节动作不能直接当成受限末端动作。
 
-Reference BC/PPO uses 64×64 by default, not a universal encoder requirement. Rule inputs at 128/256 must match resizing, calibration shape and intrinsics. Other model/input changes require data/checkpoint compatibility checks. Ground truth stays in permitted rewards or independent scoring/diagnostics, never policy inputs; joint targets are not EE actions.
+Reference BC/PPO uses 64×64 by default, not a universal encoder requirement. Visual control script inputs at 128/256 must match resizing, calibration shape and intrinsics. Other model/input changes require data/checkpoint compatibility checks. Ground truth stays in permitted rewards or independent scoring/diagnostics, never policy inputs; joint targets are not EE actions.
 
 ## 起步 / Getting started
 
-先准备符合所在平台规范的GPU容器，将本仓库挂载到`/repo`；需要读取演示时再将数据单独挂载到`/data/lift_cube`。规则推理不需要演示或训练权重，但需要完整外部标定。保留镜像内的`/isaaclab`、`/leisaac`，缓存不要写入数据集目录。共享服务器在已批准的容器内执行以下命令，避免使用自动Docker启动路径。
+先准备符合所在平台规范的GPU容器，将本仓库挂载到`/repo`；需要读取演示时再将数据单独挂载到`/data/lift_cube`。运行控制脚本不需要演示或训练权重，但需要完整外部标定。保留镜像内的`/isaaclab`、`/leisaac`，缓存不要写入数据集目录。共享服务器在已批准的容器内执行以下命令，避免使用自动Docker启动路径。
 
-Use a platform-approved GPU container with this repository mounted at `/repo`; mount `/data/lift_cube` separately only when reading demonstrations. Rule inference needs calibration, not demonstrations or trained weights. Preserve `/isaaclab` and `/leisaac`, keep caches outside datasets, and avoid automatic Docker startup on shared servers.
+Use a platform-approved GPU container with this repository mounted at `/repo`; mount `/data/lift_cube` separately only when reading demonstrations. The visual control script requires calibration, not demonstrations or trained weights. Preserve `/isaaclab` and `/leisaac`, keep caches outside datasets, and avoid automatic Docker startup on shared servers.
 
 ```bash
 cd /repo/course/liftcube
@@ -89,9 +89,9 @@ Offline reading requires PyArrow and PyAV; check existing packages and preserve 
 
 新训练及策略评测接入[SwanLab](../../docs/SWANLAB.md)，默认离线。ACT/SmolVLA另用`starter.scripts.train_lerobot`包装原生训练器；只记录数值和白名单配置，不传媒体或模型。New runs use scalar-only SwanLab; configure your own private destination for online tracking.
 
-规则策略使用独立`starter.scripts.evaluate_scripted`入口，先按[规则指南](../../docs/SCRIPTED_LIFTCUBE.md)完成`--check`；它会构造状态机，不通过需要模型权重加载器的通用`--policy-class`路径。[末端开发层](../../docs/PLANAR_EE_DEVELOPMENT.md)另需三维策略，不能直接复用这份六关节抓取策略。
+视觉控制脚本使用独立`starter.scripts.evaluate_scripted`入口，先按[控制脚本指南](../../docs/SCRIPTED_LIFTCUBE.md)完成`--check`；它会构造状态机，不通过需要模型权重加载器的通用`--policy-class`路径。[末端开发层](../../docs/PLANAR_EE_DEVELOPMENT.md)另需三维策略，不能直接复用这份六关节抓取策略。
 
-The rule policy has its own `starter.scripts.evaluate_scripted` CLI and offline calibration check; it does not use the learned checkpoint loader. The separate planar layer needs a three-component policy, not this joint-output grasp runner.
+The visual control script has its own `starter.scripts.evaluate_scripted` CLI and offline calibration check; it does not use the learned checkpoint loader. The separate planar layer needs a three-component policy, not this joint-output grasp runner.
 
 ## 来源与修改 / Provenance and changes
 

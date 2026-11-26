@@ -84,6 +84,6 @@ The uncompensated version passed a 16-tick live prefix, with post-step joint-der
 
 ## 相机标定的边界 / Camera calibration boundary
 
-PDF允许课程组提供的内参、外参及标准读取接口。当前规则脚本的可选`--runtime-camera-calibration`则直接读取仿真相机/基座真实位姿，每次reset更新外参；这不是图像估计，也尚未证明是课程公开给策略的标定接口。该辅助输入与物体真值输入不同，但仍必须披露并确认许可。不得把其成绩改写成仅RGB/q或已完成真机对齐的成绩。
+PDF允许课程组提供的内参、外参及标准读取接口。当前视觉控制脚本的可选`--runtime-camera-calibration`则直接读取仿真相机/基座真实位姿，每次reset更新外参；这不是图像估计，也尚未证明是课程公开给策略的标定接口。该辅助输入与物体真值输入不同，但仍必须披露并确认许可。不得把其成绩改写成仅RGB/q或已完成真机对齐的成绩。
 
-The rule runner's optional per-reset simulator-pose calibration is an auxiliary input, not image-based calibration. Its availability under the official student interface is unconfirmed. This planar controller itself only consumes the fixed robot/table calibration file and measured joints; it does not enable that camera provider.
+The visual control script evaluator's optional per-reset simulator-pose calibration is an auxiliary input, not image-based calibration. Its availability under the official student interface is unconfirmed. This planar controller itself only consumes the fixed robot/table calibration file and measured joints; it does not enable that camera provider.

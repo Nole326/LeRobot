@@ -1,4 +1,4 @@
-# PickOrange 视觉规则基线 / Calibrated visual rules
+# PickOrange 视觉控制脚本 / Calibrated visual control script
 
 运行入口为 [evaluate.py](evaluate.py)。两种协议都通过 RGB 检测、机器人几何 IK 和实测关节反馈执行抓放。准备仿真环境、机器人与场景资产即可运行。物体真值和成功标记由评测器记录，控制器只接收各自协议声明的输入。
 

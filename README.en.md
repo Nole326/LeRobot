@@ -32,7 +32,7 @@ The current stage covers LiftCube and PickOrange as separate policy, data and ev
 - **LiftCube simulation** includes environment adapters, demonstration loading, BC and reference PPO. The front RGB and privileged-state controllers share the joint interface and evaluator. See the [runtime guide](course/liftcube/README.md) and [controller configurations, commands and results](docs/SCRIPTED_LIFTCUBE.md).
 - **PickOrange simulation task** uses the SO-101 PickOrange environment from [LightwheelAI’s LeIsaac](https://github.com/LightwheelAI/leisaac), pinned to version 0.4.0. The repository includes training and evaluation code for [ACT behavior cloning (qpos and EE)](course/pickorange/act/README.md), [ACT residual SAC](course/pickorange/sac/README.md), and [GR00T residual SAC](course/pickorange/groot_sac/README.md). The [PickOrange run guide](course/pickorange/README.md) covers dual-camera inference with GR00T, SmolVLA, and π₀.₅, simulation evaluation, and trajectory audits.
 - **VLA interfaces:** the [two-task interface guide](docs/VLA_INTERFACES.md) links model backends for both tasks: single-front wrappers for LiftCube and dual-view services for PickOrange. OFT still requires matching trained heads, projections and statistics.
-- **Rules and control scripts:** the [two-task script guide](docs/SCRIPTED_POLICIES.md) links LiftCube policies, the upstream PickOrange control script and related references. The [PickOrange privileged state control script](course/pickorange/expert/README.md) has been validated in simulation for control, demonstration collection and independent action-trajectory replay. The [PickOrange visual rule policy](course/pickorange/visual/README.md) provides a model-assisted variant and an RGB, six-joint state and camera calibration variant, each with a 55-second evaluation protocol.
+- **Control scripts:** the [two-task script guide](docs/SCRIPTED_POLICIES.md) links LiftCube policies, the upstream PickOrange control script and related references. The [PickOrange privileged-state control script](course/pickorange/expert/README.md) has been validated in simulation for control, demonstration collection and independent action-trajectory replay. The [PickOrange visual control script](course/pickorange/visual/README.md) provides a model-assisted variant and an RGB, six-joint state and camera calibration variant, each with a 55-second evaluation protocol.
 - **Future work** includes multi-object manipulation, cross-object generalization and hardware deployment.
 
 See the [task and adaptation matrix](docs/TASKS.md) for runtimes, expert scripts, demonstrations and checkpoint/validation status across the four VLA families. A shared SO-101 robot does not make the interfaces interchangeable; keep configurations, checkpoints, statistics and scores separate.
@@ -51,7 +51,7 @@ python scripts/check_project.py
 
 This check starts neither simulation nor training. Use the matching image from the [LiftCube runtime guide](course/liftcube/README.md#运行环境--runtime), or the [separate PickOrange deployment](docs/PICK_ORANGE.md). Do not mix their dependencies or launchers.
 
-The rule baseline needs no demonstrations or trained weights, but does require matching robot/camera calibration. Start with the offline calibration checks in the [rule-runner guide](docs/SCRIPTED_LIFTCUBE.md). Prepare data and interfaces separately for BC/PPO using the [training guide](course/liftcube/TRAINING.md).
+The visual control script needs no demonstrations or trained weights, but does require matching robot/camera calibration. Start with the offline calibration checks in the [visual control script guide](docs/SCRIPTED_LIFTCUBE.md). Prepare data and interfaces separately for BC/PPO using the [training guide](course/liftcube/TRAINING.md).
 
 See [baseline notes](docs/BASELINE.md) and the [changelog](CHANGELOG.md) for versions. For development, branch from current `main` and follow the [contribution guide](CONTRIBUTING.md).
 
@@ -89,7 +89,7 @@ See [architecture](docs/ARCHITECTURE.md) for layer ownership and model integrati
 ## Development path
 
 1. Freeze each task's runtime, observations, actions and success criteria, then complete its entry points.
-2. Retain LiftCube rule/data and ACT/compact-VLA tracks, while focusing current work on PickOrange VLA baselines, attributable RL comparisons and model-capability validation.
+2. Retain LiftCube control script, data and ACT/compact-VLA tracks, while focusing current work on PickOrange VLA baselines, attributable RL comparisons and model-capability validation.
 3. Use accepted data and models for fine-tuning, RL and relevant ablations, recording complete episodes and failures.
 4. Resume cross-object transfer, generalization and hardware alignment after the formal multi-object environment is released.
 
@@ -120,7 +120,7 @@ See the [import inventory](docs/IMPORT_MANIFEST.md) for source provenance and in
 - [Task-specific control script collection, training and evaluation](docs/TRAIN_AND_EVALUATE.md)
 - [LiftCube source, image and runtime](course/liftcube/README.md)
 - [PickOrange sources, separate runtime and diagnostics](docs/PICK_ORANGE.md)
-- [Visual rule reference, calibration and migration](docs/SCRIPTED_LIFTCUBE.md)
+- [Visual control script reference, calibration and migration](docs/SCRIPTED_LIFTCUBE.md)
 - [Planar EE development interface and limitations](docs/PLANAR_EE_DEVELOPMENT.md)
 - [Architecture, extension points and collaboration](docs/ARCHITECTURE.md)
 - [RLinf benefits and integration boundaries](docs/RLINF.md)

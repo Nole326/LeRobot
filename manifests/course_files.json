@@ -16,18 +16,18 @@
   },
   {
     "path": "course/liftcube/AGENTS.md",
-    "bytes": 20847,
-    "sha256": "c246c20e04c39ff7537d8e950ed476c200cd9d6c36a2295d7bc1e247d972a1f3"
+    "bytes": 20895,
+    "sha256": "b3bd7692c9d943b419c9679d416999b90df1ab2199cb5f482f6a7c4aa1d18d7f"
   },
   {
     "path": "course/liftcube/README.md",
-    "bytes": 12215,
-    "sha256": "4444f12cbe82603bc7b0f6939191f9dc6e18cee5bf9b5a9f60c74dd2f45d19ef"
+    "bytes": 12385,
+    "sha256": "da1bb3713d3f1fc9c1e61099ff23d0565a0f61e0803ecc7e0c7cf24a4f2ff1b2"
   },
   {
     "path": "course/liftcube/TRAINING.md",
-    "bytes": 5996,
-    "sha256": "e89160c9afa8350b8b1e85847829b3736415928158c86a3420cbb879bdb1e55f"
+    "bytes": 6009,
+    "sha256": "ac443367b97deee4d0c4b36d37fde4d00f2573e04c2c5c49ada5f5b4e0f20eb3"
   },
   {
     "path": "course/liftcube/configs/bc_lift_cube.yaml",
@@ -391,18 +391,18 @@
   },
   {
     "path": "course/pickorange/AGENTS.md",
-    "bytes": 5570,
-    "sha256": "f09344215f814cebe633f7b9636cd5337a86734180d740bf0d7975da59438955"
+    "bytes": 5612,
+    "sha256": "8e3944969b2addd7b6392e91fe8786141008ba216fd9c1c0934905d9d9a19a04"
   },
   {
     "path": "course/pickorange/README.md",
-    "bytes": 16346,
-    "sha256": "00c79223abd96414a8931d87c339580f0b100ee4092120d4fc4d23cd417c07bb"
+    "bytes": 16438,
+    "sha256": "38421a38af360a2fe5066d49c7e250caf78220ee0ae77f66803a3f09e795cd9f"
   },
   {
     "path": "course/pickorange/act/README.md",
-    "bytes": 10092,
-    "sha256": "d15f951a68bf21c6a1b360aca20fd09fd6226809ecc1afcb3393466f9fc0b256"
+    "bytes": 10104,
+    "sha256": "bbaf4e5517b0a28625954246f6e948fbfeafe49b6ab015eacf292d61fa14832d"
   },
   {
     "path": "course/pickorange/act/act_policy.py",
@@ -491,8 +491,8 @@
   },
   {
     "path": "course/pickorange/expert/README.md",
-    "bytes": 9027,
-    "sha256": "0305539a00c791be9e8bf54ed8dad95fae407286eb6ce5b7289b35b3f76772d1"
+    "bytes": 9025,
+    "sha256": "fdb7a1692a9a5ae8164d5ab829c7b3723f47ecde3a3ee473a9a2ecf2282b6191"
   },
   {
     "path": "course/pickorange/expert/adaptive_face_teacher.py",
@@ -846,8 +846,8 @@
   },
   {
     "path": "course/pickorange/visual/README.md",
-    "bytes": 7518,
-    "sha256": "e829083303ce4964e05588a806d865a6ff5680eba9ceaed1c82af6f6eda19557"
+    "bytes": 7527,
+    "sha256": "6c8ff08fca404c492c8e7c2f6cdeb5fd1976cc08146fd4449d93fd15153ab7e4"
   },
   {
     "path": "course/pickorange/visual/evaluate.py",
@@ -881,8 +881,8 @@
   },
   {
     "path": "course/scripts/AGENTS.md",
-    "bytes": 7411,
-    "sha256": "97c20f4eb6cca4b088176587016f6e78577080c25b6d11cba9c14c18dc73d719"
+    "bytes": 7421,
+    "sha256": "d1b8bf3068cb6802077108d5690b50f624451cd23ff7d3c9eebc2ee808d8f74f"
   },
   {
     "path": "course/scripts/analyze_ee_motion.py",

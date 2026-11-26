@@ -10,9 +10,9 @@ See the [task comparison](TASKS.md). The `Observation`, `info.command` and two-t
 
 This page defines development checks, not the formal environment specification. The configuration template is a design checklist, not an integrated production interface; empty values are unresolved. Interface changes need new schema identifiers, conversion tests and migration notes, not just a changed dimension.
 
-当前[LiftCube起点](../course/liftcube/README.md)默认使用front 64×64及六关节绝对电机目标；规则策略可独立配置128/256并匹配标定。SO101速度/末端兼容字段补零。实际环境60Hz，30Hz策略由评测适配保持两tick。它与本文待确认的受限末端任务接口分开，不直接换算维度后混用。
+当前[LiftCube起点](../course/liftcube/README.md)默认使用front 64×64及六关节绝对电机目标；视觉控制脚本可独立配置128/256并匹配标定。SO101速度/末端兼容字段补零。实际环境60Hz，30Hz策略由评测适配保持两tick。它与本文待确认的受限末端任务接口分开，不直接换算维度后混用。
 
-The [LiftCube starter](../course/liftcube/README.md) defaults to front 64×64 RGB and six absolute motor targets; the rule runner can select calibrated 128/256 inputs. SO101 velocity/EE slots are zero-filled. The 60Hz environment holds 30Hz targets for two ticks. Keep this separate from the unresolved formal end-effector interface.
+The [LiftCube starter](../course/liftcube/README.md) defaults to front 64×64 RGB and six absolute motor targets; the visual control script evaluator can select calibrated 128/256 inputs. SO101 velocity/EE slots are zero-filled. The 60Hz environment holds 30Hz targets for two ticks. Keep this separate from the unresolved formal end-effector interface.
 
 另有显式可选的[自研受限末端开发接口](PLANAR_EE_DEVELOPMENT.md)：绝对桌面XY米＋夹爪motor，固定参考高度/接近轴、允许绕轴转动；不是课程正式IK或完整抓放接入，不改变六关节默认和旧成绩。
 

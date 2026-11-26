@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-新增 LiftCube 前视 RGB 与特权 state 控制脚本的固定场景配置、标定及 8 秒和 16 秒评测结果。
+新增 LiftCube 前视 RGB 视觉控制脚本与特权state控制脚本的固定场景配置、标定及 8 秒和 16 秒评测结果。
 
 Added calibrated front RGB and privileged-state LiftCube controllers, fixed-seed configurations and success rates at 8 and 16 seconds.
 
@@ -18,19 +18,19 @@ Added ACT training for joint targets and segmented end-effector control, package
 
 Add a dual-view PickOrange Evo-1 inference service and an experimental 30 Hz protocol. Use matching training statistics and native processing with the shared evaluator and audit. CPU interface checks passed. Checkpoint inference and simulator rollout are pending.
 
-新增 PickOrange 视觉规则基线、原生评分与重置前终态记录。提供模型辅助版和仅双 RGB、实测 q6 与已知相机标定版。每次从名义外参施加前视相机扰动，在物理步为 0 时刷新双相机首帧。最终夹爪闭合指令在限速后限幅。调试图可显式启用，默认记录数值。视觉规则的 CPU 测试已纳入 CI。55 秒评测结果见[视觉规则指南](course/pickorange/visual/README.md#结果与审计--results-and-audit)。
+新增 PickOrange 视觉控制脚本、原生评分与重置前终态记录。提供模型辅助版和仅双 RGB、实测 q6 与已知相机标定版。每次从名义外参施加前视相机扰动，在物理步为 0 时刷新双相机首帧。最终夹爪闭合指令在限速后限幅。调试图可显式启用，默认记录数值。视觉控制脚本的 CPU 测试已纳入 CI。55 秒评测结果见[视觉控制脚本指南](course/pickorange/visual/README.md#结果与审计--results-and-audit)。
 
-Add PickOrange visual-rule baselines with native scoring and terminal capture before reset. Both the model-assisted and RGB/q6/calibration variants refresh the first camera frames after applying each reset perturbation to the nominal front-camera pose. Limit the final jaw command after rate limiting, make debug images opt-in, and include visual-rule tests in CI.
+Add PickOrange visual control scripts with native scoring and terminal capture before reset. Both the model-assisted and RGB/q6/calibration variants refresh the first camera frames after applying each reset perturbation to the nominal front-camera pose. Limit the final jaw command after rate limiting, make debug images opt-in, and include visual control script tests in CI.
 
 新增 PickOrange 特权state控制脚本、几何标定、控制脚本验证与脚本专家演示采集工具。明确区分 actor 的图像与本体输入和控制脚本使用的特权状态，补充运行说明、数据契约与 CPU 检查。已在实际仿真环境中完成控制执行、回放检验与采集流程的联合验证。不包含演示或模型权重。
 
-Add a PickOrange privileged state control script, geometric calibration, demonstration collection, and independent action-trajectory replay verification tools. Document actor input boundaries, data contracts and CPU checks. Control execution, independent replay and demonstration collection have been jointly validated in simulation. Datasets and model weights are excluded.
+Add a PickOrange privileged-state control script, geometric calibration, demonstration collection, and independent action-trajectory replay verification tools. Document actor input boundaries, data contracts and CPU checks. Control execution, independent replay and demonstration collection have been jointly validated in simulation. Datasets and model weights are excluded.
 
-- 首页按LiftCube／PickOrange列出模型和脚本入口；新增视觉／state脚本导航，链接现有第一方实现与保留许可证的上游源码。
+- 首页按LiftCube／PickOrange列出模型和脚本入口；新增视觉控制脚本与特权state控制脚本导航，链接现有第一方实现与保留许可证的上游源码。
 - 增加PickOrange SmolVLA双相机服务，使用Edge固定导出及原处理器，复用IPC、评测、审核与SwanLab；新增协议仅完成CPU检查，实际闭环待验。
-- PickOrange新增显式标定辅助视觉规则脚本；官方特权state控制脚本保留物理与直接写状态的限制。OFT仍需匹配受训包。
+- PickOrange新增显式标定辅助视觉控制脚本；官方特权state控制脚本保留物理与直接写状态的限制。OFT仍需匹配受训包。
 
-Add task-specific model/script navigation and a CPU-checked dual-view SmolVLA service. Shared evaluation and tracking remain single implementations; SmolVLA rollout validation remains open; calibrated visual rules have a separate entry point and protocol.
+Add task-specific model/script navigation and a CPU-checked dual-view SmolVLA service. Shared evaluation and tracking remain single implementations; SmolVLA rollout validation remains open; the calibrated visual control script has a separate entry point and protocol.
 
 整理PickOrange模型能力、Residual SAC配对与RL显存参考，连接任务／资源／训练指南并区分实验结果与公开代码交付；DiT12标记搁置，不打包其训练器或参数。补齐N1.6／π₀.₅真实后端版本拒绝检查；SwanLab先于仿真应用关闭，并覆盖关闭失败分支。只做CPU回归，不刷新历史GPU成绩。
 
@@ -44,13 +44,13 @@ Add separate PickOrange GR00T N1.6 and LeRobot π₀.₅ task entry points and a
 
 Load NumPy only when summarizing nonempty evaluation records, keeping scalar-tracking imports standard-library-only. Preserve existing exports and calculations, with an isolated import regression test.
 
-新训练及策略评测统一接入SwanLab：SmallCNN BC/PPO、LiftCube策略/规则/控制脚本评测、PickOrange原生辅助evaluator，以及复用冻结LeRobot logger挂钩的ACT/SmolVLA训练包装。默认离线，在线显式选择私有项目；仅数值和白名单配置，关闭媒体/模型、终端、主机探针及原始调用栈采集。新增本地journal、新进程分段、全局计数与RNG保护及离线SDK CPU检查；保留历史TensorBoard事件，不启动新训练或仿真。
+新训练及策略评测统一接入SwanLab：SmallCNN BC/PPO、LiftCube策略/控制脚本评测、PickOrange原生辅助evaluator，以及复用冻结LeRobot logger挂钩的ACT/SmolVLA训练包装。默认离线，在线显式选择私有项目；仅数值和白名单配置，关闭媒体/模型、终端、主机探针及原始调用栈采集。新增本地journal、新进程分段、全局计数与RNG保护及离线SDK CPU检查；保留历史TensorBoard事件，不启动新训练或仿真。
 
 Wire scalar-only SwanLab into existing training/evaluation entries and a pinned LeRobot training wrapper. Default to offline records; require an explicit private online destination. Preserve local evidence, historical events, global counters and RNG, and test privacy, segmented tracking, failure handling and real offline SDK writes on CPU. Native model-training and cloud/runtime acceptance remain separate.
 
 新增显式LiftCube特权state控制脚本，复用原视觉控制器的运动与跟踪保护；整理PickOrange GR00T双视角服务、60Hz原生辅助协议、完整回合记录及独立CPU轨迹/查询/RNG握手审核。新增模型/演示资源链接及分任务训练评测指南，更新分层AGENTS和CPU CI。新增源码尚未重新GPU/仿真验收，不继承历史52/100为新移植成绩；官方PickOrange控制脚本直接写状态等限制显式说明。
 
-Add an explicit LiftCube privileged state control script and a separate dual-view PickOrange GR00T assisted evaluation source port, with CPU trajectory/query/RNG-handshake audits. Document resource acquisition and task-specific training/evaluation; update agent routing and CPU CI. New code awaits runtime acceptance and does not inherit the historical 52/100 score. Document state-writing caveats in the upstream control script.
+Add an explicit LiftCube privileged-state control script and a separate dual-view PickOrange GR00T assisted evaluation source port, with CPU trajectory/query/RNG-handshake audits. Document resource acquisition and task-specific training/evaluation; update agent routing and CPU CI. New code awaits runtime acceptance and does not inherit the historical 52/100 score. Document state-writing caveats in the upstream control script.
 
 将当前开发导航调整为LiftCube与PickOrange双任务，补充环境/观测/动作对照、脚本与演示资源、四种VLA的权重及分级验收状态，以及PickOrange独立部署指南。区分公开代码、外部资产、CPU检查与历史物理闭环；正式多物体迁移留待后续。运行代码、配置与既有成绩不变。
 
@@ -68,13 +68,13 @@ Load OFT processors through pinned implementation classes and a standard tokeniz
 
 Add four single-front VLA wrappers/local loaders with shared joint-chunk execution and boundary resets. Validate execution settings before loading, handle BF16 outputs, retain strict-loading reports and expose the OFT platform flag. Update interface/dependency/agent guides and add CPU interface CI. Full-model/GPU/rollout acceptance and VLA training remain separate.
 
-同步首页双语导航、开发/训练入口、架构与依赖、接口/标定边界及来源说明。区分历史v0.1.x源码快照与LiftCube规则开发基准，明确64像素是参考默认值、规则推理无需演示或训练、自研末端层不继承六关节训练验收。运行控制、配置和历史成绩不变。
+同步首页双语导航、开发/训练入口、架构与依赖、接口/标定边界及来源说明。区分历史v0.1.x源码快照与LiftCube视觉控制脚本的开发基线，明确64像素是参考默认值、运行控制脚本无需演示或训练、自研末端层不继承六关节训练验收。运行控制、配置和历史成绩不变。
 
-Synchronize README navigation, development/training routes, architecture, dependencies, calibration contracts and provenance. Distinguish initial v0.1.x snapshots from the LiftCube rule reference, clarify default image sizing and dataset-free rule inference, and keep planar-control acceptance separate from joint training. Runtime behavior, configurations and historical results are unchanged.
+Synchronize README navigation, development/training routes, architecture, dependencies, calibration contracts and provenance. Distinguish initial v0.1.x snapshots from the LiftCube visual control script baseline, clarify default image sizing and dataset-free visual control script execution, and keep planar-control acceptance separate from joint training. Runtime behavior, configurations and historical results are unchanged.
 
-整理LiftCube视觉规则脚本作为开发基准，补充正式标定/坐标与控制SDK的分层适配方法。记录冻结定位调度变体45/100的开发结果及其输入/验证范围，与旧协议和未验收的自研末端执行层区分；不更改运行控制或既有成绩。
+整理LiftCube视觉控制脚本作为开发基准，补充正式标定/坐标与控制SDK的分层适配方法。记录冻结定位调度变体45/100的开发结果及其输入/验证范围，与旧协议和未验收的自研末端执行层区分；不更改运行控制或既有成绩。
 
-Prepare the LiftCube visual rule script as a development reference, with a calibration/frame and control-SDK migration guide. Document the frozen scheduling variant's 45/100 result and evidence scope separately from older protocols and the unaccepted planar EE controller, without changing runtime control or historical results.
+Prepare the LiftCube visual control script as a development reference, with a calibration/frame and control-SDK migration guide. Document the frozen scheduling variant's 45/100 result and evidence scope separately from older protocols and the unaccepted planar EE controller, without changing runtime control or historical results.
 
 新增显式可选`planar_ee_dev`：绝对桌面XY米＋夹爪motor，固定参考高度/接近轴、允许绕轴转动，带原范围/限步/跟踪与失败保持；保留六关节默认，拒绝旧抓取脚本误接。自研接口不标作课程正式IK，补充标定来源边界和软件检查。
 
@@ -88,40 +88,40 @@ Document the independent closure-geometry comparison: 4/10 for the dynamic-midpo
 
 Add optional `plan_while_opening` localization without changing jaw-opening commands, measured-state dwell or defaults. The assisted baseline now has 13/30 successes. The option retains 5/10 on paired scenes, with common-success median time of 9.40→9.33 simulation seconds and no demonstrated accuracy gain. Add configuration/fallback tests and full-input command-equivalence checks.
 
-规则入口新增可选固定CAD抓取姿态选择及“低速离桌→转动抬升”，中间阶段按实测FK高度切换、不冒充成功。实际相机外参读取需显式开关并逐reset记录，与固定标定分组；保留原动作/物理/评分边界，不与旧输入/场景集作单因素比较。
+视觉控制脚本入口新增可选固定CAD抓取姿态选择及“低速离桌→转动抬升”，中间阶段按实测FK高度切换、不冒充成功。实际相机外参读取需显式开关并逐reset记录，与固定标定分组；保留原动作/物理/评分边界，不与旧输入/场景集作单因素比较。
 
 Add opt-in CAD grasp selection and slow-clearance/transport staging with a measured-FK height gate, not a success shortcut. Explicitly opt into and record actual camera/base calibration per reset, separately from fixed-calibration results. Preserve motor/physics/scoring bounds; different inputs/scene sets are not a single-factor comparison.
 
-规则入口支持独立标定的128/256像素单front输入，默认64不变；按尺寸缩放检测面积/像素阈值并校验配置与标定一致性。运行清单分别记录实际策略类及基类源码身份，避免诊断子类与默认实现混淆。
+视觉控制脚本入口支持独立标定的128/256像素单front输入，默认64不变；按尺寸缩放检测面积/像素阈值并校验配置与标定一致性。运行清单分别记录实际策略类及基类源码身份，避免诊断子类与默认实现混淆。
 
-Allow explicitly calibrated 128/256-square front RGB in the rule runner, retaining the 64 default. Scale detection thresholds, validate shape agreement, and record actual-policy-class and base-code identities separately. Document the randomized-camera pose-cache pitfall and keep calibration-assisted variants distinct.
+Allow explicitly calibrated 128/256-square front RGB in the visual control script evaluator, retaining the 64 default. Scale detection thresholds, validate shape agreement, and record actual-policy-class and base-code identities separately. Document the randomized-camera pose-cache pitfall and keep calibration-assisted variants distinct.
 
-规则基线增加可选夹爪位置反馈闭合：限制目标领先量，在停滞代理出现后保持夹持目标；不读取接触/物体真值，不改执行器、原保护或成功条件。新增接触代理、空抓闭合及reset回归；说明课程规则基线、完整末端动作接口和RL主方法的边界。
+视觉控制脚本增加可选夹爪位置反馈闭合：限制目标领先量，在停滞代理出现后保持夹持目标；不读取接触/物体真值，不改执行器、原保护或成功条件。新增接触代理、空抓闭合及reset回归；说明课程视觉控制脚本基线、完整末端动作接口和RL主方法的边界。
 
-Add optional jaw-position feedback closure with bounded command lead and a stall proxy, retaining the grasp target through lifting. No contact/object truth, actuator or scoring changes. Cover blocked/empty closure and reset; clarify the rule-baseline, full-task action-interface and required RL-method boundaries.
+Add optional jaw-position feedback closure with bounded command lead and a stall proxy, retaining the grasp target through lifting. No contact/object truth, actuator or scoring changes. Cover blocked/empty closure and reset; clarify the visual baseline, full-task action-interface and required RL-method boundaries.
 
-修正规则标定预检的朝向回算，阶段预检显式指定朝向。接入固定SO101关节链FK/IK及CPU导出工具，使已有成功控制方案可通过公共入口运行；保留URDF/Placo可选后端，新增来源/限位与朝向回归检查。
+修正视觉控制脚本标定预检的朝向回算，阶段预检显式指定朝向。接入固定SO101关节链FK/IK及CPU导出工具，使已有成功控制方案可通过公共入口运行；保留URDF/Placo可选后端，新增来源/限位与朝向回归检查。
 
 Fix calibration round trips to use each reference orientation and explicitly preflight phase orientations. Add fixed SO101 joint-chain FK/IK and a CPU exporter for the public runner, retaining optional URDF/Placo support and adding provenance/limit/orientation regressions.
-规则基线支持独立的抬升朝向和可选有界稳态补偿；同一LiftCube开发场景三组TCP候选中两组通过原生抓取判定。保留失败，公开控制逻辑在完整记录输入上的命令/阶段逐项一致；不将开发选参结果当作泛化成功率或完整Placo入口验收。
+视觉控制脚本支持独立的抬升朝向和可选有界稳态补偿；同一LiftCube开发场景三组TCP候选中两组通过原生抓取判定。保留失败，公开控制逻辑在完整记录输入上的命令/阶段逐项一致；不将开发选参结果当作泛化成功率或完整Placo入口验收。
 
 Add separate lift orientation and optional bounded steady-bias correction. Two of three TCP variants pass native grasp scoring in one development scene; retain the failure and verify published commands/phases against complete recorded inputs. This is neither a generalization benchmark nor full Placo-runner acceptance.
 
-规则策略保留原始关节反馈，不再将接触/求解器造成的微小反馈越界误判为非法动作；发送目标仍按原范围检查，跟踪保护不变。增加边界反馈回归测试。
+视觉控制脚本保留原始关节反馈，不再将接触/求解器造成的微小反馈越界误判为非法动作；发送目标仍按原范围检查，跟踪保护不变。增加边界反馈回归测试。
 
 Keep raw joint feedback instead of validating contact/solver overshoot as an outgoing action. Sent targets retain the original bounds and tracking guard; add a boundary-feedback regression test.
 
-关闭LiftCube适配器中默认开启的原生演示记录器，避免GPU图像历史拼接导致显存增长，保留显式轨迹/RGB记录。规则策略改为从上一发送目标推进参考轨迹，实测反馈仍用于到位与滞后保护；增加针对性测试。不改物理和评分。
+关闭LiftCube适配器中默认开启的原生演示记录器，避免GPU图像历史拼接导致显存增长，保留显式轨迹/RGB记录。视觉控制脚本改为从上一发送目标推进参考轨迹，实测反馈仍用于到位与滞后保护；增加针对性测试。不改物理和评分。
 
-Disable the implicit LiftCube demonstration recorder to avoid growing GPU image concatenations while retaining explicit trajectory/RGB logging. Advance the rule-policy reference from the last sent target, retaining measured-state arrival and lag checks. Add targeted tests without changing physics or scoring.
+Disable the implicit LiftCube demonstration recorder to avoid growing GPU image concatenations while retaining explicit trajectory/RGB logging. Advance the visual control script reference from the last sent target, retaining measured-state arrival and lag checks. Add targeted tests without changing physics or scoring.
 
-修正规则策略的朝向突变：位置与朝向同步渐变，关节限速保留IK方向，阶段切换同时检查朝向；新增针对性回归测试。保持原物理、关节限位与成功判据。
+修正视觉控制脚本的朝向突变：位置与朝向同步渐变，关节限速保留IK方向，阶段切换同时检查朝向；新增针对性回归测试。保持原物理、关节限位与成功判据。
 
-Interpolate position and orientation together in the rule policy, preserve the IK joint direction under slew limiting, and require orientation arrival before stage transitions. Add targeted regression tests without changing physics, joint limits or success criteria.
+Interpolate position and orientation together in the visual control script, preserve the IK joint direction under slew limiting, and require orientation arrival before stage transitions. Add targeted regression tests without changing physics, joint limits or success criteria.
 
-新增单front RGB＋实际关节位置的LiftCube规则策略、标定检查与独立评测入口。保存阶段、请求/反馈和原生终态；附合成CPU测试。真实标定、IK后端及抓取仍待验收，不改变物理、演示标签或训练配置。
+新增单front RGB＋实际关节位置的LiftCube视觉控制脚本、标定检查与独立评测入口。保存阶段、请求/反馈和原生终态；附合成CPU测试。真实标定、IK后端及抓取仍待验收，不改变物理、演示标签或训练配置。
 
-Add a front-RGB/joint-feedback LiftCube rule policy, calibration checks and an evaluation entry point with stage, command, feedback and terminal-image logging. Synthetic CPU coverage is included; matching calibration, real IK and physical grasp validation remain pending. Physics, demonstration labels and training configurations are unchanged.
+Add a front-RGB/joint-feedback LiftCube visual control script, calibration checks and an evaluation entry point with stage, command, feedback and terminal-image logging. Synthetic CPU coverage is included; matching calibration, real IK and physical grasp validation remain pending. Physics, demonstration labels and training configurations are unchanged.
 
 补齐演示批量校验：拒绝空数据、非有限本体、错误图像类型和不对齐/非法逐帧元数据；保留未知成功标记和原动作标签。新增CPU回归与原生请求/执行限幅配对诊断说明；不改变物理、公共执行接口或训练配置。
 

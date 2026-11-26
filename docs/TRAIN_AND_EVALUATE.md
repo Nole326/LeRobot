@@ -16,8 +16,8 @@ Choose a method in the [task matrix](TASKS.md), then obtain its environment asse
 
 | 目标 / Goal | LiftCube | PickOrange |
 | --- | --- | --- |
-| 视觉脚本 / Visual rule | [已有规则基准](SCRIPTED_LIFTCUBE.md) | [模型辅助与 RGB＋q6＋相机标定两种协议 / Two calibrated visual protocols](../course/pickorange/visual/README.md) |
-| 特权state控制脚本 / privileged state control scripts | 本页下一节，显式`--privileged-teacher` | [自研控制脚本与回放检验](../course/pickorange/expert/README.md)。[官方状态机说明](../course/pickorange/README.md#特权state控制脚本采集--privileged-state-control-script-collection)列出物理和状态写入限制 / Project collection and replay tools, plus the upstream state-machine constraints |
+| 视觉控制脚本 / Visual control script | [已有视觉控制脚本基线](SCRIPTED_LIFTCUBE.md) | [模型辅助与 RGB＋q6＋相机标定两种协议 / Two calibrated visual protocols](../course/pickorange/visual/README.md) |
+| 特权state控制脚本 / privileged-state control scripts | 见下节，使用 `--privileged-state` | [自研控制脚本与回放检验](../course/pickorange/expert/README.md)。[官方状态机说明](../course/pickorange/README.md#特权state控制脚本采集--privileged-state-control-script-collection)列出物理和状态写入限制 / Project collection and replay tools, plus the upstream state-machine constraints |
 | 预训练VLA推理 / Pretrained inference | [单front包装](VLA_INTERFACES.md)，匹配本地适配描述；完整GPU闭环按模型验收 | [GR00T N1.5/N1.6、SmolVLA与π₀.₅双视角入口](../course/pickorange/README.md)，能力与限制见[检验摘要](PICKORANGE_VALIDATION.md) |
 | SmallCNN BC/PPO | [已有参考训练](../course/liftcube/TRAINING.md) | 当前不使用LiftCube训练器 / Not integrated |
 | ACT/SmolVLA训练 | 数据验收后复用下述上游离线训练；任务闭环单独接入 | [PickOrange ACT 训练与部署](../course/pickorange/act/README.md)使用双相机 qpos 或 EE 演示。SmolVLA 按其后端和数据格式配置。 / Use the PickOrange trainer for ACT and the model-specific backend for SmolVLA. |
@@ -29,9 +29,9 @@ Inference wrappers are not trainers. Use each model's own optimizer/loss and che
 
 新训练/评测曲线统一使用[SwanLab](SWANLAB.md)，默认离线，在线须指定私有项目。只记录曲线与白名单配置，原始结果和模型保留本地。New training/evaluation curves use scalar-only SwanLab tracking; configure the private destination before online runs.
 
-## 2. LiftCube特权state控制脚本 / LiftCube privileged state control script
+## 2. LiftCube特权state控制脚本 / LiftCube privileged-state control script
 
-特权 state 控制脚本读取方块在机器人基座坐标系中的位置与朝向，选择可达的相对侧面夹持。评测器记录关节指令、反馈和环境终态。使用 `--privileged-state` 选择该模式；标定预检、仿真命令与结果见[控制脚本指南](SCRIPTED_LIFTCUBE.md)。若用于训练数据，先按下节进行轨迹回放检验与格式转换。
+特权state控制脚本读取方块在机器人基座坐标系中的位置与朝向，选择可达的相对侧面夹持。评测器记录关节指令、反馈和环境终态。使用 `--privileged-state` 选择该模式；标定预检、仿真命令与结果见[控制脚本指南](SCRIPTED_LIFTCUBE.md)。若用于训练数据，先按下节进行轨迹回放检验与格式转换。
 
 The privileged-state controller uses the cube position and yaw in the robot base frame to select a reachable pair of faces. The evaluator records joint commands, feedback and the simulator outcome. The [controller guide](SCRIPTED_LIFTCUBE.md) gives the calibration checks and simulation commands. For training data, apply the replay and conversion checks below.
 
@@ -87,7 +87,7 @@ Run from the repository root with the LiftCube `src` on `PYTHONPATH`, in the sep
 
 ## 5. 评测与发布 / Evaluation and release
 
-- LiftCube用`starter.evaluation.evaluate`，VLA通过`--policy-class`与本地适配JSON加载，规则/控制脚本走专属入口。相同输入、动作、频率、预算和评分才合算。
+- LiftCube用`starter.evaluation.evaluate`，VLA通过`--policy-class`与本地适配JSON加载，控制脚本走专属入口。相同输入、动作、频率、预算和评分才合算。
 - PickOrange 基座 VLA 使用[原生辅助评测](../course/pickorange/README.md)。ACT 与 GR00T 残差使用相应运行指南中的固定场景评测器。比较时记录基座权重、场景、夹爪设置和动作执行频率。
 - 当前标准VLA包装均未提供任意训练任务resume承诺。不同任务初始化、LoRA微调、完整续训及纯推理导出分别处理。
 - GitHub发布代码、公开配置、来源及结果摘要；模型/LoRA/动作头和统计可发布到Hugging Face模型仓库，演示发布到数据集仓库，均先确认许可、隐私及完整性。下载URL和固定revision回填[资源清单](RESOURCES.md)，运行产物不进入Git。

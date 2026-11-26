@@ -1,6 +1,6 @@
 # LiftCube 控制脚本 / LiftCube scripted controllers
 
-评测入口是 `starter.scripts.evaluate_scripted`。前视 RGB 几何脚本从图像定位方块；特权 state 控制脚本从仿真读取方块的位置和朝向。两者都依次完成开爪接近、下降、闭合与抬升，并由环境判定成功。
+评测入口是 `starter.scripts.evaluate_scripted`。前视 RGB 视觉控制脚本从图像定位方块；特权state控制脚本从仿真读取方块的位置和朝向。两者都依次完成开爪接近、下降、闭合与抬升，并由环境判定成功。
 
 The evaluator runs two SO-101 controllers. One locates the cube in a calibrated front image; the other reads its position and yaw from the simulator. Both command the same six joints and use native LiftCube scoring.
 
@@ -12,8 +12,8 @@ Both controllers ran on the same 50 seeds at 60 Hz physics and 30 Hz control. Th
 
 | 脚本 / Controller | 定位输入 / Localization | 8 s | 16 s |
 | --- | --- | ---: | ---: |
-| [前视 RGB / Front RGB](../course/liftcube/configs/scripted/front_rgb.json) | 前视图、关节反馈、重置后相机外参 / Front image, joint feedback and per-reset camera extrinsics | 43/50 (86%) | 47/50 (94%) |
-| [特权 state / Privileged state](../course/liftcube/configs/scripted/privileged_state.json) | 方块位置与朝向、关节反馈 / Cube position, yaw and joint feedback | 44/50 (88%) | 49/50 (98%) |
+| [视觉控制脚本（前视 RGB） / Visual control script](../course/liftcube/configs/scripted/front_rgb.json) | 前视图、关节反馈、重置后相机外参 / Front image, joint feedback and per-reset camera extrinsics | 43/50 (86%) | 47/50 (94%) |
+| [特权state控制脚本 / Privileged-state control script](../course/liftcube/configs/scripted/privileged_state.json) | 方块位置与朝向、关节反馈 / Cube position, yaw and joint feedback | 44/50 (88%) | 49/50 (98%) |
 
 在课程仿真环境中，从 `course/liftcube` 运行。先完成两项标定和运动学检查，再用[评测配置](../course/liftcube/configs/scripted/eval.yaml)分别启动。两组臂关节移动速度系数分别为 1.5 和 2。
 
@@ -33,11 +33,11 @@ LiftCube scores a success when the cube center rises more than 0.20 m above the 
 
 ## 抓取与重试 / Grasp and retry
 
-标定文件中的 `parallel_approach: true` 可用于视觉和特权 state 控制脚本。目标定位稳定后，机械臂在开爪过程中向方块上方移动。空抓退让后也可以边张爪边重新接近，下降前检查实际开度。
+标定文件中的 `parallel_approach: true` 可用于视觉控制脚本和特权state控制脚本。目标定位稳定后，机械臂在开爪过程中向方块上方移动。空抓退让后也可以边张爪边重新接近，下降前检查实际开度。
 
 Set `parallel_approach: true` in the calibration file to enable simultaneous arm motion and jaw opening in either controller. Once the target is stable, the arm approaches the hover pose as the jaw opens. The same behavior applies after retreating from a missed grasp. Descent requires the measured jaw aperture to reach the configured opening.
 
-视觉脚本可另设 `fast_loaded_clearance: true`，与 `fast_clearance`、`probe_loaded_close` 配套使用。夹爪反馈显示已夹持、实测末端高于抓取位置 6 mm 后，加快初段抬升。
+视觉控制脚本可另设 `fast_loaded_clearance: true`，与 `fast_clearance`、`probe_loaded_close` 配套使用。夹爪反馈显示已夹持、实测末端高于抓取位置 6 mm 后，加快初段抬升。
 
 The visual controller also supports `fast_loaded_clearance: true` with `fast_clearance` and `probe_loaded_close`. Initial lift speed increases once the gripper reports contact and the measured end effector clears the grasp height by 6 mm.
 
@@ -67,26 +67,26 @@ This is a geometry/rule comparator, not a substitute for the required RL method 
 
 ## 输入与限制 / Inputs and limits
 
-- 只读取单front RGB与本体前六维实际电机位置。默认图像为uint8 HWC 64×64×3；规则策略可独立配置128或256方形输入，须同步环境resize、标定`image_shape`与内参`K`。这是同一路相机的预处理，不改变相机原始分辨率或其他模型默认值。忽略补零速度、末端字段、metadata和环境info；记录器单独接收执行诊断与原生success。
+- 只读取单front RGB与本体前六维实际电机位置。默认图像为uint8 HWC 64×64×3；视觉控制脚本可独立配置128或256方形输入，须同步环境resize、标定`image_shape`与内参`K`。这是同一路相机的预处理，不改变相机原始分辨率或其他模型默认值。忽略补零速度、末端字段、metadata和环境info；记录器单独接收执行诊断与原生success。
 - 原始实测位置只检查形状与有限性，不当作待发送动作裁剪；接触/求解器可能使反馈略超名义行程。所有发送目标仍须通过原范围与跟踪检查。Raw feedback is preserved; outgoing targets remain bounded.
 - 图像检测使用红色通道阈值和连通域，不用分割真值、深度或物体坐标。多个候选、目标缺失或触边时拒绝猜测。像素射线与**预先标定的可见物体平面**相交；该平面不是每回合读取的真值。侧面可见、光照变化、夹爪遮挡会造成偏差或保守失败。
 - 整个红色连通域可能同时包含顶面和侧面，不能把它的质心机械地当作顶面中心。平面高度须与检测方式配套，并用独立位置参考核验；不能根据单个测试场景的物体真值回填偏移。
 - 运动学可使用固定SO101关节链（NumPy/SciPy），或LeRobot官方`RobotKinematics`/Placo。前者从匹配USD导出固定几何，不读取实时场景；后者按`URDF角度 = USD角度 × joint_sign + joint_offset_deg`转换。夹爪独立使用公共motor单位，不把motor直接当角度。
 - 固定抓取方向只适用于其可达区域；SO101五轴不能实现任意六自由度位姿。IK检查位置误差≤3mm、旋转误差≤0.15rad，并拒绝超限解，不靠裁剪修复不可达目标。
-- Cartesian参考每次至多移动4mm，朝向沿最短旋转每次至多推进0.02rad；最终关节请求按统一比例插值，每次最多变化1motor单位（30Hz下30单位/s）。位置和朝向均到位后才进入下一阶段。这不等于实际关节速度上限或完整路径碰撞保证。接近、下降、闭合或抬升阶段任一臂轴的候选指令与实测相差超过 8 motor 时，撤回该指令并进入恢复。
+- Cartesian参考每次至多移动4mm，朝向沿最短旋转每次至多推进0.02rad；默认每个控制步的关节指令增量最多为 1 个电机单位。启用 `arm_travel_speed` 后，五个臂关节在上方接近、退让和离桌后的带载抬升阶段按跟踪误差调整增量，夹爪仍保持原限速。位置和朝向均到位后才进入下一阶段。这不等于实际关节速度上限或完整路径碰撞保证。接近、下降、闭合或抬升阶段任一臂轴的候选指令与实测相差超过 8 motor 时，撤回该指令并进入恢复。
 - 路径从上一发送目标继续推进，不以滞后反馈重新起算参考，避免重力下垂不断拖低接近轨迹；到位判断和跟踪保护仍使用实测关节。This command-referenced path does not replace measured-state arrival and lag checks.
-- 可选`gravity_compensation: true`使用`SteadyBiasScriptedLiftCube`：只在接近/下降/抬升的名义目标稳定后按q反馈积分。臂轴偏置同时受±3motor和当前目标距关节边界的余量约束，夹爪不补偿；名义路径与发送目标分开记录。仍拒绝原范围外请求，保持1motor/策略步及8motor领先保护。进入恢复时清空补偿，用实测关节位置卸去累积的位置偏差。
+- 可选`gravity_compensation: true`使用`SteadyBiasScriptedLiftCube`：只在接近/下降/抬升的名义目标稳定后按q反馈积分。臂轴偏置同时受±3motor和当前目标距关节边界的余量约束，夹爪不补偿；名义路径与发送目标分开记录。补偿后的指令同样遵守当前阶段的限速、关节范围和 8 个电机单位的跟踪保护。进入恢复时清空补偿，用实测关节位置卸去累积的位置偏差。
 
 Steady-bias correction is bounded by both ±3 motor units and each nominal target's remaining joint travel. This prevents the correction from pushing an otherwise valid target past a joint boundary; nominal targets, command-rate limits and tracking checks retain their existing semantics.
 - 起始TCP必须已在标定工作区且不低于hover高度；脚本不会盲目执行回零/抬臂恢复。下降后允许夹爪遮挡；闭合完成请求后停留0.5策略秒，不把夹爪实际无法完全闭合作为必然失败。
 - 可选`contact_close: true`将闭合请求限制为至多领先实测夹爪2motor。连续三次位置变化小于0.1motor且反馈领先上一命令至少1.5motor时，保持当前夹爪目标，停留0.5策略秒后抬升；没有停滞则仍可闭合到原目标。`jaw_contact_proxy`只表示位置反馈停滞，也可能来自桌面等障碍，不是力测量或抓取成功；`grasp_motor`单独记录。原动作限速、臂跟踪保护、执行器及评分不变，缺省false保留原闭合行为。
-- 接近、下降或闭合受阻后，脚本从实测关节位置退让、张爪并重新定位。RGB 几何脚本启用 `clear_retry_view` 时，抬升途中会检查整张前视图。连续观测到方块留在原处或与夹爪分离时，脚本抬爪让出视野，清除上一次目标，再用稳定的红色轮廓计算抓取位置。单帧遮挡不会触发放手。特权 state 脚本使用方块位置、高度和朝向重新规划。允许重抓直至环境判定成功或超时。
+- 接近、下降或闭合受阻后，脚本从实测关节位置退让、张爪并重新定位。RGB 视觉控制脚本启用 `clear_retry_view` 时，抬升途中会检查整张前视图。连续观测到方块留在原处或与夹爪分离时，脚本抬爪让出视野，清除上一次目标，再用稳定的红色轮廓计算抓取位置。单帧遮挡不会触发放手。特权state控制脚本使用方块位置、高度和朝向重新规划。允许重抓直至环境判定成功或超时。
 
 The geometric controller uses front RGB, camera calibration and measured joint positions. With `clear_retry_view` enabled, it searches the whole front image during the lift. Repeated sightings of the cube at the pick location or separated from the fingers trigger a retreat. The controller then clears the old target and localizes the cube again. A single occluded frame does not trigger a release. The privileged controller replans using the cube pose. The environment ends each episode on success or timeout.
 
 A whole-object color centroid can include top and side faces; it is not automatically the top-face center. Validate the detection plane independently instead of fitting offsets to a test scene's hidden object pose. A reachable commanded waypoint also does not prove that the physical arm reaches it under gravity and contact.
 
-前视 RGB 脚本与特权 state 控制脚本都可使用同一姿态选择方法。前者从图像和相机标定计算目标，后者读取方块位置。在标定文件中将 `grasp_presets` 设为空数组、将 `plan_while_opening` 设为 false，再设置 `"adaptive_orientation": true`。脚本先检查原抓取和抬升姿态。当目标接近关节边界或位置误差偏大时，再按方块相对基座的方位选择手腕朝向与倾角。接近和下降共用一个姿态，抬升单独选择。候选姿态需要大于 2 motor 的关节余量且位置误差小于 2.5 mm。如果候选均未达到该条件，原姿态仍须通过常规 IK 检查。缺省使用固定姿态。此选项需要 SciPy。
+前视 RGB 视觉控制脚本与特权state控制脚本都可使用同一姿态选择方法。前者从图像和相机标定计算目标，后者读取方块位置。在标定文件中将 `grasp_presets` 设为空数组、将 `plan_while_opening` 设为 false，再设置 `"adaptive_orientation": true`。脚本先检查原抓取和抬升姿态。当目标接近关节边界或位置误差偏大时，再按方块相对基座的方位选择手腕朝向与倾角。接近和下降共用一个姿态，抬升单独选择。候选姿态需要大于 2 motor 的关节余量且位置误差小于 2.5 mm。如果候选均未达到该条件，原姿态仍须通过常规 IK 检查。缺省使用固定姿态。此选项需要 SciPy。
 
 For front RGB or privileged localization, use empty grasp presets, disable planning while opening, and set `"adaptive_orientation": true` in the calibration file to try alternative wrist orientations when the calibrated waypoints leave little joint travel or have excessive position error. Approach and descent share one orientation. Lift is checked separately. If no candidate meets the tighter margins, the fixed reference goes through the standard IK checks. The default uses fixed orientations.
 
@@ -116,7 +116,7 @@ Usually only the calibration reader and coordinate conversion change: normalize 
 
 在外部标定文件中填入非空`grasp_presets`，入口会选择`starter.scripted_geometry.GeometricLiftCube`；默认空数组继续使用原策略。此模式要求`kinematics_backend: "joint_chain"`与`gravity_compensation: true`。每个预设包括`tilt`标签、固定工具`rotation`和`tcp_offset_m`，不包含物体位置或按seed编写的动作。
 
-几何视觉脚本可在标定中启用 `"fast_clearance": true`。夹爪到达闭合目标或触发接触代理后等待 8 个策略步，离桌阶段每步最多移动 0.5 motor。默认分别为 15 步和 0.25 motor。两种设置都依据实测关节的 FK 高度判断何时进入运输。
+视觉控制脚本可在标定中启用 `"fast_clearance": true`。夹爪到达闭合目标或触发接触代理后等待 8 个策略步，离桌阶段每步最多移动 0.5 motor。默认分别为 15 步和 0.25 motor。两种设置都依据实测关节的 FK 高度判断何时进入运输。
 
 Set `"fast_clearance": true` with geometric grasp presets for an eight-tick dwell after closure and a clearance rate of 0.5 motor units per policy tick. The defaults are 15 ticks and 0.25 motor units per tick.
 
@@ -164,7 +164,7 @@ Copy the template outside the repository and fill it from measured or independen
 
 例如64→256同视场resize，`fx/fy`乘4，`cx/cy`按`(c+0.5)*4-0.5`转换；同时在独立评测YAML设置`image_height: 256`、`image_width: 256`。只改图像形状而复用旧内参是不合法标定。入口会拒绝配置与标定尺寸不一致；不同输入分辨率的成绩须注明，不自动视为同一比较协议。
 
-The rule runner also accepts explicitly calibrated 128/256-square RGB from the same front camera. Match the environment resize, calibration shape and pixel-centre-adjusted intrinsics. The default remains64; other policies and native camera settings are unchanged. Declare resolution differences in comparisons.
+The visual control script evaluator also accepts explicitly calibrated 128/256-square RGB from the same front camera. Match the environment resize, calibration shape and pixel-centre-adjusted intrinsics. The default remains64; other policies and native camera settings are unchanged. Declare resolution differences in comparisons.
 
 SO101是一侧固定、一侧活动的夹爪。闭合时的参考点不一定是给定物体尺寸下的夹持中心；还须核对固定指/活动指的实际碰撞形状、张开角度、接近方向和桌面净空。先用固定资产几何检查，再以实测关节与独立接触/抓取结果验证；不能因为IK能到达就加大控制补偿硬推。
 
@@ -300,13 +300,13 @@ The frozen independent set completed all ten episodes: 1 success, 6 unreachable 
 
 带载抬升可启用 `pace_loaded_lift`。夹爪保持闭合时，每个臂关节的位置目标最多领先实测位置 7.5 个 motor 单位，其他关节可继续沿抬升轨迹运动。稳态补偿后的目标使用相同上限。原有每步限速和 8 个单位的跟踪保护继续生效。
 
-RGB 几何脚本可启用 `low_fingertip_grasp`。脚本从已标定的零倾角姿态开始，依次尝试 −5°、−10°、−15° 和其余标定姿态，并检查接近、闭合与抬升目标的可达性。中间姿态复用零倾角对应的工具中心点。夹取深度由 `grasp_z` 单独设置，调整时应同时检查固定指和活动指距方块底面及桌面的间隙。
+RGB 视觉控制脚本可启用 `low_fingertip_grasp`。脚本从已标定的零倾角姿态开始，依次尝试 −5°、−10°、−15° 和其余标定姿态，并检查接近、闭合与抬升目标的可达性。中间姿态复用零倾角对应的工具中心点。夹取深度由 `grasp_z` 单独设置，调整时应同时检查固定指和活动指距方块底面及桌面的间隙。
 
-启用 `face_aligned_grasp: true` 后，控制器按方块两对相对侧面选择抓姿。RGB 脚本用红色轮廓拟合 30 mm 方块的朝向，特权 state 脚本直接读取底座坐标系中的方块朝向。控制器在竖直至倾斜 30° 的姿态中检查悬停和抓取位置是否可达。首次接近优先选两指高度接近的一对侧面。特权 state 脚本在接近受阻或方块掉落后，先在当前腕姿下抬到悬停高度，再重新定位，优先换到正交的另一对侧面。若原抬升终点不可达，则预先检查相同高度的其他位置和腕姿，先垂直提离桌面，再转入高位运输。
+启用 `face_aligned_grasp: true` 后，控制器按方块两对相对侧面选择抓姿。RGB 视觉控制脚本用红色轮廓拟合 30 mm 方块的朝向，特权state控制脚本直接读取底座坐标系中的方块朝向。控制器在竖直至倾斜 30° 的姿态中检查悬停和抓取位置是否可达。首次接近优先选两指高度接近的一对侧面。特权state控制脚本在接近受阻或方块掉落后，先在当前腕姿下抬到悬停高度，再重新定位，优先换到正交的另一对侧面。若原抬升终点不可达，则预先检查相同高度的其他位置和腕姿，先垂直提离桌面，再转入高位运输。
 
-末段闭爪窗口容许 TCP 横向误差 5 mm、低于目标 3 mm、高于目标 6 mm。特权 state 脚本已选定可达侧面抓姿时，高于目标的容差为 8 mm，给接近桌面的低侧指尖留出空间。朝向和关节跟踪须连续三个控制时刻达标。
+末段闭爪窗口容许 TCP 横向误差 5 mm、低于目标 3 mm、高于目标 6 mm。特权state控制脚本已选定可达侧面抓姿时，高于目标的容差为 8 mm，给接近桌面的低侧指尖留出空间。朝向和关节跟踪须连续三个控制时刻达标。
 
-对 SO‑101 前视 RGB 脚本，`follow_retry_close: true` 配合 `hold_contact_on_lift: true` 用于检查夹持开度。轮廓可辨时，按方块沿闭合方向的投影宽度核对指垫间距。首次遇阻时开度仍过宽，脚本在相同平面位置抬高 3.5 mm，再张爪闭合一次。完整重抓使用重新拟合的方块中心，夹持反馈触发后最多再收紧 1.5 motor，以免滑脱时一直追到全闭。重抓试提达到 30 mm 后，连续检查原位置是否仍能看到方块。
+对 SO‑101 前视 RGB 视觉控制脚本，`follow_retry_close: true` 配合 `hold_contact_on_lift: true` 用于检查夹持开度。轮廓可辨时，按方块沿闭合方向的投影宽度核对指垫间距。首次遇阻时开度仍过宽，脚本在相同平面位置抬高 3.5 mm，再张爪闭合一次。完整重抓使用重新拟合的方块中心，夹持反馈触发后最多再收紧 1.5 motor，以免滑脱时一直追到全闭。重抓试提达到 30 mm 后，连续检查原位置是否仍能看到方块。
 
 软件测试覆盖检测歧义、投影、IK残差/动作范围、状态机、限速、失败锁定、状态重置、不读取补零/metadata，以及2tick保持和原生终帧记录。假运动学与替身环境只能验证软件流程。
 

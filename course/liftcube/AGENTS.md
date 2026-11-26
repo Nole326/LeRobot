@@ -12,7 +12,7 @@
 | 数据与BC | [TRAINING](TRAINING.md)；`data/hf_adapter.py`、`data/schema.py`、`data/validator.py`、`data/loader.py`，`training/train_bc.py`，`configs/bc_lift_cube.yaml` |
 | PPO、存档恢复 | [TRAINING](TRAINING.md)；`training/train_rl.py`、`training/checkpoint.py`，`algorithms/reference/ppo.py`、`rewards/lift_cube.py`，`configs/rl_lift_cube.yaml` |
 | 策略与评测 | `interfaces/policy.py`、`interfaces/model.py`，`utils.py::build_policy`，`evaluation/evaluate.py`，`configs/eval_lift_cube.yaml` |
-| 视觉规则脚本 | `scripted_liftcube.py`、`joint_chain.py`、`scripts/export_joint_chain.py`、`scripts/evaluate_scripted.py`、[标定与验收](../../docs/SCRIPTED_LIFTCUBE.md)；每回合新建状态机，沿用共同`run_episode`，不接训练协议 |
+| 视觉控制脚本 | `scripted_liftcube.py`、`joint_chain.py`、`scripts/export_joint_chain.py`、`scripts/evaluate_scripted.py`、[标定与验收](../../docs/SCRIPTED_LIFTCUBE.md)；每回合新建状态机，沿用共同`run_episode`，不接训练协议 |
 | 特权state控制脚本 | `privileged_liftcube.py`、共用评测器的 `--privileged-state`；[使用与数据准入](../../docs/TRAIN_AND_EVALUATE.md)；物体真值单独回调，不放入Observation，不当视觉baseline或已验收专家 |
 | 受限末端开发接口 | `envs/planar_ee.py`、`envs/factory.py`、[契约](../../docs/PLANAR_EE_DEVELOPMENT.md)；`control_mode: planar_ee_dev`仅自研开发，不当课程正式控制器 |
 | ACT/VLA或任务迁移 | [架构](../../docs/ARCHITECTURE.md)、[迁移路线](../../docs/LIFTCUBE_TRANSFER.md)、[契约](../../docs/INTERFACE_CONTRACTS.md)及上面的策略/环境边界 |
@@ -22,7 +22,7 @@
 开发时按下面的顺序推进；每一步只运行其所需检查：
 
 - **修环境或动作接口**：沿 `envs/factory.py → LiftCubeEnvAdapter.reset/step → Observation/ActionSpec` 追踪数据；先用 `tests/test_so101_adapter.py` 的替身环境覆盖单位、形状与边界，再补真实环境短测。
-- **运行规则基准**：走`starter.scripts.evaluate_scripted`，先按规则指南检查所选配置的标定；不需要演示、训练权重或`build_policy()`。不要为此运行BC/ACT优化验证。正式标定迁移只修改读取/坐标边界，控制SDK改变时再处理执行层，复用未变验证。
+- **运行视觉控制脚本**：走`starter.scripts.evaluate_scripted`，先按控制脚本指南检查所选配置的标定；不需要演示、训练权重或`build_policy()`。不要为此运行BC/ACT优化验证。正式标定迁移只修改读取/坐标边界，控制SDK改变时再处理执行层，复用未变验证。
 - **接入演示数据**：沿 `data/hf_adapter.py → schema/validator → loader → training/train_bc.py` 检查字段、episode划分和标签单位；先验证一小批真实样本，再做获准的小批拟合。合成单测不替代真实数据映射验收。
 - **特权state控制脚本**：显式定位回调只供`PrivilegedLiftCube`；复用视觉控制器的保护和原生评分，不把真值写进公共观测。评测配置使用方块位置和朝向选择抓取侧面。使用 `--privileged-state` 启用，并与 RGB 模式分别记录。权重与演示来源见[资源清单](../../docs/RESOURCES.md)。
 - **新增 ACT/VLA**：在实际接入时新增 `starter/models/` 包装，核对 `interfaces/policy.py` 中 `act/forward/update/save/load` 及调用者。推理先接 `evaluation.evaluate.load_policy` 的 `--policy-class`；训练再接 `utils.build_policy`、数据预处理和对应算法。现有BC/PPO依赖SmallCNN的具体实现，不能仅满足协议或替换模型名就宣称可训练；后端依赖保持可选。
@@ -75,7 +75,7 @@ export PYTHONPATH="$PWD/src:/leisaac/source/leisaac${PYTHONPATH:+:$PYTHONPATH}"
 
 ## 5. 接口修正时守住的语义
 
-- 环境ID `LeIsaac-SO101-LiftCube-v0`。单front、uint8 HWC，参考配置默认64×64×3；规则可选128/256需按下文同步标定。相机原分辨率与模型resize分开。新模型更换输入须显式更新数据/模型规格，不直接改正式评分口径。
+- 环境ID `LeIsaac-SO101-LiftCube-v0`。单front、uint8 HWC，参考配置默认64×64×3；视觉控制脚本可选128/256需按下文同步标定。相机原分辨率与模型resize分开。新模型更换输入须显式更新数据/模型规格，不直接改正式评分口径。
 - 本体q[6]、dq补零[6]、上一发送命令[6]、可选EE补零[3]，总维18或21。SmallCNN只融合图像、q和上一命令；补零不是实际可测状态。
 - 关节顺序在 `interfaces/action.py::JOINT_NAMES`；六维绝对电机目标，arm[-100,100]、gripper[0,100]，逐关节映射弧度。不是增量、物理角度或末端动作。
 - 外部raw环境的 `observation.state`别名用 `raw_joint_units`声明单位；必要q/图像无效就拒绝，不补造反馈或重复换算。
@@ -86,9 +86,9 @@ export PYTHONPATH="$PWD/src:/leisaac/source/leisaac${PYTHONPATH:+:$PYTHONPATH}"
 - 当前默认评测4回合/640环境tick只是起点。训练奖励、原生success和正式评分分开；不改USD、限位、执行器、reset或判据来制造成功。
 - 渲染准备不额外推进物理/策略动作。真实终态在自动reset前捕获，物体真值不流入策略观测或metadata。
 - 适配器关闭上游默认演示记录器，避免每步在GPU上拼接完整RGB历史；评测轨迹与图像由显式外部记录器保存。需要原生演示导出时使用独立采集入口，不在普通评测中隐式开启，也不靠周期清缓存掩盖增长。
-- 规则策略可单独标定`lift_rotation`，并显式启用`gravity_compensation`。实测反馈不按待发送动作裁剪；名义参考、积分偏置与实际发送值分开，原发送范围/限速/跟踪保护不变。不同IK后端须验证实际路径，不能把独立USD诊断后端的成绩当作Placo入口已通过。
+- 视觉控制脚本可单独标定`lift_rotation`，并显式启用`gravity_compensation`。实测反馈不按待发送动作裁剪；名义参考、积分偏置与实际发送值分开，原发送范围/限速/跟踪保护不变。不同IK后端须验证实际路径，不能把独立USD诊断后端的成绩当作Placo入口已通过。
 - 可选`contact_close`仅用实测夹爪位置限制闭合领先量；停滞代理不是力传感器或抓取成功信号，抬升后仍按原生评分判定。复用已验证几何，独立冻结测试seed/预算；不得混合调参回合、重选失败或更改物理来达到目标比例。
-- 规则入口默认front64，也可显式配置同一路front128/256：环境resize、标定`image_shape/K`必须一致，像素中心随resize换算，不能只放大旧图伪称新视觉信息。其他模型默认输入不变；跨分辨率成绩分协议记录。实际策略类与基类源码分别记录版本，诊断子类成绩不冒称默认入口成绩。
+- 视觉控制脚本入口默认front64，也可显式配置同一路front128/256：环境resize、标定`image_shape/K`必须一致，像素中心随resize换算，不能只放大旧图伪称新视觉信息。其他模型默认输入不变；跨分辨率成绩分协议记录。实际策略类与基类源码分别记录版本，诊断子类成绩不冒称默认入口成绩。
 - 非空`grasp_presets`显式选择`starter.scripted_geometry.GeometricLiftCube`，要求joint_chain与有界补偿；固定CAD姿态选择不读取物体真值。离桌子阶段只按实测q的FK高度/朝向连续三次切入运输，≤0.25motor/步；它不是抓取成功，原发送范围、8motor保护、最后评分不变。预设示例只适用于其资产及3cm方块假设，不能作为完整标定直接启动。
 - `plan_while_opening`默认false且仅用于上述几何模式；启用后在原开爪期间积累三次稳定RGB观察，完整开爪命令和实测到位等待保持，不提前移动手臂。视觉未就绪则走原定位流程；开关写入manifest，成绩分组。修改此路径至少检查开爪前缀、视觉缺失回退及关闭时行为不变，不能把调度提速当抓取精度改善。
 - `--runtime-camera-calibration`仅显式启用配套模拟器的相机/基座标定接口，每次reset记录实际变换；相机随机化后的`camera.data`缓存可能仍是名义值。此模式与固定外参分组，真机接口支持待确认，不把额外标定输入藏进普通RGB/q成绩。`--check`仍不创建环境。
@@ -128,7 +128,7 @@ python -m unittest discover -s tests -p test_vla_native_backends.py -v
 - 模型/BC/PPO/恢复选训练测试，覆盖合成数据、动作保持、GAE、下一更新恢复；说明依赖缺失导致的跳过。
 - 导入/补丁/配置选导入测试；仅改说明不触发模型GPU回归。
 - 实际环境路径变化再补授权下reset/step/RGB/终态最小集成检查，复用未受影响证据。
-- 规则脚本的`--check`需匹配URDF与独立标定；空模板必须拒绝。CPU合成通过不表示真实IK/抓取通过。运行必须显式`--run-simulation`，禁止使用特权物体坐标补齐视觉失败，不擅改默认评测预算或固定物理。
+- 视觉控制脚本的`--check`需匹配URDF与独立标定；空模板必须拒绝。CPU合成通过不表示真实IK/抓取通过。运行必须显式`--run-simulation`，禁止使用特权物体坐标补齐视觉失败，不擅改默认评测预算或固定物理。
 
 故障按层定位：导入失败先检查解释器和模块来源；观测/动作失败先检查形状、单位和标定；恢复失败先核对存档类型及配置身份；加载成功但无任务进展则分析实际图像、模型输出与执行反馈。保留首个有效报错，不用切换模型、放宽评分、重装环境或反复重跑来掩盖未知原因。
 
