@@ -2,7 +2,7 @@
 
 视觉控制脚本从相机图像定位目标。特权state控制脚本直接读取仿真中的物体状态，用于抓取对照、诊断和演示采集。下表列出各任务的实现与运行入口。
 
-Visual and privileged-state control scripts serve different purposes. Links below point to checked-in code. Upstream files remain in their pinned directories with their licenses intact.
+Visual controllers locate objects in camera images. Privileged-state controllers read object state from the simulator for grasping comparisons, diagnostics, and demonstration collection. The table links to each implementation and its run guide.
 
 | 任务与类型 / Task and type | 源码 / Source | 运行与状态 / Usage and status |
 | --- | --- | --- |
@@ -10,12 +10,12 @@ Visual and privileged-state control scripts serve different purposes. Links belo
 | LiftCube 特权state控制脚本 | [方块定位与抓取](../course/liftcube/src/starter/privileged_liftcube.py) | [特权state控制脚本配置](../course/liftcube/configs/scripted/privileged_state.json)，使用方块位置与朝向 |
 | PickOrange 自研特权state控制脚本 | [控制与采集入口](../course/pickorange/expert/README.md) | 原生关节目标、独立回放检验与同步双相机采集；已完成控制执行、回放检验与采集流程的实际仿真联合验证 |
 | PickOrange 官方特权state控制脚本 | LeIsaac官方[PickOrange状态机](../third_party/leisaac/source/leisaac/leisaac/datagen/state_machine/pick_orange.py)及[采集入口](../third_party/leisaac/scripts/datagen/state_machine/generate.py) | [运行与物理限制](../course/pickorange/README.md#特权state控制脚本采集--privileged-state-control-script-collection)。已收录；生成器改变物理并直接写关节状态，数据须独立验收 |
-| PickOrange 视觉控制脚本 | [RGB 检测、几何 IK 与状态机](../course/pickorange/visual/README.md) | 提供模型辅助版及双 RGB＋q6＋相机标定版。双相机版由 RGB 恢复支撑平面和物体尺寸。55 秒与 25 秒协议分别报告。 |
+| PickOrange 视觉控制脚本 | [RGB 检测、几何 IK 与状态机](../course/pickorange/visual/README.md) | 作为视觉规则基线，提供模型辅助版和双相机版。双相机版结合 RGB、实测关节角和相机标定估计支撑平面与物体尺寸。已公布的仿真成绩采用 55 秒时限，25 秒协议待验证。 |
 | 上游抬升状态机参考 | Isaac Lab [lift_cube_sm.py](../third_party/isaaclab/scripts/environments/state_machine/lift_cube_sm.py) | 基于Franka与特权位姿，不可直接用于SO101；用于研究状态机分阶段设计 |
 
 ## LiftCube
 
-两套脚本共用 `starter.scripts.evaluate_scripted`。运行指南提供课程仿真标定、两种定位模式的命令，以及同一组场景的 8 秒和 16 秒成功率。[LiftCube 控制脚本指南](SCRIPTED_LIFTCUBE.md)
+两套脚本共用 `starter.scripts.evaluate_scripted`。[LiftCube 控制脚本指南](SCRIPTED_LIFTCUBE.md)给出仿真标定方法、两种定位模式的运行命令，以及同一组场景下的 8 秒和 16 秒成功率。
 
 Both controllers use `starter.scripts.evaluate_scripted`. The [controller guide](SCRIPTED_LIFTCUBE.md) includes the simulation calibrations, commands for each localization mode and success rates on the same scenes at both time limits.
 
@@ -32,7 +32,7 @@ python third_party/leisaac/scripts/datagen/state_machine/generate.py \
   --dataset_file /datasets/pickorange/script-demonstrations.hdf5 --num_demos 1
 ```
 
-这条命令会运行GPU仿真。`--num_demos`限制成功条数而非失败尝试总数，运行平台还需设置墙钟上限。官方生成器关闭机器人重力、改变阻尼／夹爪与终止逻辑，并在部分阶段直接写关节状态；其输出不能直接作为固定物理下的视觉baseline成绩或合格BC标签。采集前读[完整限制](../course/pickorange/README.md#特权state控制脚本采集--privileged-state-control-script-collection)，训练前按[数据准入](TRAIN_AND_EVALUATE.md#3-数据准入--data-admission)验证原始请求、物理重放和终态。
+这条命令会运行GPU仿真。`--num_demos`限制成功条数而非失败尝试总数，运行平台还需设置墙钟上限。官方生成器关闭机器人重力、改变阻尼／夹爪与终止逻辑，并在部分阶段直接写关节状态；其输出不能直接作为固定物理条件下的视觉基线成绩或合格BC标签。采集前读[完整限制](../course/pickorange/README.md#特权state控制脚本采集--privileged-state-control-script-collection)，训练前按[数据准入](TRAIN_AND_EVALUATE.md#3-数据准入--data-admission)验证原始请求、物理重放和终态。
 
 This runs GPU simulation. Bound wall time independently: the demo count limits successes, not retries. The generator changes physics and writes joint states directly, so its success labels require independent physical replay before BC admission.
 

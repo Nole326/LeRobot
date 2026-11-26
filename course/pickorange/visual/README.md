@@ -1,10 +1,10 @@
 # PickOrange 视觉控制脚本 / Calibrated visual control script
 
-运行入口为 [evaluate.py](evaluate.py)。两种协议都通过 RGB 检测、机器人几何 IK 和实测关节反馈执行抓放。准备仿真环境、机器人与场景资产即可运行。物体真值和成功标记由评测器记录，控制器只接收各自协议声明的输入。
+本脚本作为 PickOrange 的视觉规则基线。模型辅助版和双相机版均从 [evaluate.py](evaluate.py) 启动，使用 RGB 检测、几何逆运动学和实测关节反馈执行抓放。准备仿真环境、机器人与场景资产即可运行。物体真值和成功标记由评测器记录，控制器只接收各自协议声明的输入。
 
 模型辅助版通过 `--sim-camera-calibration` 读取相机内参和相机到机器人基座的变换。位置伺服使用机器人关节的重力补偿力除以 17.8 作为前馈。以基座坐标系计，桌面默认 Z 为 0.030 m，橙子中心和盘面定位平面分别高出桌面 0.026 m 和 0.012 m。
 
-The model-assisted actor receives front RGB, six measured joint angles, explicit camera calibration, support and size priors, and robot-model gravity bias. The runner evaluates success with the native scoring function. During closure, lift, carry and lowering, the final jaw target can request at most 0.020 rad of closure from the latest measured angle. The bound is applied after rate limiting.
+Both variants of this rule-based visual baseline run through [evaluate.py](evaluate.py). The model-assisted actor receives front RGB, six measured joint angles, explicit camera calibration, support and size priors, and robot-model gravity bias. The runner evaluates success with the native scoring function. During closure, lift, carry and lowering, the final jaw target can request at most 0.020 rad of closure from the latest measured angle. The bound is applied after rate limiting.
 
 策略复用 `expert/` 中的 `DiameterKinematics` 和 `FingerGeometry`。规划在图像估计的位置枚举夹持方向，用手指网格检查与桌面的间隙，并根据关节停滞推测接触。闭爪、抬升、搬运和下放阶段，最终夹爪指令最多比当前实测角度再闭合 0.020 rad。该限制在指令限速后应用。每次放置后重新扫描盘外橙子，最多尝试抓取五次。
 

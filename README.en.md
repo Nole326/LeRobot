@@ -122,7 +122,7 @@ See the [import inventory](docs/IMPORT_MANIFEST.md) for source provenance and in
 - [Task-specific control script collection, training and evaluation](docs/TRAIN_AND_EVALUATE.md)
 - [LiftCube source, image and runtime](course/liftcube/README.md)
 - [PickOrange sources, separate runtime and diagnostics](docs/PICK_ORANGE.md)
-- [Visual control script reference, calibration and migration](docs/SCRIPTED_LIFTCUBE.md)
+- [LiftCube controllers, camera calibration, and fixed-scene evaluation](docs/SCRIPTED_LIFTCUBE.md)
 - [Planar EE development interface and limitations](docs/PLANAR_EE_DEVELOPMENT.md)
 - [Architecture, extension points and collaboration](docs/ARCHITECTURE.md)
 - [RLinf benefits and integration boundaries](docs/RLINF.md)

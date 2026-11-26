@@ -121,7 +121,7 @@ VLA 强化学习实现参考 [RLinf](docs/RLINF.md)，目前尚未接入本项�
 - [SwanLab训练与评测曲线](docs/SWANLAB.md)：仅数值与脱敏配置，默认离线，在线使用私有项目
 - [LiftCube 源码、镜像与运行方法](course/liftcube/README.md)
 - [PickOrange 源码、独立环境与诊断入口](docs/PICK_ORANGE.md)
-- [视觉控制脚本、标定与后续适配](docs/SCRIPTED_LIFTCUBE.md)
+- [LiftCube 控制脚本、相机标定与固定场景评测](docs/SCRIPTED_LIFTCUBE.md)
 - [受限末端开发接口与验证限制](docs/PLANAR_EE_DEVELOPMENT.md)
 - [架构、扩展位置与团队协作](docs/ARCHITECTURE.md)
 - [RLinf 对本项目的帮助与接入边界](docs/RLINF.md)
