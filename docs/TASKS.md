@@ -1,5 +1,9 @@
 # 任务、资源与适配状态 / Tasks, resources and adaptation
 
+课程原始环境使用红方块和原接触参数；团队的[单物体泛化环境](LIFTCUBE_GENERALIZATION.md)使用修正碰撞面，可按编号生成不同外形、纹理和质量的物体。
+
+The course environment uses the red cube and its original contact geometry. The [team generalization environment](LIFTCUBE_GENERALIZATION.md) adds mesh-aligned contacts and selectable shapes, appearances and masses.
+
 当前阶段分别推进 **LiftCube** 和 **PickOrange**。正式指定物体的多物体环境与真机迁移留待后续，不作为这两个开发任务的前置条件。PickOrange本身包含三颗橙子，但不等于尚未发布的课程多物体任务。
 
 The current scope covers **LiftCube** and **PickOrange** as separate tasks. The later course multi-object environment and hardware transfer are deferred, not prerequisites. PickOrange contains three oranges; it is not the unreleased course multi-object task.

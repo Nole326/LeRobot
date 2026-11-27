@@ -18,8 +18,11 @@ if AVAILABLE:
 class SO101AdapterTests(unittest.TestCase):
     def test_owned_environment_disables_implicit_demo_recorder(self):
         raw = self.raw()
-        cfg = SimpleNamespace(recorders=object(), scene=SimpleNamespace(num_envs=4),
-            sim=SimpleNamespace(device='cpu', dt=1/60), decimation=1,
+        spawn = lambda: SimpleNamespace(spawn=SimpleNamespace(usd_path="source.usd"))
+        cfg = SimpleNamespace(recorders=object(), scene=SimpleNamespace(num_envs=4, robot=spawn(), scene=spawn()),
+            sim=SimpleNamespace(device='cpu', dt=1/60, physx=SimpleNamespace(
+                min_position_iteration_count=1, max_position_iteration_count=255,
+                min_velocity_iteration_count=0, max_velocity_iteration_count=255)), decimation=1,
             actions=SimpleNamespace(arm_action=SimpleNamespace(), gripper_action=SimpleNamespace()),
             use_teleop_device=lambda device: None)
         class Manager:
@@ -27,9 +30,26 @@ class SO101AdapterTests(unittest.TestCase):
                 self.assertIs(kwargs['cfg'], cfg)
                 return raw
         with patch('starter.envs.container.isaac_runtime_ready', return_value=True), \
+             patch('starter.envs.factory.isaac_runtime_ready', return_value=True), \
+             patch('starter.envs.contact_surfaces.build_contact_surfaces', return_value=("robot.usda", "scene.usda")) as surfaces, \
              patch('starter.envs.lift_cube._launch_sim_app'), \
              patch('starter.envs.lift_cube._import_lift_cube', return_value=(lambda: cfg, Manager)):
-            env = LiftCubeEnvAdapter(device='cuda:0')
+            env = LiftCubeEnvAdapter(device='cuda:0', refine_contacts=True)
+            self.addCleanup(env.close)
+            self.assertEqual((cfg.scene.robot.spawn.usd_path, cfg.scene.scene.spawn.usd_path), ("robot.usda", "scene.usda"))
+            self.assertEqual(cfg.sim.physx.min_position_iteration_count, 255)
+            self.assertEqual(cfg.sim.physx.min_velocity_iteration_count, 4)
+            cfg.sim.physx.min_position_iteration_count = 255
+            LiftCubeEnvAdapter(device='cuda:0', refine_contacts=True).close()
+            self.assertEqual(cfg.sim.physx.min_position_iteration_count, 255)
+            self.assertEqual(cfg.sim.physx.min_velocity_iteration_count, 4)
+            cfg.sim.physx.min_position_iteration_count = 1
+            from starter.envs.factory import make_env
+            make_env({"env": {}})
+            self.assertEqual(surfaces.call_count, 2)
+            self.assertEqual(cfg.sim.physx.min_position_iteration_count, 1)
+            with self.assertRaises(ValueError):
+                make_env({"env": {"refine_contacts": "false"}})
         self.assertIsNone(cfg.recorders)
         self.assertEqual(cfg.scene.num_envs, 1)
         self.assertEqual(cfg.episode_length_s, 640/60)

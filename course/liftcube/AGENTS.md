@@ -1,5 +1,7 @@
 # LiftCube智能体指令
 
+修改 LiftCube 接触面或泛化物体时，分别验证课程默认场景和显式选择的[团队泛化环境](../../docs/LIFTCUBE_GENERALIZATION.md)。两套环境共用原生抬升评分，按场景来源分别记分。
+
 适用于本目录及其子目录，与[根AGENTS](../../AGENTS.md)同时遵守。表中的源码路径相对 `src/starter/`，配置与文档路径相对本目录；验证命令另行注明工作目录。这是SO101方块抬升起点。
 
 当前任务与PickOrange分别推进，先读[任务对照](../../docs/TASKS.md)。本目录工厂只创建LiftCube，四VLA包装是单front契约；新增PickOrange需独立验证观测、原生action manager与终态，不能只换配置名。正式多物体迁移为后续工作，不作为当前ACT/VLA任务接入的等待条件。

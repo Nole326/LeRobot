@@ -1,5 +1,9 @@
 # 两个任务的视觉控制脚本与特权state控制脚本 / Visual and privileged-state control scripts
 
+课程原始环境使用红方块和原接触参数；团队的[单物体泛化环境](LIFTCUBE_GENERALIZATION.md)使用修正碰撞面，可按编号生成不同外形、纹理和质量的物体。
+
+The course environment uses the red cube and its original contact geometry. The [team generalization environment](LIFTCUBE_GENERALIZATION.md) adds mesh-aligned contacts and selectable shapes, appearances and masses.
+
 视觉控制脚本从相机图像定位目标。特权state控制脚本直接读取仿真中的物体状态，用于抓取对照、诊断和演示采集。下表列出各任务的实现与运行入口。
 
 Visual controllers locate objects in camera images. Privileged-state controllers read object state from the simulator for grasping comparisons, diagnostics, and demonstration collection. The table links to each implementation and its run guide.

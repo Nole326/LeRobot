@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+课程原始环境使用红方块和原接触参数；团队的[单物体泛化环境](docs/LIFTCUBE_GENERALIZATION.md)使用修正碰撞面，可按编号生成不同外形、纹理和质量的物体。
+
+The course environment uses the red cube and its original contact geometry. The [team generalization environment](docs/LIFTCUBE_GENERALIZATION.md) adds mesh-aligned contacts and selectable shapes, appearances and masses.
+
 新增 LiftCube 前视 RGB 视觉控制脚本与特权state控制脚本的固定场景配置、标定及 8 秒和 16 秒评测结果。
 
 Added calibrated front RGB and privileged-state LiftCube controllers, fixed-seed configurations and success rates at 8 and 16 seconds.

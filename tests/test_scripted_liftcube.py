@@ -24,17 +24,76 @@ class ScriptedLiftCubeTests(unittest.TestCase):
 
         configs = Path(__file__).resolve().parents[1] / "course/liftcube/configs/scripted"
         for profile, flags in (("front_rgb", ["--runtime-camera-calibration"]),
+                               ("front_rgb", ["--object-scene", __file__, "--runtime-camera-calibration"]),
                                ("privileged_state", ["--privileged-state"]),
+                               ("privileged_state", ["--object-scene", __file__, "--privileged-state"]),
                                ("privileged_state", ["--privileged-teacher"])):
             with self.subTest(profile=profile, flags=flags), redirect_stdout(io.StringIO()) as output:
                 main(["--calibration", str(configs / (profile + ".json")), "--check", *flags])
                 self.assertEqual(json.loads(output.getvalue())["status"], "calibration_checks_passed")
         for profile, flags in (("privileged_state", []), ("front_rgb", ["--privileged-state"]),
+                               ("front_rgb", ["--object-scene", __file__, "--privileged-state"]),
                                ("privileged_state", ["--privileged-state", "--runtime-camera-calibration"])):
             with self.subTest(profile=profile, flags=flags), redirect_stderr(io.StringIO()):
                 with self.assertRaises(SystemExit) as error:
                     main(["--calibration", str(configs / (profile + ".json")), "--check", *flags])
                 self.assertEqual(error.exception.code, 2)
+
+    @unittest.skipUnless(importlib.util.find_spec("scipy"), "Contour processing requires SciPy")
+    def test_contour_recovers_color_and_maintains_inward_target(self):
+        from unittest.mock import patch
+        from starter.pad_guided import PadGuided, tabletop_component
+        from starter.scripted_geometry import GeometricLiftCube
+
+        c=validate_calibration(self.calibration())
+        image=np.empty((64,64,3),dtype=np.uint8)
+        image[:]=[206,188,161]
+        image[38:45,35:41]=[35,65,195]
+        mask,color=tabletop_component(image,c)
+        self.assertTrue(mask[41,38])
+        self.assertEqual(np.count_nonzero(mask),42)
+        np.testing.assert_array_equal(color,[35,65,195])
+        policy=object.__new__(PadGuided)
+        policy.c={'close_motor':0.}
+        policy.jaw_blocked=True
+        policy.last=np.array([0.,0.,0.,0.,0.,25.])
+        with patch.object(GeometricLiftCube,'_step',side_effect=lambda *_: policy.last.copy()):
+            for phase,opening,target in [('close',23.,20.),('lift',16.,13.),('hold',2.,0.)]:
+                policy.phase=phase
+                result=policy._step(image,np.r_[np.zeros(5),opening])
+                self.assertEqual(result[5],target)
+                np.testing.assert_array_equal(result[:5],policy.last[:5])
+                policy.last=result
+
+    @unittest.skipUnless(importlib.util.find_spec("scipy"), "Contour processing requires SciPy")
+    def test_partial_occlusion_and_confirmed_target_motion(self):
+        from starter.pad_guided import PadGuided, tracked_component
+        from starter.scripted_liftcube import GraspStall
+
+        image = np.full((64, 64, 3), [206, 188, 161], dtype=np.uint8)
+        color = np.array([40., 75., 180.])
+        image[28:36, 27:35] = color
+        image[27:37, 31:43] = [245, 210, 24]
+        center = np.array([31., 32.])
+        visible = tracked_component(image, center, color, 64)
+        self.assertEqual(int(visible.sum()), 32)
+        self.assertFalse(visible[30, 34])
+
+        controller = object.__new__(PadGuided)
+        controller.pixel = center
+        controller.occluded = controller.shifted = 0
+        controller.close_to_ray = True
+        controller.tracked = visible
+        controller._check_target(image)
+        empty = np.zeros_like(image)
+        controller.tracked = None
+        controller._check_target(empty)
+        shifted = empty.copy()
+        shifted[30:34, 48:52, 0] = 255
+        for _ in range(3):
+            controller._check_target(shifted)
+        with self.assertRaises(GraspStall):
+            controller._check_target(shifted)
 
     def calibration(self):
         return dict(schema="so101-front-rgb-rule-v1", evidence="synthetic test only",
@@ -759,6 +818,23 @@ class ScriptedLiftCubeTests(unittest.TestCase):
         self.assertEqual(rows[1]["sent_motor"], rows[2]["sent_motor"])
         self.assertEqual(len(env.frames), 4)
         self.assertEqual(env.frames[-1][0,0,0], 3)
+
+    def test_nominal_camera_restored_before_seeded_reset_without_phys_step(self):
+        from unittest.mock import MagicMock, call
+        from starter.scripts.evaluate_scripted import RecordedEnv
+
+        events, env = MagicMock(), MagicMock()
+        camera = events.camera
+        env._unwrapped.scene = {"front": camera}
+        env._unwrapped.sim = events.sim
+        env.reset = events.reset
+        env.reset.return_value = (Observation(self.image(), self.initial()), {})
+        recorded = RecordedEnv(env, io.StringIO(), nominal_camera=("position", "rotation"))
+        recorded.reset(seed=42001)
+        self.assertEqual(events.mock_calls, [
+            call.camera.set_world_poses("position", "rotation", convention="opengl"),
+            call.sim.render(), call.camera.update(0., force_recompute=True), call.reset(seed=42001),
+        ])
 
     def test_calibration_preflight_needs_independent_poses(self):
         from starter.scripts.evaluate_scripted import check_kinematics

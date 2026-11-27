@@ -42,6 +42,10 @@ def make_env(cfg: dict[str, Any]):
         n_envs=int(env_cfg.get("n_envs", 1)),
         device=sim_device,
         max_episode_steps=max_steps,
+        object_scene=env_cfg.get("object_scene"),
+        refine_contacts=env_cfg.get("refine_contacts", False),
+        solid_table=env_cfg.get("solid_table", False),
+        mesh_spheres=env_cfg.get("mesh_spheres", True),
     )
     if controller is None:
         return env

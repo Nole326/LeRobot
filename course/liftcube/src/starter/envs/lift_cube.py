@@ -139,6 +139,10 @@ class LiftCubeEnvAdapter:
         device: str = "cuda:0",
         max_episode_steps: int = 640,
         raw_joint_units: str | None = None,
+        object_scene: str | None = None,
+        refine_contacts: bool = False,
+        solid_table: bool = False,
+        mesh_spheres: bool = True,
     ) -> None:
         if n_envs != 1:
             raise ValueError("This scalar adapter supports n_envs=1 only.")
@@ -148,6 +152,19 @@ class LiftCubeEnvAdapter:
         self.n_envs = n_envs
         self.max_episode_steps = int(max_episode_steps)
         self._owns_env = raw_env is None
+        if not isinstance(refine_contacts, bool):
+            raise ValueError("refine_contacts must be a boolean")
+        self.refine_contacts = refine_contacts
+        if not isinstance(solid_table, bool) or (solid_table and not refine_contacts):
+            raise ValueError("solid_table requires a boolean and enabled contact refinement")
+        self.solid_table = solid_table
+        if not isinstance(mesh_spheres, bool):
+            raise ValueError("mesh_spheres must be a boolean")
+        self.mesh_spheres = mesh_spheres
+        self._contact_layers = None
+        self.object_scene = object_scene
+        if raw_env is not None and object_scene is not None:
+            raise ValueError("object_scene must be set before creating the simulator")
         if raw_joint_units not in (None, "radians", "motor"):
             raise ValueError("raw_joint_units must be radians or motor")
         if self._owns_env and raw_joint_units == "motor":
@@ -192,10 +209,40 @@ class LiftCubeEnvAdapter:
             self._app = _launch_sim_app(self.device)
             env_cls, manager_cls = _import_lift_cube()
             env_cfg = env_cls()
+            if self.refine_contacts:
+                physx = env_cfg.sim.physx
+                # Resolve the stiff finger-object contact within the native 60 Hz tick.
+                if physx.max_position_iteration_count < 255:
+                    raise ValueError("Contact refinement requires at least 255 available position iterations")
+                physx.min_position_iteration_count = max(255, physx.min_position_iteration_count)
+                if physx.max_velocity_iteration_count < 4:
+                    raise ValueError("Contact refinement requires at least 4 available velocity iterations")
+                physx.min_velocity_iteration_count = max(4, physx.min_velocity_iteration_count)
+            if self.object_scene is not None:
+                from pathlib import Path
+
+                env_cfg.scene.scene.spawn.usd_path = str(Path(self.object_scene).resolve(strict=True))
+                from pxr import Sdf
+                layer = Sdf.Layer.FindOrOpen(env_cfg.scene.scene.spawn.usd_path)
+                dz = float(layer.customLayerData.get("reset_z_offset_m", 0.0))
+                if dz:
+                    x, y, z = env_cfg.scene.cube.init_state.pos
+                    env_cfg.scene.cube.init_state.pos = (x, y, z + dz)
+                env_cfg.task_description = "Lift the object up."
+            if self.refine_contacts:
+                from tempfile import TemporaryDirectory
+                from .contact_surfaces import build_contact_surfaces
+
+                self._contact_layers = TemporaryDirectory(prefix="liftcube-surfaces-")
+                robot, scene = env_cfg.scene.robot.spawn, env_cfg.scene.scene.spawn
+                robot.usd_path, scene.usd_path = build_contact_surfaces(
+                    robot.usd_path, scene.usd_path, self._contact_layers.name,
+                    solid_table=self.solid_table, mesh_spheres=self.mesh_spheres
+                )
             # LeIsaac enables a demonstration recorder by default. It appends
             # full-resolution RGB on the GPU with growing torch.cat buffers.
             # This adapter uses explicit external recording, like upstream
-            # policy_inference.py; physics, sensors and scoring stay unchanged.
+            # policy_inference.py; the recorder does not participate in scoring.
             env_cfg.recorders = None
             env_cfg.scene.num_envs = self.n_envs
             env_cfg.sim.device = self.device if str(self.device).startswith("cuda") else "cuda:0"
@@ -219,6 +266,8 @@ class LiftCubeEnvAdapter:
         except IsaacUnavailableError:
             raise
         except Exception as exc:
+            if self._contact_layers is not None:
+                self._contact_layers.cleanup()
             raise IsaacUnavailableError(f"LiftCube creation failed: {exc}\n{describe_install()}") from exc
 
     def _unwrap(self, env: Any) -> Any:
@@ -308,6 +357,9 @@ class LiftCubeEnvAdapter:
                 except Exception:
                     pass
         self._app = None
+        if self._contact_layers is not None:
+            self._contact_layers.cleanup()
+            self._contact_layers = None
 
     def _split_reset(self, result: Any) -> tuple[Any, dict]:
         if isinstance(result, tuple) and len(result) == 2:

@@ -31,7 +31,7 @@
 
 ### 仿真任务
 
-- **LiftCube 仿真任务**：抓取桌面方块并抬起。仓库提供演示读取、行为克隆（BC）和参考 PPO 实现，环境配置与运行命令见 [LiftCube 运行指南](course/liftcube/README.md)。
+- **LiftCube 仿真任务**：抓取桌面方块并抬起。仓库提供演示读取、行为克隆（BC）和参考 PPO 实现，环境配置与运行命令见 [LiftCube 运行指南](course/liftcube/README.md)。 课程原始环境使用红方块和原接触参数；团队的[单物体泛化环境](docs/LIFTCUBE_GENERALIZATION.md)使用修正碰撞面，可按编号生成不同外形、纹理和质量的物体。
 - **PickOrange 仿真任务**：将三颗橙子放入盘中，再让机械臂归位。仿真环境采用 [LightwheelAI 的 LeIsaac](https://github.com/LightwheelAI/leisaac) 0.4.0。仓库提供 [ACT 行为克隆（qpos 与 EE）](course/pickorange/act/README.md)、[ACT 残差 SAC](course/pickorange/sac/README.md) 和 [GR00T 残差 SAC](course/pickorange/groot_sac/README.md) 的训练与评测代码，运行命令见 [PickOrange 运行指南](course/pickorange/README.md)。
 
 ### VLA 接口与控制脚本

@@ -1,5 +1,9 @@
 # SO-101 LiftCube
 
+课程原始环境使用红方块和原接触参数；团队的[单物体泛化环境](../../docs/LIFTCUBE_GENERALIZATION.md)使用修正碰撞面，可按编号生成不同外形、纹理和质量的物体。
+
+The course environment uses the red cube and its original contact geometry. The [team generalization environment](../../docs/LIFTCUBE_GENERALIZATION.md) adds mesh-aligned contacts and selectable shapes, appearances and masses.
+
 模型与脚本入口：[双任务VLA导航](../../docs/VLA_INTERFACES.md) · [视觉控制脚本与特权state控制脚本](../../docs/SCRIPTED_POLICIES.md)。相同工具共用源码，环境与控制配置按任务区分。 / Shared interface and script guides link the actual code for both tasks.
 
 抓取桌面方块并抬升的任务，包含环境适配器、演示读取、BC、参考PPO和评测入口。当前与[PickOrange](../../docs/PICK_ORANGE.md)分别推进；环境版本、相机和动作差异见[任务对照](../../docs/TASKS.md)。正式多物体抓放留待后续。

@@ -1,5 +1,7 @@
 # AGENTS.md
 
+修改 LiftCube 接触面或泛化物体时，分别验证课程默认场景和显式选择的[团队泛化环境](docs/LIFTCUBE_GENERALIZATION.md)。两套环境共用原生抬升评分，按场景来源分别记分。
+
 本文件供开发智能体使用，适用于整个仓库。按任务读取下表中的子级指令；跨目录修改同时读取双方。项目介绍与安装说明见 [README](README.md)，协作流程见 [CONTRIBUTING](CONTRIBUTING.md)。
 
 ## 从这里开始
