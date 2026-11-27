@@ -12,6 +12,8 @@ Training and inference run in the LeRobot policy environment. PyAV reads the cam
 
 LiftCube uses the separately distributed `isaac-lab:4.5.0-v2.1.1-leisaac-v0.1.2-src` image: Isaac Sim 4.5.0, Isaac Lab v2.1.1 and LeIsaac v0.1.2. Obtain it through the [image guide](../course/liftcube/README.md#运行环境--runtime), which includes the SJTU share link and image acquisition instructions. Preserve its bundled Torch/CUDA and source paths; the historical snapshots below are not a replacement for this runtime. PyArrow/PyAV are optional dataset-reading dependencies that may need a compatible install inside the application environment.
 
+The optional [LiftCube generalization environment](LIFTCUBE_GENERALIZATION.md) uses OpenUSD, NumPy and Pillow to generate object scenes from the course assets. Its RGB controller also uses SciPy.
+
 ## PickOrange runtime
 
 Follow the [PickOrange guide](PICK_ORANGE.md). Its diagnostic launchers expect a separate Isaac Sim/IsaacLab runtime with Python3.11 `venv_sim`/`venv_bc` overlays. The public task source is pinned LeIsaac0.4.0 with IsaacLab2.3.0; the repository does not supply an equally locked matching image/installation. Verify the actual simulator version and imports instead of deriving them from a constraint filename or installing over the LiftCube image.

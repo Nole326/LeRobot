@@ -437,9 +437,14 @@
          camera=camera,
          image_height=image_height,
          image_width=image_width,
-@@ -34,3 +43,11 @@
+@@ -33,4 +42,16 @@
+         n_envs=int(env_cfg.get("n_envs", 1)),
          device=sim_device,
          max_episode_steps=max_steps,
++        object_scene=env_cfg.get("object_scene"),
++        refine_contacts=env_cfg.get("refine_contacts", False),
++        solid_table=env_cfg.get("solid_table", False),
++        mesh_spheres=env_cfg.get("mesh_spheres", True),
      )
 +    if controller is None:
 +        return env
@@ -470,11 +475,15 @@
  )
  from starter.interfaces.observation import Observation, ObservationSpec, pack_proprio, proprio_dim
  from starter.envs.lift_cube_privileged import (
-@@ -133,17 +138,32 @@
+@@ -133,17 +138,49 @@
          n_envs: int = 1,
          device: str = "cuda:0",
          max_episode_steps: int = 640,
 +        raw_joint_units: str | None = None,
++        object_scene: str | None = None,
++        refine_contacts: bool = False,
++        solid_table: bool = False,
++        mesh_spheres: bool = True,
      ) -> None:
 +        if n_envs != 1:
 +            raise ValueError("This scalar adapter supports n_envs=1 only.")
@@ -484,6 +493,19 @@
          self.n_envs = n_envs
          self.max_episode_steps = int(max_episode_steps)
          self._owns_env = raw_env is None
++        if not isinstance(refine_contacts, bool):
++            raise ValueError("refine_contacts must be a boolean")
++        self.refine_contacts = refine_contacts
++        if not isinstance(solid_table, bool) or (solid_table and not refine_contacts):
++            raise ValueError("solid_table requires a boolean and enabled contact refinement")
++        self.solid_table = solid_table
++        if not isinstance(mesh_spheres, bool):
++            raise ValueError("mesh_spheres must be a boolean")
++        self.mesh_spheres = mesh_spheres
++        self._contact_layers = None
++        self.object_scene = object_scene
++        if raw_env is not None and object_scene is not None:
++            raise ValueError("object_scene must be set before creating the simulator")
 +        if raw_joint_units not in (None, "radians", "motor"):
 +            raise ValueError("raw_joint_units must be radians or motor")
 +        if self._owns_env and raw_joint_units == "motor":
@@ -503,7 +525,7 @@
          self.action_spec = ActionSpec(frequency_hz=control_hz)
          self.observation_spec = ObservationSpec(
              image_shape=(image_height, image_width, 3),
-@@ -160,6 +180,8 @@
+@@ -160,6 +197,8 @@
          self._episode_id = -1
          self._step_count = 0
          self._last_action = np.zeros(self.action_spec.dim, dtype=np.float32)
@@ -512,19 +534,49 @@
  
      def _make_raw_env(self) -> Any:
          from starter.envs.container import isaac_runtime_ready
-@@ -170,6 +192,11 @@
+@@ -170,6 +209,41 @@
              self._app = _launch_sim_app(self.device)
              env_cls, manager_cls = _import_lift_cube()
              env_cfg = env_cls()
++            if self.refine_contacts:
++                physx = env_cfg.sim.physx
++                # Resolve the stiff finger-object contact within the native 60 Hz tick.
++                if physx.max_position_iteration_count < 255:
++                    raise ValueError("Contact refinement requires at least 255 available position iterations")
++                physx.min_position_iteration_count = max(255, physx.min_position_iteration_count)
++                if physx.max_velocity_iteration_count < 4:
++                    raise ValueError("Contact refinement requires at least 4 available velocity iterations")
++                physx.min_velocity_iteration_count = max(4, physx.min_velocity_iteration_count)
++            if self.object_scene is not None:
++                from pathlib import Path
++
++                env_cfg.scene.scene.spawn.usd_path = str(Path(self.object_scene).resolve(strict=True))
++                from pxr import Sdf
++                layer = Sdf.Layer.FindOrOpen(env_cfg.scene.scene.spawn.usd_path)
++                dz = float(layer.customLayerData.get("reset_z_offset_m", 0.0))
++                if dz:
++                    x, y, z = env_cfg.scene.cube.init_state.pos
++                    env_cfg.scene.cube.init_state.pos = (x, y, z + dz)
++                env_cfg.task_description = "Lift the object up."
++            if self.refine_contacts:
++                from tempfile import TemporaryDirectory
++                from .contact_surfaces import build_contact_surfaces
++
++                self._contact_layers = TemporaryDirectory(prefix="liftcube-surfaces-")
++                robot, scene = env_cfg.scene.robot.spawn, env_cfg.scene.scene.spawn
++                robot.usd_path, scene.usd_path = build_contact_surfaces(
++                    robot.usd_path, scene.usd_path, self._contact_layers.name,
++                    solid_table=self.solid_table, mesh_spheres=self.mesh_spheres
++                )
 +            # LeIsaac enables a demonstration recorder by default. It appends
 +            # full-resolution RGB on the GPU with growing torch.cat buffers.
 +            # This adapter uses explicit external recording, like upstream
-+            # policy_inference.py; physics, sensors and scoring stay unchanged.
++            # policy_inference.py; the recorder does not participate in scoring.
 +            env_cfg.recorders = None
              env_cfg.scene.num_envs = self.n_envs
              env_cfg.sim.device = self.device if str(self.device).startswith("cuda") else "cuda:0"
              # so101leader is absolute joint position. keyboard is a relative delta and
-@@ -181,7 +208,14 @@
+@@ -181,10 +255,19 @@
              env_cfg.actions.gripper_action.preserve_order = True
              dt = float(env_cfg.sim.dt) * int(env_cfg.decimation)
              env_cfg.episode_length_s = float(self.max_episode_steps) * dt
@@ -540,7 +592,12 @@
          except IsaacUnavailableError:
              raise
          except Exception as exc:
-@@ -206,6 +240,8 @@
++            if self._contact_layers is not None:
++                self._contact_layers.cleanup()
+             raise IsaacUnavailableError(f"LiftCube creation failed: {exc}\n{describe_install()}") from exc
+ 
+     def _unwrap(self, env: Any) -> Any:
+@@ -206,6 +289,8 @@
          self._episode_id += 1
          self._step_count = 0
          self._last_action = np.zeros(self.action_spec.dim, dtype=np.float32)
@@ -549,7 +606,7 @@
          kwargs: dict[str, Any] = {}
          if seed is not None:
              kwargs["seed"] = seed
-@@ -214,25 +250,55 @@
+@@ -214,25 +299,55 @@
          except TypeError:
              result = self._raw.reset()
          obs_raw, info_raw = self._split_reset(result)
@@ -609,7 +666,17 @@
  
      def close(self) -> None:
          for obj in (self._raw, self._vector_env, self._unwrapped):
-@@ -262,18 +328,20 @@
+@@ -242,6 +357,9 @@
+                 except Exception:
+                     pass
+         self._app = None
++        if self._contact_layers is not None:
++            self._contact_layers.cleanup()
++            self._contact_layers = None
+ 
+     def _split_reset(self, result: Any) -> tuple[Any, dict]:
+         if isinstance(result, tuple) and len(result) == 2:
+@@ -262,18 +380,20 @@
      def _convert_obs(self, obs_raw: Any) -> Observation:
          policy = self._policy_dict(obs_raw)
          image = self._extract_image(policy)
@@ -641,7 +708,7 @@
          proprio = pack_proprio(joint_pos, joint_vel, last_action, ee, include_ee=self.include_ee)
          return Observation(
              image=image,
-@@ -296,7 +364,7 @@
+@@ -296,7 +416,7 @@
          return policy
  
      def _extract_image(self, policy: dict[str, Any]) -> np.ndarray:
@@ -650,7 +717,7 @@
          raw = None
          for key in candidates:
              if key in policy:
-@@ -307,14 +375,19 @@
+@@ -307,14 +427,19 @@
                  raw = policy[nested]
                  break
          if raw is None:
@@ -673,7 +740,7 @@
          if img.dtype != np.uint8:
              if img.max() <= 1.01:
                  img = np.clip(img, 0, 1) * 255.0
-@@ -341,15 +414,13 @@
+@@ -341,15 +466,13 @@
      ) -> np.ndarray | None:
          for key in keys:
              if key in policy:
@@ -694,7 +761,7 @@
  
      def _extract_ee(self, policy: dict[str, Any]) -> np.ndarray:
          if "ee_frame_state" in policy:
-@@ -370,6 +441,8 @@
+@@ -370,6 +493,8 @@
  
      def get_privileged_state(self) -> LiftCubePrivilegedState:
          """LiftCube cube, base, and jaw state for reward code. Not a policy observation."""

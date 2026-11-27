@@ -1,5 +1,9 @@
 # LiftCube 控制脚本 / LiftCube scripted controllers
 
+课程原始环境使用红方块和原接触参数；团队的[单物体泛化环境](LIFTCUBE_GENERALIZATION.md)使用修正碰撞面，可按编号生成不同外形、纹理和质量的物体。
+
+The course environment uses the red cube and its original contact geometry. The [team generalization environment](LIFTCUBE_GENERALIZATION.md) adds mesh-aligned contacts and selectable shapes, appearances and masses.
+
 评测入口是 `starter.scripts.evaluate_scripted`。前视 RGB 视觉控制脚本从图像定位方块；特权state控制脚本从仿真读取方块的位置和朝向。两者都依次完成开爪接近、下降、闭合与抬升，并由环境判定成功。
 
 The evaluator runs two SO-101 controllers. One locates the cube in a calibrated front image; the other reads its position and yaw from the simulator. Both command the same six joints and use native LiftCube scoring.

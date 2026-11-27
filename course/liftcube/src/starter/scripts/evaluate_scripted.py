@@ -41,14 +41,21 @@ def check_kinematics(policy):
 
 class RecordedEnv:
     """Record public observations and execution diagnostics, never feed info to policy."""
-    def __init__(self, env, stream, runtime_camera_calibration=False):
+    def __init__(self, env, stream, runtime_camera_calibration=False, nominal_camera=None):
         self.env, self.stream = env, stream
         self.name, self.action_spec = env.name, env.action_spec
         self.frames = []
         self.policy = None
         self.runtime_camera_calibration = runtime_camera_calibration
+        self.nominal_camera = nominal_camera
 
     def reset(self, **kwargs):
+        if self.nominal_camera is not None:
+            raw = self.env._unwrapped
+            camera = raw.scene["front"]
+            camera.set_world_poses(*self.nominal_camera, convention="opengl")
+            raw.sim.render()
+            camera.update(0., force_recompute=True)
         obs, info = self.env.reset(**kwargs)
         self.frames = [obs.image.copy()]
         row = {"reset": kwargs, "q": obs.proprio[:6].tolist()}
@@ -83,11 +90,19 @@ def main(argv=None):
         help="Opt-in matching simulator camera/base API, not a hardware capability claim")
     parser.add_argument("--privileged-state", "--privileged-teacher", dest="privileged_teacher",
         action="store_true", help="Localize from the simulator's cube position and yaw")
+    parser.add_argument("--object-scene", type=Path,
+        help="Select the team generalization environment and its generated USD scene")
     mode = parser.add_mutually_exclusive_group(required=True)
     mode.add_argument("--check", action="store_true", help="CPU calibration and IK checks only")
     mode.add_argument("--run-simulation", action="store_true", help="Run episodes in the course simulator")
     args = parser.parse_args(argv)
     c = load_calibration(args.calibration)
+    if args.object_scene and not args.object_scene.is_file():
+        parser.error("--object-scene requires an existing USD scene")
+    if args.object_scene and not args.privileged_teacher and not c.get("grasp_presets"):
+        parser.error("Generalization RGB evaluation requires calibrated grasp presets")
+    if args.object_scene and not args.privileged_teacher and not args.runtime_camera_calibration:
+        parser.error("Generalization RGB evaluation requires --runtime-camera-calibration")
     localization = "privileged_state" if args.privileged_teacher else "front_rgb"
     if c.get("localization", localization) != localization:
         parser.error(f"Calibration selects {c['localization']}, but the command selects {localization}")
@@ -104,6 +119,9 @@ def main(argv=None):
     if c.get('grasp_presets'):
         from starter.scripted_geometry import GeometricLiftCube
         policy_class = GeometricLiftCube
+    if args.object_scene and not args.privileged_teacher:
+        from starter.pad_guided import PadGuided
+        policy_class = PadGuided
     if args.privileged_teacher:
         from starter.privileged_liftcube import PrivilegedLiftCube
         policy_class = PrivilegedLiftCube
@@ -123,6 +141,10 @@ def main(argv=None):
 
     cfg = resolve_config(args.config)
     e = cfg.get("env", {})
+    if args.object_scene:
+        e.update(object_scene=str(args.object_scene.resolve()), refine_contacts=True, restore_nominal_camera=True)
+    elif e.get("object_scene") or e.get("refine_contacts"):
+        parser.error("Use --object-scene to select the team environment")
     if e.get("control_mode", "joint") != "joint":
         raise ValueError("The LiftCube grasp script emits joints, not planar EE actions; do not relabel its outputs")
     if (e.get("id") != "LeIsaac-SO101-LiftCube-v0" or e.get("camera") != "front"
@@ -138,8 +160,16 @@ def main(argv=None):
     (args.output / "calibration.json").write_bytes(calibration_bytes)
     manifest = RunManifest.build(seed=int(cfg.get("seed", 0)), env_name=e["id"], env_backend="lift_cube",
         config_path=str(args.config), extra={"git": try_git_hash(),
-        "policy": "privileged-liftcube-teacher-v1" if args.privileged_teacher else "front-rgb-rule-v1",
+        "policy": ("privileged-liftcube-teacher-v1" if args.privileged_teacher else
+                   "front-contour-pad-guided-v2" if args.object_scene else "front-rgb-rule-v1"),
         "privileged_teacher": args.privileged_teacher, "automatic_bc_admission": False,
+        "environment_profile": "team_generalization" if args.object_scene else "course_red_cube",
+        "scene_file": args.object_scene.name if args.object_scene else None,
+        "scene_sha256": hashlib.sha256(args.object_scene.read_bytes()).hexdigest() if args.object_scene else None,
+        "refine_contacts": e.get("refine_contacts", False),
+        "solid_table": e.get("solid_table", False),
+        "mesh_spheres": e.get("mesh_spheres", True),
+        "restore_nominal_camera": e.get("restore_nominal_camera", False),
         "calibration_sha256": hashlib.sha256(calibration_bytes).hexdigest(),
         "kinematics_backend": c.get("kinematics_backend", "urdf"),
         "kinematics_sha256": c.get("chain_sha256", c.get("urdf_sha256")),
@@ -164,7 +194,14 @@ def main(argv=None):
     status = {"status": "running", "complete_episodes": 0}
     (args.output / "run-status.json").write_text(json.dumps(status), encoding="utf-8")
     try:
+        restore_camera = e.get("restore_nominal_camera", False)
+        if restore_camera:
+            seed_all(manifest.seed)
         env = make_env(cfg)
+        nominal_camera = None
+        if restore_camera:
+            camera = env._unwrapped.scene["front"]
+            nominal_camera = tuple(pose.clone() for pose in camera._view.get_world_poses())
         for episode in range(count):
             # A fresh state machine cannot leak target/stage across resets.
             if args.privileged_teacher:
@@ -174,7 +211,8 @@ def main(argv=None):
             else:
                 policy = policy_class(c, kin)
             with (args.output / f"episode-{episode:04d}.jsonl").open("x", encoding="utf-8") as stream:
-                recorded = RecordedEnv(env, stream, runtime_camera_calibration=args.runtime_camera_calibration)
+                recorded = RecordedEnv(env, stream, runtime_camera_calibration=args.runtime_camera_calibration,
+                                       nominal_camera=nominal_camera)
                 recorded.policy = policy
                 try:
                     seed = manifest.seed + episode

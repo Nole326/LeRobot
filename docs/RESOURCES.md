@@ -10,6 +10,8 @@ Choose a task/backend in the [status matrix](TASKS.md). Git contains integration
 
 The model repository provides joint and end-effector ACT checkpoints, their residual policies, and GR00T residuals. Each residual specifies its frozen base and execution profile.
 
+课程 LiftCube 资产随[配套环境](../course/liftcube/README.md)获取。团队的[单物体泛化目录、8K 分类图和生成命令](LIFTCUBE_GENERALIZATION.md)使用该场景作为输入。 / Generate the team’s single-object variants from the scene distributed with the course environment.
+
 ## 专家演示 / Demonstrations
 
 | 任务 / Task | 数据源 / Source | 使用前检查 / Before training |

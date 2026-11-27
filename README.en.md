@@ -31,7 +31,7 @@ The current stage covers LiftCube and PickOrange as separate policy, data and ev
 
 ### Simulation tasks
 
-- **LiftCube simulation task**: Grasp a cube on the table and lift it. The repository includes a demonstration loader, behavior cloning (BC), and a reference PPO implementation. See the [LiftCube run guide](course/liftcube/README.md) for environment setup and commands.
+- **LiftCube simulation task**: Grasp a cube on the table and lift it. The repository includes a demonstration loader, behavior cloning (BC), and a reference PPO implementation. See the [LiftCube run guide](course/liftcube/README.md) for environment setup and commands. The course environment uses the red cube and its original contact geometry. The [team generalization environment](docs/LIFTCUBE_GENERALIZATION.md) adds mesh-aligned contacts and selectable shapes, appearances and masses.
 - **PickOrange simulation task**: Place three oranges on the plate and return the arm to rest. The environment uses [LightwheelAI’s LeIsaac](https://github.com/LightwheelAI/leisaac) 0.4.0. The repository includes training and evaluation code for [ACT behavior cloning (qpos and EE)](course/pickorange/act/README.md), [ACT residual SAC](course/pickorange/sac/README.md), and [GR00T residual SAC](course/pickorange/groot_sac/README.md). See the [PickOrange run guide](course/pickorange/README.md) for commands.
 
 ### VLA interfaces and control scripts

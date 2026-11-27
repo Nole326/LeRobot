@@ -18,6 +18,8 @@ Select [LiftCube or PickOrange](TASKS.md) first. Their source/runtime versions, 
 
 For LiftCube, follow its [runtime guide](../course/liftcube/README.md): mount this repository at `/repo` and demonstrations separately at `/data/lift_cube`, then run in `/repo/course/liftcube` with the matching image's LeIsaac source on `PYTHONPATH`. The layout below covers [PickOrange diagnostics](PICK_ORANGE.md), which remain diagnostics within the current task track, not a complete model benchmark or a recipe for installing LiftCube over that environment.
 
+For paired LiftCube generalization runs, record the catalogue ID, controller and placement seed. The [environment guide](LIFTCUBE_GENERALIZATION.md) gives both launch commands, the 8- and 16-second scoring windows and the course red-cube comparison.
+
 For PickOrange, use the [task guide](../course/pickorange/README.md) for VLA inference and demonstration collection. Follow the method-specific guides for [ACT](../course/pickorange/act/README.md), [ACT residual SAC](../course/pickorange/sac/README.md) and [GR00T residual SAC](../course/pickorange/groot_sac/README.md). Match the published checkpoint to its loader, control mode and evaluation protocol. Weights and demonstrations are listed in [Resources](RESOURCES.md).
 
 The diagnostic launchers expect the course tools under `/workspace/course`, application overlays named `venv_sim` and `venv_bc`, and external assets under `/data/course`. See the [environment guide](PICK_ORANGE.md) for the mount layout.
