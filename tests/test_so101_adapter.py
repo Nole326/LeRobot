@@ -34,6 +34,14 @@ class SO101AdapterTests(unittest.TestCase):
              patch('starter.envs.contact_surfaces.build_contact_surfaces', return_value=("robot.usda", "scene.usda")) as surfaces, \
              patch('starter.envs.lift_cube._launch_sim_app'), \
              patch('starter.envs.lift_cube._import_lift_cube', return_value=(lambda: cfg, Manager)):
+            from starter.envs.factory import make_env
+            make_env({"env": {}}).close()
+            surfaces.assert_not_called()
+            self.assertEqual((cfg.scene.robot.spawn.usd_path, cfg.scene.scene.spawn.usd_path),
+                             ("source.usd", "source.usd"))
+            self.assertEqual((cfg.sim.physx.min_position_iteration_count,
+                              cfg.sim.physx.min_velocity_iteration_count), (1, 0))
+            self.assertEqual((cfg.sim.dt, cfg.decimation), (1/60, 1))
             env = LiftCubeEnvAdapter(device='cuda:0', refine_contacts=True)
             self.addCleanup(env.close)
             self.assertEqual((cfg.scene.robot.spawn.usd_path, cfg.scene.scene.spawn.usd_path), ("robot.usda", "scene.usda"))
@@ -43,11 +51,7 @@ class SO101AdapterTests(unittest.TestCase):
             LiftCubeEnvAdapter(device='cuda:0', refine_contacts=True).close()
             self.assertEqual(cfg.sim.physx.min_position_iteration_count, 255)
             self.assertEqual(cfg.sim.physx.min_velocity_iteration_count, 4)
-            cfg.sim.physx.min_position_iteration_count = 1
-            from starter.envs.factory import make_env
-            make_env({"env": {}})
             self.assertEqual(surfaces.call_count, 2)
-            self.assertEqual(cfg.sim.physx.min_position_iteration_count, 1)
             with self.assertRaises(ValueError):
                 make_env({"env": {"refine_contacts": "false"}})
         self.assertIsNone(cfg.recorders)

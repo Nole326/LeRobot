@@ -16,7 +16,7 @@ Choose a method in the [task matrix](TASKS.md), then obtain its environment asse
 
 | 目标 / Goal | LiftCube | PickOrange |
 | --- | --- | --- |
-| 视觉控制脚本 / Visual control script | [已有视觉控制脚本基线](SCRIPTED_LIFTCUBE.md) | [模型辅助与 RGB＋q6＋相机标定两种协议 / Two calibrated visual protocols](../course/pickorange/visual/README.md) |
+| 视觉控制脚本 / Visual control script | [课程红方块](SCRIPTED_LIFTCUBE.md) · [自研泛化物体 / Generalization](LIFTCUBE_GENERALIZATION.md) | [模型辅助与 RGB＋q6＋相机标定两种协议 / Two calibrated visual protocols](../course/pickorange/visual/README.md) |
 | 特权state控制脚本 / privileged-state control scripts | 见下节，使用 `--privileged-state` | [自研控制脚本与回放检验](../course/pickorange/expert/README.md)。[官方状态机说明](../course/pickorange/README.md#特权state控制脚本采集--privileged-state-control-script-collection)列出物理和状态写入限制 / Project collection and replay tools, plus the upstream state-machine constraints |
 | 预训练VLA推理 / Pretrained inference | [单front包装](VLA_INTERFACES.md)，匹配本地适配描述；完整GPU闭环按模型验收 | [GR00T N1.5/N1.6、SmolVLA与π₀.₅双视角入口](../course/pickorange/README.md)，能力与限制见[检验摘要](PICKORANGE_VALIDATION.md) |
 | SmallCNN BC/PPO | [已有参考训练](../course/liftcube/TRAINING.md) | 当前不使用LiftCube训练器 / Not integrated |

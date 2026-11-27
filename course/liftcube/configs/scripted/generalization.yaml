@@ -3,6 +3,8 @@ device: cpu
 
 env:
   id: LeIsaac-SO101-LiftCube-v0
+  # The scripted evaluator requires --object-scene for this profile.
+  refine_contacts: true
   camera: front
   image_height: 256
   image_width: 256

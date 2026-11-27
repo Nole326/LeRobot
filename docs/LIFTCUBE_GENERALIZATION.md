@@ -3,13 +3,28 @@
 | 环境 / Environment | 场景与接触面 / Scene and contacts | 视觉控制脚本 / RGB | 特权 state 控制脚本 / Privileged state |
 | --- | --- | --- | --- |
 | 课程原始环境 / Course | 课程镜像中的红方块、桌面和机械臂，沿用原碰撞面与求解参数 | 红方块轮廓与已标定抓姿 | 读取方块位置与偏航 |
-| 团队修复泛化版 / Team extension | 在课程 USD 上叠加物体、指面与桌面碰撞修正层 | 前视图分割、轮廓跟踪、夹面对中，细长盒沿短边闭合 | 复用同一特权控制器，读取当前物体位置与偏航 |
+| 团队修复泛化版 / Team extension | 在课程 USD 上叠加机械臂刚体连杆、物体与桌面的碰撞修正层 | 前视图分割、轮廓跟踪、夹面对中，细长盒沿短边闭合 | 复用同一特权控制器，读取当前物体位置与偏航 |
 
 两套环境沿用课程机械臂、60 Hz 物理步进、30 Hz 关节指令和原生抬升判定。视觉模式读取 RGB、关节反馈及重置后的相机标定。特权模式单列成绩。课程基线的设置与历史成绩见[控制脚本指南](SCRIPTED_LIFTCUBE.md)。
 
 The course profile runs the original red cube with the original solver settings. Selecting an object scene enables the team's collision overlays and generalization profile. Both use the course joint interface, timing and native lift score. RGB uses the calibrated front camera and joint feedback. The privileged controller additionally reads object position and yaw.
 
+## 环境与评测的改动范围 / Scope of the extension
+
+| 项目 / Item | 课程红方块 / Course | 修复泛化版 / Team |
+| --- | --- | --- |
+| 碰撞 / Contacts | 使用课程 USD 和原求解参数 | 用机械臂刚体连杆（含两指）的可见网格建立碰撞面，物体按形状建立接触面，桌面使用可见三角面。PhysX 位置与速度求解的最低迭代数分别为 255 和 4 |
+| 重置 / Reset | 沿用课程初态与扰动 | 根据物体高度相对 30 mm 方块的差值，将初始中心高度调整半个高度差。水平摆放和朝向沿用课程随机化 |
+| 相机 / Camera | 沿用课程重置流程 | 配对评测在每次重置前恢复前视相机名义位姿，渲染并刷新传感器，然后执行带 seed 的课程重置。相机型号与观测接口共用 |
+| 任务和计分 / Task and scoring | 红方块抬升，专用脚本配置使用种子 1000–1049 | 任务文字改为通用物体抬升，配对配置使用 42000、42001。沿用同一抬升判据、关节动作映射、夹爪驱动和回合上限 |
+
+The extension raises contact solver iterations within the same 60 Hz physics step. Its object layer supplies the reset height offset. For paired evaluations the runner seeds environment creation and restores the nominal front camera before each seeded reset. The action interface, joint drives, reward and native lift criterion are shared with the course benchmark.
+
 ## 物体目录 / Catalogue
+
+![LiftCube 形状与属性泛化：已见与未见形状，以及各形状共用的颜色、外观和质量 / Seen and held-out shapes and shared attributes](../assets/liftcube-shapes-and-attributes-8k.png)
+
+[打开 8K 原图 / Open the 7680 × 4320 PNG](../assets/liftcube-shapes-and-attributes-8k.png)。图中各物体按自身网格绘制，显示大小已归一化。实际尺寸见下表。
 
 196 种几何尺寸 × 12 种颜色 × 11 种外观 × 5 档质量，共 129,360 个场景。按零起始编号生成，范围为 0–129359。
 
@@ -49,6 +64,6 @@ For the course benchmark use the original evaluation YAML and omit the object sc
 
 ## 接触修复与验收 / Contact geometry
 
-泛化版由可见几何生成指面和物体碰撞面，并使用桌面可见表面建立接触。改变高度时同步调整重置位置，按封闭碰撞体体积和指定质量计算密度。求解器在原有 60 Hz 步内增加迭代。修复过程生成独立 USD 层，课程源资产按原路径读取。
+修复在独立 USD 层中完成，按封闭碰撞体体积和指定质量更新物体密度。红方块 seed 1001 的成对诊断中，保留同一视觉控制脚本，仅修正接触面后，指面最大测得穿入从 11.956 mm 降至 0.276 mm。承载时仍可能出现瞬时重叠，验收时分别记录夹爪与物体、物体与桌面的穿入深度。
 
 On the red cube, seed 1001, the maximum measured finger penetration fell from 11.956 mm to 0.276 mm with the contact fix. This is a single paired diagnostic. Discrete contacts can still show transient overlap under load. Compare assets by checking their visual and collision surfaces, then measure finger–object and object–table penetration during the grasp.

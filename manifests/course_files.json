@@ -66,8 +66,8 @@
   },
   {
     "path": "course/liftcube/configs/scripted/generalization.yaml",
-    "bytes": 239,
-    "sha256": "d15d6e90a8b4f5b1ef6dd5aa26f6d89a6b27d0f79397e0d78be16f34a4e6b1ad"
+    "bytes": 332,
+    "sha256": "fda4c240e038eb3feb5e67892865ba38bdde39179e2a8c687ab2c523bffad8eb"
   },
   {
     "path": "course/liftcube/configs/scripted/privileged_state.json",

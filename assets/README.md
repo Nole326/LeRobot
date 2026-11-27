@@ -45,3 +45,9 @@ Use in this project does not change the image's ownership.
 原始课程PDF、联系人信息及私有课程记录不公开。海报展示项目目标，不是训练结果或功能验收证明。
 
 The original course PDF, contact information and private course records are not published. The poster presents project objectives, not training results or proof of functional acceptance.
+
+## LiftCube 形状与属性图 / LiftCube shape and attribute chart
+
+[8K PNG](liftcube-shapes-and-attributes-8k.png) 按泛化目录中的 USD 网格作正交投影，以统一显示尺寸对照外形。形状分组、物理尺寸及使用方法见[环境专页](../docs/LIFTCUBE_GENERALIZATION.md)。
+
+The 7680 × 4320 diagram uses orthographic projections of the catalogue meshes. Shapes are normalized for illustration. The environment guide lists their physical dimensions and evaluation groups.
