@@ -5,12 +5,20 @@ from pathlib import Path
 
 import numpy as np
 
+from .build_object_scenes import cached_asset
+
 
 def write_texture(directory, pattern, color, rgb):
     from PIL import Image
 
-    directory.mkdir(exist_ok=True)
     path = directory / f"{color}-{pattern}.png"
+    with cached_asset(path) as pending:
+        if pending is not None:
+            Image.fromarray(texture_pixels(pattern, rgb)).save(pending)
+    return path
+
+
+def texture_pixels(pattern, rgb):
     u, v = np.meshgrid((np.arange(256) + 0.5) / 256, (np.arange(256) + 0.5) / 256)
     accent = {
         "solid": 0,
@@ -34,8 +42,7 @@ def write_texture(directory, pattern, color, rgb):
     srgb = np.where(
         linear <= 0.0031308, 12.92 * linear, 1.055 * linear ** (1 / 2.4) - 0.055
     )
-    Image.fromarray(np.uint8(np.rint(srgb * 255))).save(path)
-    return path
+    return np.uint8(np.rint(srgb * 255))
 
 
 def textured_surface(stage, body, visual, shape, output, pattern, color, rgb):

@@ -8,11 +8,37 @@ import tempfile
 import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "course/liftcube/src"))
-from starter.scripts.build_object_scenes import build_scene
+from starter.scripts.build_object_scenes import build_scene, cached_asset
 from starter.scripts.object_catalog import SIZE, PROFILES, spec
 
 
 class ObjectCatalogueTests(unittest.TestCase):
+    def test_shared_asset_is_visible_only_after_publication(self):
+        with tempfile.TemporaryDirectory() as directory:
+            target = Path(directory) / "templates" / "asset.usda"
+            with cached_asset(target) as first:
+                first.write_bytes(b"partial")
+                with cached_asset(target) as second:
+                    second.write_bytes(b"complete")
+                    self.assertFalse(target.exists())
+                self.assertEqual(target.read_bytes(), b"complete")
+                first.write_bytes(b"complete")
+            with cached_asset(target) as existing:
+                self.assertIsNone(existing)
+            self.assertEqual(list(target.parent.iterdir()), [target])
+
+    def test_incomplete_asset_can_be_retried(self):
+        with tempfile.TemporaryDirectory() as directory:
+            target = Path(directory) / "textures" / "asset.png"
+            with self.assertRaises(ValueError):
+                with cached_asset(target) as pending:
+                    pending.write_bytes(b"partial")
+                    raise ValueError("interrupted")
+            self.assertEqual(list(target.parent.iterdir()), [])
+            with cached_asset(target) as pending:
+                pending.write_bytes(b"complete")
+            self.assertEqual(target.read_bytes(), b"complete")
+
     def test_full_grid_and_split(self):
         self.assertEqual(len(PROFILES), 196)
         self.assertEqual(SIZE, 129360)

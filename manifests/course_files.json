@@ -351,8 +351,8 @@
   },
   {
     "path": "course/liftcube/src/starter/scripts/build_object_scenes.py",
-    "bytes": 10133,
-    "sha256": "3b4c0c0aeac655dfd6e5eb95da929e1290d61a3927645206d74ff7d64816db28"
+    "bytes": 10855,
+    "sha256": "6e5fd329bac769dfbd356f299688612cde472dcfec8944a4a7f4b6769c959a0a"
   },
   {
     "path": "course/liftcube/src/starter/scripts/evaluate_scripted.py",
@@ -371,13 +371,13 @@
   },
   {
     "path": "course/liftcube/src/starter/scripts/object_catalog.py",
-    "bytes": 5618,
-    "sha256": "e2f629e441c2e5e39467e3e75143049f998f6dc8b0a99c09dfcc5f75428ef8bd"
+    "bytes": 5709,
+    "sha256": "64c324ceedcbc6536930b7d9f45e0e562c328058577b295768256971d9bf5fb1"
   },
   {
     "path": "course/liftcube/src/starter/scripts/object_textures.py",
-    "bytes": 5891,
-    "sha256": "361b120f944e5c03994a71b78d4100f5daff0d4ae009298700f49c3ff691ffb5"
+    "bytes": 6062,
+    "sha256": "3f948efe516e2922312dcf789c2c8e50d4f2c983eb939cfd94b2a4da9f3705ac"
   },
   {
     "path": "course/liftcube/src/starter/scripts/smoke_test.py",

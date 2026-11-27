@@ -7,7 +7,7 @@ from itertools import product
 from pathlib import Path
 
 from .build_object_scenes import COLORS as RGB
-from .build_object_scenes import build_scene
+from .build_object_scenes import build_scene, cached_asset
 
 COLORS = (
     "red",
@@ -105,9 +105,8 @@ def materialize(index, target, assets):
     rel = lambda p: Path(os.path.relpath(p, target.parent)).as_posix()
     base = rel(assets / "templates" / f"g{g:03}.usda")
     texture = rel(assets / "textures" / f"{color}-{look}.png")
-    target.write_text(
-        layer_text(shape, dims, color, look, mass, base, texture), encoding="utf8"
-    )
+    with target.open("x", encoding="utf8") as scene:
+        scene.write(layer_text(shape, dims, color, look, mass, base, texture))
 
 
 def layer_text(shape, dims, color, look, mass, base, texture):
@@ -161,10 +160,11 @@ def generate(index, source, target):
     ]
     assets = target.parent / ("atlas-" + source_key)
     template = assets / "templates" / f"g{g:03}.usda"
-    if not template.exists():
-        build_scene(
-            source, template, shape, "red", pattern="diagonal", dimensions_mm=dims
-        )
+    with cached_asset(template) as pending:
+        if pending is not None:
+            build_scene(
+                source, pending, shape, "red", pattern="diagonal", dimensions_mm=dims
+            )
     write_texture(assets / "textures", look, color, RGB[color])
     materialize(index, target, assets)
 

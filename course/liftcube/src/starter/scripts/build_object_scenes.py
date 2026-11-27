@@ -1,8 +1,31 @@
 """Build optional USD layers over the course LiftCube scene. Run with Isaac Python or usd-core."""
 
+from contextlib import contextmanager
 import math
 import os
 from pathlib import Path
+from uuid import uuid4
+
+@contextmanager
+def cached_asset(path):
+    """Publish a complete shared asset after writing it beside its final path."""
+    if path.is_file():
+        yield None
+        return
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_name(f".{path.stem}-{uuid4().hex}{path.suffix}")
+    try:
+        yield temporary
+        if not path.is_file():
+            try:
+                temporary.replace(path)
+            except PermissionError:
+                # Windows may already have the identical winner open in USD.
+                if not path.is_file():
+                    raise
+    finally:
+        temporary.unlink(missing_ok=True)
+
 
 COLORS = {
     "red": (0.8, 0.025, 0.025),
